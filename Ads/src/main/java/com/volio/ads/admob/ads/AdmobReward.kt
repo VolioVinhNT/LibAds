@@ -121,7 +121,7 @@ class AdmobReward : AdmobAds() {
        val adListener = object : RewardedAdLoadCallback() {
            override fun onRewardedAdLoaded() {
                super.onRewardedAdLoaded()
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
                     AdDialog.getInstance().hideLoading()
                     rewardedAd?.show(activity,rewardedAdLoadCallback)
                     lifecycle?.removeObserver(lifecycleObserver)
@@ -135,7 +135,7 @@ class AdmobReward : AdmobAds() {
                super.onRewardedAdFailedToLoad(p0)
                 loadFailed = true
                 error = p0?.message
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad(p0?.message)
                     lifecycle?.removeObserver(lifecycleObserver)

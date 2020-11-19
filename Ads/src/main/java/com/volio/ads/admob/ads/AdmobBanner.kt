@@ -2,8 +2,10 @@ package com.volio.ads.admob.ads
 
 import android.app.Activity
 import android.graphics.Color
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
 import com.volio.ads.AdCallback
@@ -25,9 +27,21 @@ class AdmobBanner : AdmobAds() {
         timeMillisecond: Long?,
         adCallback: AdCallback?
     ) {
-        load(activity, adsChild, adCallback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+        layout?.viewTreeObserver?.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                layout.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                layout.measuredHeight.let {
+                    if(Utils.convertPixelsToDp(it.toFloat(),activity) >= 250f ){
+                        adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
+                    }
+                }
+                load(activity, adsChild, adCallback, loadSuccess = {
+                    show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+                })
+            }
+
         })
+
     }
 
     override fun show(

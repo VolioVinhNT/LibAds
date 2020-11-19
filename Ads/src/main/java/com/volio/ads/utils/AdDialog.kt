@@ -20,7 +20,7 @@ class AdDialog {
         context: Context?,
         message: String?
     ) {
-        if (context != null&&message != null&&message.isNullOrEmpty()) {
+        if (context != null&&message != null) {
             if (mProgressDialog == null) {
                 mProgressDialog = ProgressDialog(context)
                 mProgressDialog?.setMessage(message)

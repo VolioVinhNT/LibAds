@@ -94,6 +94,7 @@ class AdmobInterstitial : AdmobAds() {
         textLoading?.let {
             AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
         }
+        Log.d(TAG, "load: "+textLoading)
         resetValue()
         callback = adCallback
         timeClick = System.currentTimeMillis();
@@ -120,8 +121,10 @@ class AdmobInterstitial : AdmobAds() {
         mInterstitialAd?.adListener = object : AdListener() {
             override fun onAdLoaded() {
                 super.onAdLoaded()
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
-                    AdDialog.getInstance().hideLoading()
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
+                    Handler(Looper.getMainLooper()).postDelayed(Runnable {
+                        AdDialog.getInstance().hideLoading()
+                    },500)
                     mInterstitialAd?.show()
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
@@ -134,7 +137,7 @@ class AdmobInterstitial : AdmobAds() {
                 super.onAdFailedToLoad(p0)
                 loadFailed = true
                 error = p0?.message
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad(p0?.message)
                     lifecycle?.removeObserver(lifecycleObserver)
@@ -160,7 +163,7 @@ class AdmobInterstitial : AdmobAds() {
     private val lifecycleObserver = LifecycleEventObserver { source, event ->
         eventLifecycle = event
         if (event == Lifecycle.Event.ON_RESUME) {
-            AdDialog.getInstance().hideLoading()
+//            AdDialog.getInstance().hideLoading()
             if (isTimeOut || loadFailed || loaded) {
                 AdDialog.getInstance().hideLoading()
                 if (loaded) {

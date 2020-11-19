@@ -54,6 +54,9 @@ class AdsController private constructor(
             return adsController
         }
     }
+    public fun setDebugMode(isDebug: Boolean){
+        Constant.isDebug = isDebug
+    }
     private fun checkAppIdPacket(ads:Ads):Boolean{
         var checkAppId = false
         var checkPacket = false
@@ -127,9 +130,9 @@ class AdsController private constructor(
         }
 
     }
-
     public fun show(
         spaceName: String,
+        reloadLoadSpaceName:String? = null,
         textLoading: String? = null,
         layout: ViewGroup? = null,
         layoutAds: View? = null,
@@ -164,16 +167,20 @@ class AdsController private constructor(
                 if (checkShow) break
             }
             if (!checkShow) {
-                loadAndShow(
-                    spaceName,
-                    false,
-                    textLoading,
-                    layout,
-                    layoutAds,
-                    lifecycle,
-                    timeMillisecond,
-                    adCallback
-                )
+                if(reloadLoadSpaceName != null) {
+                    loadAndShow(
+                            reloadLoadSpaceName,
+                            false,
+                            textLoading,
+                            layout,
+                            layoutAds,
+                            lifecycle,
+                            timeMillisecond,
+                            adCallback
+                    )
+                }else{
+                    adCallback?.onAdFailToLoad("")
+                }
             }
         } else {
             showToastDebug(activity, "no data check spaceName and file json")

@@ -116,7 +116,7 @@ class AdmobOpenAds : AdmobAds() {
                 appOpenAd = ad
                 loaded = true
                 timeLoader = Date().time
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                     appOpenAd?.show(currentActivity, fullScreenContentCallback)
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
@@ -126,7 +126,7 @@ class AdmobOpenAds : AdmobAds() {
                 Log.d(TAG, "onAppOpenAdFailedToLoad: ")
                 loadFailed = true
                 error = loadAdError.message
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
                     adCallback?.onAdFailToLoad(loadAdError.message)
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
@@ -159,7 +159,6 @@ class AdmobOpenAds : AdmobAds() {
         override fun onAdDismissedFullScreenContent() {
             appOpenAd = null
             callback?.onAdClose(AdDef.ADS_TYPE.OPEN_APP)
-            Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
 
             Log.d(TAG, "onAdDismissedFullScreenContent: ")
         }
@@ -171,6 +170,8 @@ class AdmobOpenAds : AdmobAds() {
 
         override fun onAdShowedFullScreenContent() {
             Log.d(TAG, "onAdShowedFullScreenContent: ")
+            Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
+
             callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.OPEN_APP)
         }
     }

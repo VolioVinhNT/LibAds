@@ -1,4 +1,3 @@
-
 package com.volio.ads.admob
 
 import android.app.Activity
@@ -19,65 +18,64 @@ private const val TAG = "AdsController"
 class AdmobHolder {
     private var hashMap: HashMap<String, AdmobAds> = HashMap()
     public fun loadAndShow(
-        activity: Activity,
-        isKeepAds: Boolean,
-        adsChild: AdsChild,
-        loadingText: String?,
-        layout: ViewGroup?,
-        layoutAds: View?,
-        lifecycle: Lifecycle?,
-        timeMillisecond: Long?,
-        adCallback: AdCallback?, failCheck: () -> Boolean
+            activity: Activity,
+            isKeepAds: Boolean,
+            adsChild: AdsChild,
+            loadingText: String?,
+            layout: ViewGroup?,
+            layoutAds: View?,
+            lifecycle: Lifecycle?,
+            timeMillisecond: Long?,
+            adCallback: AdCallback?, failCheck: () -> Boolean
     ) {
         loadAndShow(
-            activity,
-            adsChild,
-            loadingText,
-            layout,
-            layoutAds,
-            lifecycle,
-            timeMillisecond,
-            object : AdCallback {
-                override fun onAdShow(network: String, adtype: String) {
-                    adCallback?.onAdShow(network, adtype)
-                    Log.d(TAG, "onAdShow: ")
-                    if (!isKeepAds) {
+                activity,
+                adsChild,
+                loadingText,
+                layout,
+                layoutAds,
+                lifecycle,
+                timeMillisecond,
+                object : AdCallback {
+                    override fun onAdShow(network: String, adtype: String) {
+                        adCallback?.onAdShow(network, adtype)
+                        Log.d(TAG, "onAdShow: ")
                         remove(adsChild)
+
                     }
-                }
 
-                override fun onAdClose(adType: String) {
-                    Log.d(TAG, "onAdClose: ")
-                    adCallback?.onAdClose(adType)
-                }
-
-                override fun onAdFailToLoad(messageError: String?) {
-                    Log.d(TAG, "onAdFailToLoad: "+messageError)
-                    if (!isKeepAds) {
-                        remove(adsChild)
+                    override fun onAdClose(adType: String) {
+                        Log.d(TAG, "onAdClose: ")
+                        adCallback?.onAdClose(adType)
                     }
-                    if (failCheck()) {
-                        adCallback?.onAdFailToLoad(messageError)
+
+                    override fun onAdFailToLoad(messageError: String?) {
+                        Log.d(TAG, "onAdFailToLoad: " + messageError)
+                        if (!isKeepAds) {
+                            remove(adsChild)
+                        }
+                        if (failCheck()) {
+                            adCallback?.onAdFailToLoad(messageError)
+                        }
                     }
-                }
 
-                override fun onAdOff() {
-                    Log.d(TAG, "onAdOff: ")
-                    adCallback?.onAdOff()
-                }
+                    override fun onAdOff() {
+                        Log.d(TAG, "onAdOff: ")
+                        adCallback?.onAdOff()
+                    }
 
-            })
+                })
     }
 
     private fun loadAndShow(
-        activity: Activity,
-        adsChild: AdsChild,
-        loadingText: String?,
-        layout: ViewGroup?,
-        layoutAds: View?,
-        lifecycle: Lifecycle?,
-        timeMillisecond: Long?,
-        adCallback: AdCallback?
+            activity: Activity,
+            adsChild: AdsChild,
+            loadingText: String?,
+            layout: ViewGroup?,
+            layoutAds: View?,
+            lifecycle: Lifecycle?,
+            timeMillisecond: Long?,
+            adCallback: AdCallback?
     ) {
         var ads: AdmobAds? = null
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
@@ -102,8 +100,8 @@ class AdmobHolder {
             }
             else -> {
                 Utils.showToastDebug(
-                    activity,
-                    "not support adType ${adsChild.adsType} check file json"
+                        activity,
+                        "not support adType ${adsChild.adsType} check file json"
                 )
                 adCallback?.onAdFailToLoad("")
             }
@@ -111,14 +109,14 @@ class AdmobHolder {
         Log.d(TAG, "loadAndShow: ${adCallback == null}")
 
         ads?.loadAndShow(
-            activity,
-            adsChild,
-            loadingText,
-            layout,
-            layoutAds,
-            lifecycle,
-            timeMillisecond,
-            adCallback
+                activity,
+                adsChild,
+                loadingText,
+                layout,
+                layoutAds,
+                lifecycle,
+                timeMillisecond,
+                adCallback
         )
         if (ads != null) hashMap[key] = ads
 
@@ -148,8 +146,8 @@ class AdmobHolder {
             }
             else -> {
                 Utils.showToastDebug(
-                    activity,
-                    "not support adType ${adsChild.adsType} check file json"
+                        activity,
+                        "not support adType ${adsChild.adsType} check file json"
                 )
 
             }
@@ -160,17 +158,17 @@ class AdmobHolder {
 
 
     public fun show(
-        activity: Activity,
-        adsChild: AdsChild,
-        loadingText: String?,
-        layout: ViewGroup?,
-        layoutAds: View?,
-        adCallback: AdCallback?
+            activity: Activity,
+            adsChild: AdsChild,
+            loadingText: String?,
+            layout: ViewGroup?,
+            layoutAds: View?,
+            adCallback: AdCallback?
     ): Boolean {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
         val ads: AdmobAds? = hashMap[key]
         if (ads != null && !ads.isDestroy() && ads.isLoaded() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
-            return when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
+            val checkShow = when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
                 AdDef.ADS_TYPE.NATIVE,
                 AdDef.ADS_TYPE.BANNER,
                 AdDef.ADS_TYPE.BANNER_ADAPTIVE,
@@ -181,12 +179,14 @@ class AdmobHolder {
                 }
                 else -> {
                     Utils.showToastDebug(
-                        activity,
-                        "not support adType ${adsChild.adsType} check file json"
+                            activity,
+                            "not support adType ${adsChild.adsType} check file json"
                     )
                     false
                 }
             }
+            if(checkShow) hashMap.remove(key)
+            return checkShow
         }
         return false
     }
