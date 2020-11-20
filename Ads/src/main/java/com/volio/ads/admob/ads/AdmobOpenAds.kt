@@ -170,7 +170,7 @@ class AdmobOpenAds : AdmobAds() {
 
         override fun onAdShowedFullScreenContent() {
             Log.d(TAG, "onAdShowedFullScreenContent: ")
-            Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
+            Utils.showToastDebug(currentActivity, "Admob OpenAds id: ${adsChild?.adsId}")
 
             callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.OPEN_APP)
         }
