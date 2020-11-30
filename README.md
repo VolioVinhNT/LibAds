@@ -12,7 +12,14 @@
   
     implementation project(path: ':Ads')
 
-  
+3. File AndroidManifest
+ Thêm:
+ 
+<meta-data
+     android:name="com.google.android.gms.ads.APPLICATION_ID"
+     android:value="@string/admob_app_id" />
+     
+     (admob_app_id xin bên PO)
 
 # Init
 Phải gọi init đầu tiên trước khi gọi những hàm khác
