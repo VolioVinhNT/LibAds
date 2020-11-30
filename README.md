@@ -14,11 +14,12 @@
 
 3. File AndroidManifest
  Thêm:
- 
-<meta-data
+     ```xml
+     <meta-data
      android:name="com.google.android.gms.ads.APPLICATION_ID"
      android:value="@string/admob_app_id" />
-     
+     ```
+
      (admob_app_id xin bên PO)
 
 # Init
