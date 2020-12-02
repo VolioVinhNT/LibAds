@@ -5,6 +5,7 @@
   - file Setting.gradle thêm
   
     include ':Ads'
+    
     project(':Ads').projectDir = new File(settingsDir, '../LibAds/Ads')
   
   
