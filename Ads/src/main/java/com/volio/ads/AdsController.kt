@@ -144,7 +144,7 @@ class AdsController private constructor(
             adCallback?.onAdShow("","")
         }
         if (!isConnection){
-            adCallback?.onAdShow("","")
+            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
             return
         }
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
@@ -203,7 +203,7 @@ class AdsController private constructor(
             adCallback?.onAdShow("","")
         }
         if (!isConnection){
-            adCallback?.onAdShow("","")
+            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
             return
         }
         val contextUse = this.activity

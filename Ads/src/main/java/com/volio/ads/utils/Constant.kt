@@ -9,4 +9,5 @@ object Constant {
 
     const val ID_ADMOB_REWARD_TEST = "ca-app-pub-3940256099942544/5224354917"
     const val TIME_OUT_DEFAULT = 8000L
+    const val ERROR_NO_INTERNET = "error_no_internet"
 }
