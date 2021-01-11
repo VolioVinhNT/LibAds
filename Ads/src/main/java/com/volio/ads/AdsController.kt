@@ -141,7 +141,9 @@ class AdsController private constructor(
         adCallback: AdCallback? =null
     ) {
         if(isPremium){
+            layout?.visibility = View.GONE
             adCallback?.onAdShow("","")
+            return
         }
         if (!isConnection){
             adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
@@ -200,7 +202,9 @@ class AdsController private constructor(
         adCallback: AdCallback? = null
     ) {
         if(isPremium){
+            layout?.visibility = View.GONE
             adCallback?.onAdShow("","")
+            return
         }
         if (!isConnection){
             adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
