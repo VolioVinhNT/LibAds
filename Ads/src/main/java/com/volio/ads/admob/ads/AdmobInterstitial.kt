@@ -103,7 +103,7 @@ class AdmobInterstitial : AdmobAds() {
         mInterstitialAd?.adUnitId = id
         if (!preload) {
             handler.postDelayed(Runnable {
-                if (!loaded) {
+                if (!loaded&&!loadFailed) {
                     isTimeOut = true
                     error = "TimeOut"
                     if (eventLifecycle == Lifecycle.Event.ON_RESUME) {
