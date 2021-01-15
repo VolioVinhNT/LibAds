@@ -38,6 +38,18 @@ class AdmobNative : AdmobAds() {
                 )
             )
             adView.mediaView = mediaView
+        }else{
+            if(Constant.isDebug){
+                val mediaView = MediaView(adView.context)
+                adView.addView(
+                    mediaView,
+                    ViewGroup.LayoutParams(
+                        0,
+                        0
+                    )
+                )
+                adView.mediaView = mediaView
+            }
         }
 
         // Set other ad assets.
@@ -70,7 +82,11 @@ class AdmobNative : AdmobAds() {
                     adView.callToActionView.visibility = View.INVISIBLE
                 } else {
                     adView.callToActionView.visibility = View.VISIBLE
-                    (adView.callToActionView as Button).text = nativeAd.callToAction
+                    if(adView.callToActionView is Button) {
+                        (adView.callToActionView as Button).text = nativeAd.callToAction
+                    }else{
+                        (adView.callToActionView as TextView).text = nativeAd.callToAction
+                    }
                 }
             }
         }
