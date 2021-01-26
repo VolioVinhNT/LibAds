@@ -57,6 +57,7 @@ class AdsController private constructor(
     public fun setDebugMode(isDebug: Boolean){
         Constant.isDebug = isDebug
     }
+    public fun getDebugMode() = Constant.isDebug
     private fun checkAppIdPacket(ads:Ads):Boolean{
         var checkAppId = false
         var checkPacket = false

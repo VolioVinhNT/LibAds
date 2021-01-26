@@ -131,6 +131,7 @@ class AdmobReward : AdmobAds() {
                 Log.d(TAG, "onAdLoaded: ")
             }
 
+
            override fun onRewardedAdFailedToLoad(p0: LoadAdError?) {
                super.onRewardedAdFailedToLoad(p0)
                 loadFailed = true

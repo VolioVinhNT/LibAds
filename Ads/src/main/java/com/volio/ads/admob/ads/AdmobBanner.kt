@@ -76,6 +76,7 @@ class AdmobBanner : AdmobAds() {
             override fun onAdOpened() {
                 super.onAdOpened()
                 Utils.showToastDebug(activity,"Admob Banner id: ${adsChild.adsId}")
+                adCallback?.onAdClick()
 
             }
 

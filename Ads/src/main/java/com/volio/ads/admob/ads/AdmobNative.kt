@@ -207,6 +207,8 @@ class AdmobNative : AdmobAds() {
             override fun onAdClicked() {
                 super.onAdClicked()
                 Utils.showToastDebug(activity,"id native: ${adsChild.adsId}")
+                adCallback?.onAdClick()
+
             }
         }).build()
         adLoader.loadAd(AdRequest.Builder().build())

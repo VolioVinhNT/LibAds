@@ -8,5 +8,6 @@ interface AdCallback {
     fun onAdClose(adType: String)
     fun onAdFailToLoad(messageError: String?)
     fun onAdOff()
+    fun onAdClick(){}
 
 }

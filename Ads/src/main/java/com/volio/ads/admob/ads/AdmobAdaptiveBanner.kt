@@ -93,6 +93,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
             override fun onAdOpened() {
                 super.onAdOpened()
                 Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${adsChild.adsId}")
+                adCallback?.onAdClick()
             }
 
             override fun onAdClosed() {

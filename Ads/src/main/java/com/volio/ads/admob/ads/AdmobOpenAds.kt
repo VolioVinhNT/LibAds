@@ -131,6 +131,7 @@ class AdmobOpenAds : AdmobAds() {
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
             }
+
         }
         val request: AdRequest = AdRequest.Builder().build()
         AppOpenAd.load(
@@ -174,6 +175,7 @@ class AdmobOpenAds : AdmobAds() {
 
             callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.OPEN_APP)
         }
+
     }
 
     override fun isDestroy(): Boolean {

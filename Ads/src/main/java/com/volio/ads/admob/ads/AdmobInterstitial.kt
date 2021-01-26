@@ -152,6 +152,11 @@ class AdmobInterstitial : AdmobAds() {
                 Log.d(TAG, "onAdOpened: ")
             }
 
+            override fun onAdClicked() {
+                super.onAdClicked()
+                adCallback?.onAdClick()
+            }
+
             override fun onAdClosed() {
                 super.onAdClosed()
                 callback?.onAdClose(AdDef.ADS_TYPE.INTERSTITIAL)
