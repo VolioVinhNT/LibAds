@@ -97,6 +97,7 @@ class AdsController private constructor(
             for (adsChild in ads.listAdsChild) {
                 if(!checkAppIdPacket(ads)) continue
                 adsChild.network = ads.network
+                adsChild.adsId = adsChild.adsId.trim()
                 if(adsChild.priority == -1) adsChild.priority = ads.priority
                 var listItem = hashMapAds[adsChild.spaceName.toLowerCase(Locale.getDefault())]
                 if (listItem == null) {
