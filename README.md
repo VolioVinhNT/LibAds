@@ -263,4 +263,5 @@ Các id buộc phải trùng id dưới bảng :
 |ad_headline| Là TextView hiển thị title quảng cáo|
 |ad_body| Là TextView hiển thị nội dung quảng cáo|
 |ad_call_to_action|Button quảng cáo|
+|ad_choices_container|...|
 
