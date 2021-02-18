@@ -259,8 +259,10 @@ Các id buộc phải trùng id dưới bảng :
 |Id|View và tác dụng|
 |---|-------|
 |ad_media|Là ViewGroup chứa view hiển thị video,ảnh lớn|
-|ad_app_icon| Là ImageView hiển thị icon quảng cáo|
+|ad_app_icon| Là ViewGroup hiển thị icon quảng cáo|
 |ad_headline| Là TextView hiển thị title quảng cáo|
 |ad_body| Là TextView hiển thị nội dung quảng cáo|
-|ad_call_to_action|Button quảng cáo|
+|ad_call_to_action|Button/Texview quảng cáo|
+|ad_choices_container| Là ViewGroup dùng hiển thì biết tược quảng cáo (tam giác,chấm than)|
+|ad_sponsored_label| Là Textview có text sponsored|
 
