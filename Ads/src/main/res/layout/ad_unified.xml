@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <ImageView
+                <FrameLayout
                     android:id="@+id/ad_app_icon"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
@@ -91,7 +91,15 @@
                     android:layout_width="250dp"
                     android:layout_height="175dp"
                     android:layout_marginTop="5dp" />
-
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:id="@+id/ad_choices_container"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"/>
+                <TextView
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ad_sponsored_label"/>
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

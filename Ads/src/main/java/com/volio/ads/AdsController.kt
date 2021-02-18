@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
+import com.volio.ads.fan.AudienceNetworkInitializeHelper
+import com.volio.ads.fan.FanHolderHolder
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
@@ -31,6 +33,7 @@ class AdsController private constructor(
     private var gson = Gson()
     private val hashMapAds: HashMap<String, ArrayList<AdsChild>> = hashMapOf()
     private val admobHolder = AdmobHolder()
+    private val fanHolder = FanHolderHolder()
     private var connectionLiveData : ConnectionLiveData = ConnectionLiveData(activity)
     private var isConnection:Boolean = true
     var isPremium:Boolean = false
@@ -81,6 +84,7 @@ class AdsController private constructor(
             isConnection = it
             Log.d(TAG, "isConnect: $isConnection")
         })
+        AudienceNetworkInitializeHelper.initialize(activity)
         val listAds = ArrayList<Ads>()
         for (item in listPathJson) {
             try {
@@ -159,6 +163,16 @@ class AdsController private constructor(
                 when (item.network.toLowerCase(Locale.getDefault())) {
                     AdDef.NETWORK.GOOGLE -> {
                         checkShow = admobHolder.show(
+                            activity,
+                            item,
+                            textLoading,
+                            layout,
+                            layoutAds,
+                            adCallback
+                        )
+                    }
+                    AdDef.NETWORK.FACEBOOK->{
+                        checkShow = fanHolder.show(
                             activity,
                             item,
                             textLoading,
@@ -255,10 +269,10 @@ class AdsController private constructor(
         listItem: ArrayList<AdsChild>,
         adCallback: AdCallback?
     ) {
-        Log.d(TAG, "loadAdsPriority: 1")
+        Log.d(TAG, "loadAdsPriority: $adsChild")
         when (adsChild.network.toLowerCase(Locale.getDefault())) {
             AdDef.NETWORK.GOOGLE -> {
-                Log.d(TAG, "loadAdsPriority: 2")
+                Log.d(TAG, "loadAdsPriority: 1")
                 admobHolder.loadAndShow(activity,
                     isKeepAds,
                     adsChild,
@@ -276,7 +290,44 @@ class AdsController private constructor(
                             loadAdsPriority(
                                 context,
                                 isKeepAds,
-                                adsChild,
+                                item,
+                                loadingText,
+                                layout,
+                                layoutAds,
+                                lifecycle,
+                                timeMillisecond,
+                                listItem,
+                                adCallback
+                            )
+                            false
+                        }
+                    }
+                )
+
+            }
+            AdDef.NETWORK.FACEBOOK -> {
+                Log.d(TAG, "loadAdsPriority: 2")
+                fanHolder.loadAndShow(activity,
+                    isKeepAds,
+                    adsChild,
+                    loadingText,
+                    layout,
+                    layoutAds,
+                    lifecycle,
+                    timeMillisecond,
+                    adCallback,
+                    failCheck = {
+                        Log.d(TAG, "loadAdsPriority3: ${adsChild.priority}")
+                        val item = getChildPriority(listItem, adsChild.priority)
+                        Log.d(TAG, "loadAdsPriority4: ${item?.priority}")
+
+                        return@loadAndShow if (item == null) {
+                            true
+                        } else {
+                            loadAdsPriority(
+                                context,
+                                isKeepAds,
+                                item,
                                 loadingText,
                                 layout,
                                 layoutAds,
@@ -309,6 +360,35 @@ class AdsController private constructor(
             }
         }
         return adsChild
+    }
+    public fun allowShowAds(allow:Boolean,spaceName: String,network: String){
+        if(allow) return
+        val list = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
+        Log.d(TAG, "allowShowAds: 1")
+        list?.let {
+            Log.d(TAG, "allowShowAds: 2")
+            for (item in it){
+                if(item.network == network){
+                    it.remove(item)
+                    break
+                }
+            }
+            hashMapAds[spaceName] = it
+        }
+    }
+    public fun setPriority(spaceName: String,network: String){
+        val list = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
+        list?.let {
+            var min = 0
+            for (item in list){
+                if(item.network == network){
+                   item.priority = 0
+                }else{
+                    min += 1
+                    item.priority = min
+                }
+            }
+        }
     }
 
 }

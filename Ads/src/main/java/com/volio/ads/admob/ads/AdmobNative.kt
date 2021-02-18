@@ -52,11 +52,28 @@ class AdmobNative : AdmobAds() {
             }
         }
 
+        val viewGroupIcon = adView.findViewById<View>(R.id.ad_app_icon)
+        if(viewGroupIcon != null) {
+            if(viewGroupIcon is ViewGroup) {
+                val nativeAdIcon = ImageView(adView.context)
+                viewGroupIcon.addView(
+                    nativeAdIcon,
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                )
+                adView.iconView = nativeAdIcon
+            }else {
+                adView.iconView = viewGroupIcon
+            }
+
+        }
+
         // Set other ad assets.
         adView.headlineView = adView.findViewById(R.id.ad_headline)
         adView.bodyView = adView.findViewById(R.id.ad_body)
         adView.callToActionView = adView.findViewById(R.id.ad_call_to_action)
-        adView.iconView = adView.findViewById(R.id.ad_app_icon)
         adView.priceView = adView.findViewById(R.id.ad_price)
         adView.starRatingView = adView.findViewById(R.id.ad_stars)
         adView.storeView = adView.findViewById(R.id.ad_store)

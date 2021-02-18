@@ -1,0 +1,59 @@
+{
+  "network": "facebook",
+  "appId": "1",
+  "packetName": "com.volio.libads",
+  "listAds": [
+    {
+      "spaceName": "Splash",
+      "adsType": "open_app",
+      "id": " ca-app-pub-8541569573502186/6695516070"
+    },
+	    {
+      "spaceName": "test",
+      "adsType": "banner",
+      "id": "ca-app-pub-8541569573502186/7167107602"
+    },
+	    {
+      "spaceName": "Gallery_View-All-Image_Single-Image-View",
+      "adsType": "banner",
+      "id": "ca-app-pub-8541569573502186/1914780925"
+    },
+	    {
+      "spaceName": "Edit_Image",
+      "adsType": "Interstitial",
+      "id": "ca-app-pub-8541569573502186/9601699254"
+    },
+	    {
+      "spaceName": "Convert",
+      "adsType": "interstitial",
+      "id": "ca-app-pub-8541569573502186/6975535917"
+    },
+	    {
+      "spaceName": "Convert_Done",
+      "adsType": "native",
+      "id": "ca-app-pub-8541569573502186/3036290908"
+    },
+	    {
+      "spaceName": "Converted",
+      "adsType": "native",
+      "id": "ca-app-pub-8541569573502186/2844719217"
+    },
+	    {
+      "spaceName": "ReadPDF",
+      "adsType": "banner_adaptive",
+      "id": "ca-app-pub-8541569573502186/1531637547"
+    },
+	    {
+      "spaceName": "ReadPDF_Back",
+      "adsType": "interstitial",
+      "id": "ca-app-pub-8541569573502186/9218555874"
+    },
+	    {
+      "spaceName": "Back-to-app",
+      "adsType": "open_app",
+      "id": "ca-app-pub-8541569573502186/7209687240"
+    }
+    ]
+}
+
+

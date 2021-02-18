@@ -1,5 +1,7 @@
 package com.volio.ads.utils
 
+import com.facebook.ads.AdSize
+
 
 class AdDef {
     class NETWORK {
@@ -27,6 +29,12 @@ class AdDef {
             const val FULL_BANNER_468x60 = "FULL_BANNER_468x60"
             const val LEADERBOARD_728x90 = "LEADERBOARD_728x90"
             const val SMART_BANNER = "SMART_BANNER "
+        }
+    }
+    class FACEBOOK_AD_BANNER{
+        companion object{
+            val BANNER_HEIGHT_50:AdSize = AdSize.BANNER_HEIGHT_50
+            val BANNER_HEIGHT_90:AdSize = AdSize.BANNER_HEIGHT_90
         }
     }
 }
