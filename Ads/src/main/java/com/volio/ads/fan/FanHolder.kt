@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.volio.ads.AdCallback
-import com.volio.ads.admob.ads.*
 import com.volio.ads.fan.ads.FanAds
 import com.volio.ads.fan.ads.FanBanner
 import com.volio.ads.fan.ads.FanInterstitial
@@ -20,8 +19,7 @@ import kotlin.collections.HashMap
 private const val TAG = "AdsController2"
 
 class FanHolderHolder {
-    private var hashMap: HashMap<String, AdmobAds> = HashMap()
-    private var hashMapFan: HashMap<String, FanAds> = HashMap()
+    private var hashMap: HashMap<String, FanAds> = HashMap()
 
     public fun loadAndShow(
             activity: Activity,
@@ -124,31 +122,22 @@ class FanHolderHolder {
                 timeMillisecond,
                 adCallback
         )
-        if (ads != null) hashMapFan[key] = ads
+        if (ads != null) hashMap[key] = ads
 
     }
 
     public fun preload(activity: Activity, adsChild: AdsChild) {
-        var ads: AdmobAds? = null
+        var ads: FanAds? = null
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
         when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
             AdDef.ADS_TYPE.NATIVE -> {
-                ads = AdmobNative()
+                ads = FanNative()
             }
             AdDef.ADS_TYPE.INTERSTITIAL -> {
-                ads = AdmobInterstitial()
+                ads = FanInterstitial()
             }
             AdDef.ADS_TYPE.BANNER -> {
-                ads = AdmobBanner()
-            }
-            AdDef.ADS_TYPE.BANNER_ADAPTIVE -> {
-                ads = AdmobAdaptiveBanner()
-            }
-            AdDef.ADS_TYPE.REWARD_VIDEO -> {
-                ads = AdmobReward()
-            }
-            AdDef.ADS_TYPE.OPEN_APP -> {
-                ads = AdmobOpenAds()
+                ads = FanBanner()
             }
             else -> {
                 Utils.showToastDebug(
@@ -172,14 +161,11 @@ class FanHolderHolder {
             adCallback: AdCallback?
     ): Boolean {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        val ads: AdmobAds? = hashMap[key]
+        val ads: FanAds? = hashMap[key]
         if (ads != null && !ads.isDestroy() && ads.isLoaded() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
             val checkShow = when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
                 AdDef.ADS_TYPE.NATIVE,
                 AdDef.ADS_TYPE.BANNER,
-                AdDef.ADS_TYPE.BANNER_ADAPTIVE,
-                AdDef.ADS_TYPE.OPEN_APP,
-                AdDef.ADS_TYPE.REWARD_VIDEO,
                 AdDef.ADS_TYPE.INTERSTITIAL -> {
                     ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
                 }
