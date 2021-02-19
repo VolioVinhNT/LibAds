@@ -126,6 +126,9 @@ class AdsController private constructor(
                     AdDef.NETWORK.GOOGLE -> {
                         admobHolder.preload(activity, item)
                     }
+                    AdDef.NETWORK.FACEBOOK ->{
+                        fanHolder.preload(activity,item)
+                    }
                     else ->{
                         showToastDebug(activity, "not support network ${item.network} check file json")
                     }
