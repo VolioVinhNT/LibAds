@@ -101,6 +101,8 @@ class AdmobInterstitial : AdmobAds() {
         val id = if (Constant.isDebug) Constant.ID_ADMOB_INTERSTITIAL_TEST else adsChild.adsId
         mInterstitialAd = InterstitialAd(activity)
         mInterstitialAd?.adUnitId = id
+        Utils.showToastDebug(activity, "Admob Interstitial id: ${adsChild.adsId}")
+
         if (!preload) {
             handler.postDelayed(Runnable {
                 if (!loaded&&!loadFailed) {
@@ -147,7 +149,7 @@ class AdmobInterstitial : AdmobAds() {
             override fun onAdOpened() {
                 super.onAdOpened()
                 AdDialog.getInstance().hideLoading()
-                Utils.showToastDebug(activity, "Admob Interstitial id: ${adsChild.adsId}")
+//                Utils.showToastDebug(activity, "Admob Interstitial id: ${adsChild.adsId}")
                 callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.INTERSTITIAL)
                 Log.d(TAG, "onAdOpened: ")
             }
