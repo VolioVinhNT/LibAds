@@ -67,6 +67,9 @@ class FanHolderHolder {
                         Log.d(TAG, "onAdOff: ")
                         adCallback?.onAdOff()
                     }
+                    override fun onAdClick() {
+                        adCallback?.onAdClick()
+                    }
 
                 })
     }

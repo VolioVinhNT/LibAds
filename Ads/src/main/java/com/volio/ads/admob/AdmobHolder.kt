@@ -64,6 +64,10 @@ class AdmobHolder {
                         adCallback?.onAdOff()
                     }
 
+                    override fun onAdClick() {
+                        adCallback?.onAdClick()
+                    }
+
                 })
     }
 
