@@ -95,6 +95,7 @@ class FanInterstitial : FanAds() {
         textLoading?.let {
             AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
         }
+        Utils.showToastDebug(activity, "Fan Interstitial id: ${adsChild.adsId}")
         Log.d(TAG, "load: "+textLoading)
         resetValue()
         callback = adCallback
@@ -122,7 +123,6 @@ class FanInterstitial : FanAds() {
                 .withAdListener(object : InterstitialAdListener{
                     override fun onInterstitialDisplayed(p0: Ad?) {
                         AdDialog.getInstance().hideLoading()
-                        Utils.showToastDebug(activity, "Admob Interstitial id: ${adsChild.adsId}")
                         callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.INTERSTITIAL)
                         Log.d(TAG, "onInterstitialDisplayed: ")
                     }
