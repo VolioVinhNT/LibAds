@@ -368,7 +368,7 @@ class AdsController private constructor(
         list?.let {
             Log.d(TAG, "allowShowAds: 2")
             for (item in it){
-                if(item.network == network){
+                if(item.network == network.toLowerCase(Locale.getDefault())){
                     it.remove(item)
                     break
                 }
@@ -381,8 +381,8 @@ class AdsController private constructor(
         list?.let {
             var min = 0
             for (item in list){
-                if(item.network == network){
-                   item.priority = 0
+                if(item.network == network.toLowerCase(Locale.getDefault())) {
+                    item.priority = 0
                 }else{
                     min += 1
                     item.priority = min
