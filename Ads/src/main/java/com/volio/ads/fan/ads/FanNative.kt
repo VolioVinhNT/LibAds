@@ -185,6 +185,9 @@ class FanNative : FanAds() {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
+                layoutAds.parent?.let {
+                    (it as ViewGroup).removeView(layoutAds)
+                }
                 unifiedNativeAdView.addView(layoutAds)
                 currentUnifiedNativeAd?.let {
                     layout.removeAllViews()

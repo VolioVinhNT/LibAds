@@ -5,7 +5,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.RatingBar
+import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.VideoController.VideoLifecycleCallbacks
@@ -247,6 +250,9 @@ class AdmobNative : AdmobAds() {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
+                layoutAds.parent?.let {
+                    (it as ViewGroup).removeView(layoutAds)
+                }
                 unifiedNativeAdView.addView(layoutAds)
                 currentUnifiedNativeAd?.let {
                     populateUnifiedNativeAdView(it, unifiedNativeAdView)
