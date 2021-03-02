@@ -20,23 +20,29 @@ class AdDialog {
         context: Context?,
         message: String?
     ) {
-        if (context != null&&message != null) {
-            if (mProgressDialog == null) {
-                mProgressDialog = ProgressDialog(context)
-                mProgressDialog?.setMessage(message)
-                mProgressDialog?.setCancelable(false)
-                if (mProgressDialog?.window != null) {
-                    mProgressDialog?.window?.setDimAmount(0f)
+        try {
+            if (context != null&&message != null) {
+                if (mProgressDialog == null) {
+                    mProgressDialog = ProgressDialog(context)
+                    mProgressDialog?.setMessage(message)
+                    mProgressDialog?.setCancelable(false)
+                    if (mProgressDialog?.window != null) {
+                        mProgressDialog?.window?.setDimAmount(0f)
+                    }
+                    mProgressDialog?.show()
                 }
-                mProgressDialog?.show()
             }
+        } catch (e: Exception) {
         }
     }
 
     fun hideLoading() {
-        if (mProgressDialog != null && mProgressDialog!!.isShowing) {
-            mProgressDialog?.dismiss()
-            mProgressDialog = null
+        try {
+            if (mProgressDialog != null && mProgressDialog!!.isShowing) {
+                mProgressDialog?.dismiss()
+                mProgressDialog = null
+            }
+        } catch (e: Exception) {
         }
     }
 }
