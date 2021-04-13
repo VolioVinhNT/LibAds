@@ -51,6 +51,8 @@ class AdmobHolder {
 
                     override fun onAdFailToLoad(messageError: String?) {
                         Log.d(TAG, "onAdFailToLoad: " + messageError)
+                        Utils.showToastDebug(activity, "Admob ${adsChild.adsType} id: ${adsChild.adsId}")
+
                         if (!isKeepAds) {
                             remove(adsChild)
                         }

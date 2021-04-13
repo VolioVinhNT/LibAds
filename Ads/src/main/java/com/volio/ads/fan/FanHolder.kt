@@ -55,6 +55,8 @@ class FanHolderHolder {
 
                     override fun onAdFailToLoad(messageError: String?) {
                         Log.d(TAG, "onAdFailToLoad: " + messageError)
+                        Utils.showToastDebug(activity, "Fan ${adsChild.adsType} id: ${adsChild.adsId}")
+
                         if (!isKeepAds) {
                             remove(adsChild)
                         }
