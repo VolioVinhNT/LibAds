@@ -54,6 +54,7 @@ dependencies {
 
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'com.facebook.android:audience-network-sdk:6.2.1'
+    implementation 'com.google.ads.mediation:facebook:6.2.1.0'
 
 //    def lifecycle_version = "2.2.0"
 //    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
