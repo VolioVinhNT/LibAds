@@ -90,6 +90,7 @@ class AdmobHolder {
                 ads = AdmobNative()
             }
             AdDef.ADS_TYPE.INTERSTITIAL -> {
+                Log.d("AdmobInterstitial", "loadAndShow: zzz")
                 ads = AdmobInterstitial()
             }
             AdDef.ADS_TYPE.BANNER -> {

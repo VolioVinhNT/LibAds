@@ -82,8 +82,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 //            getScreenWidth(activity)
 //        )
         adView?.loadAd(
-            AdRequest.Builder()
-                .addTestDevice(AdRequest.DEVICE_ID_EMULATOR).build()
+            AdRequest.Builder().build()
         )
         adView?.adListener = object : AdListener() {
             override fun onAdClicked() {

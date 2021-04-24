@@ -12,10 +12,12 @@ import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.VideoController.VideoLifecycleCallbacks
-import com.google.android.gms.ads.formats.MediaView
-import com.google.android.gms.ads.formats.NativeAdOptions
-import com.google.android.gms.ads.formats.UnifiedNativeAd
-import com.google.android.gms.ads.formats.UnifiedNativeAdView
+import com.google.android.gms.ads.nativead.MediaView
+import com.google.android.gms.ads.nativead.NativeAd
+
+import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.google.android.gms.ads.nativead.NativeAdView
+
 import com.volio.ads.AdCallback
 import com.volio.ads.R
 import com.volio.ads.model.AdsChild
@@ -25,10 +27,10 @@ import com.volio.ads.utils.Utils
 import java.util.*
 
 class AdmobNative : AdmobAds() {
-    var currentUnifiedNativeAd: UnifiedNativeAd? = null
+    var currentUnifiedNativeAd: NativeAd? = null
     private var activity:Activity? = null
     private var adsChild:AdsChild? = null
-    private fun populateUnifiedNativeAdView(nativeAd: UnifiedNativeAd, adView: UnifiedNativeAdView) {
+    private fun populateUnifiedNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
         // Set the media view.
         val viewGroup = adView.findViewById<ViewGroup>(R.id.ad_media)
         if(viewGroup != null) {
@@ -154,16 +156,16 @@ class AdmobNative : AdmobAds() {
         }
 
         adView.setNativeAd(nativeAd)
-        val vc = nativeAd.videoController
-
-        if (vc.hasVideoContent()) {
-            vc.videoLifecycleCallbacks = object : VideoLifecycleCallbacks() {
-                override fun onVideoEnd() {
-                    super.onVideoEnd()
-                }
-            }
-        } else {
-        }
+//        val vc = nativeAd.videoController
+//
+//        if (vc.hasVideoContent()) {
+//            vc.videoLifecycleCallbacks = object : VideoLifecycleCallbacks() {
+//                override fun onVideoEnd() {
+//                    super.onVideoEnd()
+//                }
+//            }
+//        } else {
+//        }
 
     }
 
@@ -193,7 +195,7 @@ class AdmobNative : AdmobAds() {
         this.activity = activity;
         val idAds = if(Constant.isDebug) Constant.ID_ADMOB_NATIVE_TEST else adsChild.adsId
         val builder = AdLoader.Builder(activity.applicationContext, idAds)
-        builder.forUnifiedNativeAd { unifiedNativeAd ->
+        builder.forNativeAd { unifiedNativeAd ->
             Log.d(TAG, "load: ")
             adCallback?.onAdShow(AdDef.NETWORK.GOOGLE,AdDef.ADS_TYPE.NATIVE)
             if (currentUnifiedNativeAd != null) {
@@ -245,7 +247,7 @@ class AdmobNative : AdmobAds() {
         Log.d(TAG, "show: ${layout == null}")
         if(layout != null) {
             if (layoutAds != null) {
-                val unifiedNativeAdView = UnifiedNativeAdView(activity)
+                val unifiedNativeAdView = NativeAdView(activity)
                 unifiedNativeAdView.layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
@@ -262,7 +264,7 @@ class AdmobNative : AdmobAds() {
                 }
             } else {
                 val adView = LayoutInflater.from(activity)
-                    .inflate(R.layout.ad_unified, null) as UnifiedNativeAdView
+                    .inflate(R.layout.ad_unified, null) as NativeAdView
                 currentUnifiedNativeAd?.let {
                     populateUnifiedNativeAdView(it, adView)
                     layout.removeAllViews()
@@ -277,14 +279,14 @@ class AdmobNative : AdmobAds() {
         return false
 
     }
-    public override fun isDestroy():Boolean = (currentUnifiedNativeAd == null)
+    public override fun isDestroy():Boolean = (true)
     public override fun destroy(){
-        currentUnifiedNativeAd?.destroy()
-        currentUnifiedNativeAd = null;
+//        currentUnifiedNativeAd?.destroy()
+//        currentUnifiedNativeAd = null;
     }
 
     public override fun isLoaded(): Boolean {
-        return currentUnifiedNativeAd != null
+        return false
     }
 
 }

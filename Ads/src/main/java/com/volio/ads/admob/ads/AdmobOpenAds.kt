@@ -25,20 +25,18 @@ import java.util.*
 class AdmobOpenAds : AdmobAds() {
     private var timeClick = 0L
     private var callback: AdCallback? = null
-    private var handler: Handler = Handler(Looper.getMainLooper())
     private var error: String? = null
 
     private var loadFailed = false
     private var loaded: Boolean = false
     private var isTimeOut: Boolean = false
     private var preload: Boolean = false
-    private var adsChild:AdsChild? = null
+    private var adsChild: AdsChild? = null
 
 
     private var eventLifecycle: Lifecycle.Event = Lifecycle.Event.ON_RESUME
 
     private var appOpenAd: AppOpenAd? = null
-    private var loadCallback: AppOpenAdLoadCallback? = null
     private var currentActivity: Activity? = null
 
 
@@ -56,12 +54,19 @@ class AdmobOpenAds : AdmobAds() {
         this.callback = adCallback
         currentActivity = activity
         preload = false
-        load(activity,adsChild,loadingText,lifecycle,timeMillisecond?:Constant.TIME_OUT_DEFAULT,adCallback)
+        load(
+            activity,
+            adsChild,
+            loadingText,
+            lifecycle,
+            timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
+            adCallback
+        )
     }
 
     override fun preload(activity: Activity, adsChild: AdsChild) {
         preload = true
-        load(activity,adsChild)
+        load(activity, adsChild)
     }
 
     override fun show(
@@ -74,8 +79,8 @@ class AdmobOpenAds : AdmobAds() {
     ): Boolean {
         this.callback = adCallback
         currentActivity = activity
-        if(loaded&&appOpenAd != null){
-            appOpenAd?.show(currentActivity, fullScreenContentCallback)
+        if (loaded && appOpenAd != null) {
+            appOpenAd?.show(activity)
             return true
         }
         return false
@@ -95,48 +100,77 @@ class AdmobOpenAds : AdmobAds() {
         timeClick = System.currentTimeMillis();
         val id = if (Constant.isDebug) Constant.ID_ADMOB_OPEN_APP_TEST else adsChild.adsId
 
-        if (!preload) {
-            handler.postDelayed(Runnable {
-                if (!loaded) {
-                    isTimeOut = true
-                    error = "TimeOut"
-                    if (eventLifecycle == Lifecycle.Event.ON_RESUME) {
-                        AdDialog.getInstance().hideLoading()
-                        lifecycle?.removeObserver(lifecycleObserver)
-                        adCallback?.onAdFailToLoad(error)
-                    }
-                }
-            }, timeOut)
+        val openAdLoadCallback = object : AppOpenAdLoadCallback() {
+            override fun onAdLoaded(p0: AppOpenAd) {
+                Log.d(TAG, "onAdLoaded: ")
+                appOpenAd = p0
+                appOpenAd?.fullScreenContentCallback =
+                    object : FullScreenContentCallback() {
+                        override fun onAdDismissedFullScreenContent() {
+                            super.onAdDismissedFullScreenContent()
+                            Log.d(TAG, "onAdDismissedFullScreenContent: ")
+                            callback?.onAdClose(AdDef.ADS_TYPE.OPEN_APP)
+                            appOpenAd = null
 
-            lifecycle?.addObserver(lifecycleObserver)
-        }
-        loadCallback = object : AppOpenAdLoadCallback() {
-            override fun onAppOpenAdLoaded(ad: AppOpenAd) {
-                Log.d(TAG, "onAppOpenAdLoaded: ")
-                appOpenAd = ad
+                            //// perform your code that you wants to do after ad dismissed or closed
+                        }
+
+                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                            super.onAdFailedToShowFullScreenContent(adError)
+                            Log.d(TAG, "onAdFailedToShowFullScreenContent: ")
+                            appOpenAd = null
+                            loadFailed = true
+                            error = adError.message
+                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                                AdDialog.getInstance().hideLoading()
+                                callback?.onAdFailToLoad(adError.message)
+                                lifecycle?.removeObserver(lifecycleObserver)
+                            }
+                            /// perform your action here when ad will not load
+                        }
+
+                        override fun onAdShowedFullScreenContent() {
+                            super.onAdShowedFullScreenContent()
+                            Log.d(TAG, "onAdShowedFullScreenContent: ")
+                            appOpenAd = null
+                            AdDialog.getInstance().hideLoading()
+                            Utils.showToastDebug(
+                                activity,
+                                "Admob OpenAds id: ${adsChild.adsId}"
+                            )
+                            callback?.onAdShow(
+                                AdDef.NETWORK.GOOGLE,
+                                AdDef.ADS_TYPE.OPEN_APP
+                            )
+                        }
+                    }
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                    Handler(Looper.getMainLooper()).postDelayed(Runnable {
+                        AdDialog.getInstance().hideLoading()
+                    }, 500)
+                    currentActivity?.let { appOpenAd?.show(it) }
+                    lifecycle?.removeObserver(lifecycleObserver)
+                }
                 loaded = true
                 timeLoader = Date().time
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
-                    appOpenAd?.show(currentActivity, fullScreenContentCallback)
-                    lifecycle?.removeObserver(lifecycleObserver)
-                }
+                Log.d(TAG, "onAdLoaded: ")
             }
 
-            override fun onAppOpenAdFailedToLoad(loadAdError: LoadAdError) {
-                Log.d(TAG, "onAppOpenAdFailedToLoad: ")
+            override fun onAdFailedToLoad(p0: LoadAdError) {
+                super.onAdFailedToLoad(p0)
                 loadFailed = true
-                error = loadAdError.message
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
-                    adCallback?.onAdFailToLoad(loadAdError.message)
+                error = p0.message
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                    AdDialog.getInstance().hideLoading()
+                    callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
             }
-
         }
-        val request: AdRequest = AdRequest.Builder().build()
+        val request: AdRequest = AdRequest.Builder().setHttpTimeoutMillis(timeOut.toInt()).build()
         AppOpenAd.load(
             activity, id, request,
-            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, loadCallback
+            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, openAdLoadCallback
         )
 
     }
@@ -148,7 +182,7 @@ class AdmobOpenAds : AdmobAds() {
             if (isTimeOut || loadFailed || loaded) {
                 AdDialog.getInstance().hideLoading()
                 if (loaded && appOpenAd != null) {
-                    appOpenAd?.show(currentActivity, fullScreenContentCallback)
+                    currentActivity?.let { appOpenAd?.show(it) }
                 } else {
                     callback?.onAdFailToLoad(error)
                 }
@@ -156,27 +190,7 @@ class AdmobOpenAds : AdmobAds() {
         }
 
     }
-    private val fullScreenContentCallback = object : FullScreenContentCallback() {
-        override fun onAdDismissedFullScreenContent() {
-            appOpenAd = null
-            callback?.onAdClose(AdDef.ADS_TYPE.OPEN_APP)
 
-            Log.d(TAG, "onAdDismissedFullScreenContent: ")
-        }
-
-        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-            callback?.onAdFailToLoad(adError.message)
-            Log.d(TAG, "onAdFailedToShowFullScreenContent: ")
-        }
-
-        override fun onAdShowedFullScreenContent() {
-            Log.d(TAG, "onAdShowedFullScreenContent: ")
-            Utils.showToastDebug(currentActivity, "Admob OpenAds id: ${adsChild?.adsId}")
-
-            callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.OPEN_APP)
-        }
-
-    }
 
     override fun isDestroy(): Boolean {
         return appOpenAd == null
