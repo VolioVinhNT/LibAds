@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
@@ -25,7 +26,8 @@ class AdmobReward : AdmobAds() {
     private var loadFailed = false
     private var loaded: Boolean = false
     private var preload: Boolean = false
-
+    private var isTimeOut = false
+    private var handler = Handler(Looper.getMainLooper())
     private var eventLifecycle: Lifecycle.Event = Lifecycle.Event.ON_RESUME
     private var rewardedAd: RewardedAd? = null
     private var timeClick = 0L
@@ -33,6 +35,7 @@ class AdmobReward : AdmobAds() {
     private val TAG = "AdmobInterstitial"
     private var currentActivity: Activity? = null
     private var adsChild:AdsChild? = null
+    private var lifecycle:Lifecycle? = null
 
     private fun resetValue() {
         loaded = false
@@ -79,6 +82,17 @@ class AdmobReward : AdmobAds() {
         return false
     }
 
+
+    private val timeOutCallBack = Runnable {
+        if (!loaded && !loadFailed) {
+            if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+                callback?.onAdFailToLoad("TimeOut")
+                lifecycle?.removeObserver(lifecycleObserver)
+            }else {
+                isTimeOut = true
+            }
+        }
+    }
     private fun load(
         activity: Activity,
         adsChild: AdsChild,
@@ -87,10 +101,16 @@ class AdmobReward : AdmobAds() {
         timeOut: Long,
         adCallback: AdCallback?
     ) {
+        this.lifecycle = lifecycle
         this.adsChild = adsChild
         if (System.currentTimeMillis() - timeClick < 500) return
         textLoading?.let {
             AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
+        }
+        if (!preload) {
+            lifecycle?.addObserver(lifecycleObserver)
+            handler.removeCallbacks(timeOutCallBack)
+            handler.postDelayed(timeOutCallBack,timeOut)
         }
         resetValue()
         callback = adCallback
@@ -163,7 +183,9 @@ class AdmobReward : AdmobAds() {
                 }
             }
         }
-        RewardedAd.load(activity,id,AdRequest.Builder().setHttpTimeoutMillis(timeOut.toInt()).build(),rewardedAdLoadCallback)
+        RewardedAd.load(activity,id,AdRequest.Builder()
+//            .setHttpTimeoutMillis(timeOut.toInt())
+            .build(),rewardedAdLoadCallback)
 
     }
     private val rewardedAdLoadCallback = OnUserEarnedRewardListener {
@@ -179,20 +201,26 @@ class AdmobReward : AdmobAds() {
 //
 //        }
 
-    private val lifecycleObserver = LifecycleEventObserver { source, event ->
-        eventLifecycle = event
-        if (event == Lifecycle.Event.ON_RESUME) {
-            AdDialog.getInstance().hideLoading()
-            if (loadFailed || loaded) {
+    private val lifecycleObserver = object :LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            eventLifecycle = event
+            if (event == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
-                if (loaded) {
-                    currentActivity?.let { rewardedAd?.show(it,rewardedAdLoadCallback) }
-                } else {
-                    callback?.onAdFailToLoad(error)
+                if (isTimeOut){
+                    AdDialog.getInstance().hideLoading()
+                    callback?.onAdFailToLoad("TimeOut")
+                    lifecycle?.removeObserver(this)
+                } else if (loadFailed || loaded) {
+                    AdDialog.getInstance().hideLoading()
+                    if (loaded) {
+                        currentActivity?.let { rewardedAd?.show(it,rewardedAdLoadCallback) }
+                    } else {
+                        callback?.onAdFailToLoad(error)
+                    }
+                    lifecycle?.removeObserver(this)
                 }
             }
         }
-
     }
 
     override fun isLoaded(): Boolean {

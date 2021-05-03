@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -28,13 +29,16 @@ class AdmobInterstitial : AdmobAds() {
     private var loadFailed = false
     private var loaded: Boolean = false
     private var preload: Boolean = false
-
+    private var isTimeOut = false
+    private var handler = Handler(Looper.getMainLooper())
     private var eventLifecycle: Lifecycle.Event = Lifecycle.Event.ON_RESUME
     private var mInterstitialAd: InterstitialAd? = null
     private var timeClick = 0L
     private var callback: AdCallback? = null
     private val TAG = "AdmobInterstitial"
     private var currentActivity: Activity? = null
+    private var lifecycle:Lifecycle? = null
+
     private fun resetValue() {
         loaded = false
         loadFailed = false
@@ -90,7 +94,16 @@ class AdmobInterstitial : AdmobAds() {
 //        }
         return false;
     }
-
+    private val timeOutCallBack = Runnable {
+        if (!loaded && !loadFailed) {
+            if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+                callback?.onAdFailToLoad("TimeOut")
+                lifecycle?.removeObserver(lifecycleObserver)
+            }else {
+                isTimeOut = true
+            }
+        }
+    }
     private fun load(
         activity: Activity,
         adsChild: AdsChild,
@@ -108,9 +121,12 @@ class AdmobInterstitial : AdmobAds() {
 
         if (!preload) {
             lifecycle?.addObserver(lifecycleObserver)
+            handler.removeCallbacks(timeOutCallBack)
+            handler.postDelayed(timeOutCallBack,timeOut)
         }
         resetValue()
-        callback = adCallback
+        this.callback = adCallback
+        this.lifecycle = lifecycle
         timeClick = System.currentTimeMillis();
         val id = if (Constant.isDebug) Constant.ID_ADMOB_INTERSTITIAL_TEST else adsChild.adsId
         val interstitialAdLoadCallback = object : InterstitialAdLoadCallback() {
@@ -134,7 +150,7 @@ class AdmobInterstitial : AdmobAds() {
                             mInterstitialAd = null
                             loadFailed = true
                             error = adError.message
-                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
                                 AdDialog.getInstance().hideLoading()
                                 callback?.onAdFailToLoad(adError.message)
                                 lifecycle?.removeObserver(lifecycleObserver)
@@ -157,7 +173,7 @@ class AdmobInterstitial : AdmobAds() {
                             )
                         }
                     }
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                     Handler(Looper.getMainLooper()).postDelayed(Runnable {
                         AdDialog.getInstance().hideLoading()
                     }, 500)
@@ -173,7 +189,7 @@ class AdmobInterstitial : AdmobAds() {
                 super.onAdFailedToLoad(p0)
                 loadFailed = true
                 error = p0.message
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)
@@ -183,27 +199,33 @@ class AdmobInterstitial : AdmobAds() {
         InterstitialAd.load(
             activity,
             id,
-            AdRequest.Builder().setHttpTimeoutMillis(timeOut.toInt()).build(),
+            AdRequest.Builder()
+//                .setHttpTimeoutMillis(timeOut.toInt())
+                .build(),
             interstitialAdLoadCallback
         )
     }
 
-    private val lifecycleObserver = LifecycleEventObserver { source, event ->
-        eventLifecycle = event
-        if (event == Lifecycle.Event.ON_RESUME) {
-            AdDialog.getInstance().hideLoading()
-            if (loadFailed || loaded) {
+    private val lifecycleObserver = object :LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            eventLifecycle = event
+            if (event == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
-                if (loaded) {
-                    currentActivity?.let { mInterstitialAd?.show(it) }
-                    Log.d(TAG, "show: ")
-                } else {
-                    callback?.onAdFailToLoad(error)
-                    Log.d(TAG, "faild: ")
+                if (isTimeOut){
+                    AdDialog.getInstance().hideLoading()
+                    callback?.onAdFailToLoad("TimeOut")
+                    lifecycle?.removeObserver(this)
+                } else if (loadFailed || loaded) {
+                    AdDialog.getInstance().hideLoading()
+                    if (loaded) {
+                        currentActivity?.let { mInterstitialAd?.show(it) }
+                    } else {
+                        callback?.onAdFailToLoad(error)
+                    }
+                    lifecycle?.removeObserver(this)
                 }
             }
         }
-
     }
 
     override fun isLoaded(): Boolean {

@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
@@ -26,10 +27,10 @@ class AdmobOpenAds : AdmobAds() {
     private var timeClick = 0L
     private var callback: AdCallback? = null
     private var error: String? = null
-
+    private var isTimeOut = false
+    private var handler = Handler(Looper.getMainLooper())
     private var loadFailed = false
     private var loaded: Boolean = false
-    private var isTimeOut: Boolean = false
     private var preload: Boolean = false
     private var adsChild: AdsChild? = null
 
@@ -38,6 +39,7 @@ class AdmobOpenAds : AdmobAds() {
 
     private var appOpenAd: AppOpenAd? = null
     private var currentActivity: Activity? = null
+    private var lifecycle:Lifecycle? = null
 
 
     val TAG = "AdmobOpenAds"
@@ -85,7 +87,16 @@ class AdmobOpenAds : AdmobAds() {
         }
         return false
     }
-
+    private val timeOutCallBack = Runnable {
+        if (!loaded && !loadFailed) {
+            if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+                callback?.onAdFailToLoad("TimeOut")
+                lifecycle?.removeObserver(lifecycleObserver)
+            }else {
+                isTimeOut = true
+            }
+        }
+    }
     private fun load(
         activity: Activity,
         adsChild: AdsChild,
@@ -94,12 +105,18 @@ class AdmobOpenAds : AdmobAds() {
         timeOut: Long = Constant.TIME_OUT_DEFAULT,
         adCallback: AdCallback? = null
     ) {
+        this.lifecycle = lifecycle
         this.adsChild = adsChild
         this.callback = adCallback
         callback = adCallback
         timeClick = System.currentTimeMillis();
         val id = if (Constant.isDebug) Constant.ID_ADMOB_OPEN_APP_TEST else adsChild.adsId
-
+        if (!preload) {
+            lifecycle?.addObserver(lifecycleObserver)
+            handler.removeCallbacks(timeOutCallBack)
+            handler.postDelayed(timeOutCallBack,timeOut)
+        }
+        resetValue()
         val openAdLoadCallback = object : AppOpenAdLoadCallback() {
             override fun onAdLoaded(p0: AppOpenAd) {
                 Log.d(TAG, "onAdLoaded: ")
@@ -167,7 +184,9 @@ class AdmobOpenAds : AdmobAds() {
                 }
             }
         }
-        val request: AdRequest = AdRequest.Builder().setHttpTimeoutMillis(timeOut.toInt()).build()
+        val request: AdRequest = AdRequest.Builder()
+//            .setHttpTimeoutMillis(timeOut.toInt())
+            .build()
         AppOpenAd.load(
             activity, id, request,
             AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, openAdLoadCallback
@@ -175,20 +194,32 @@ class AdmobOpenAds : AdmobAds() {
 
     }
 
-    private val lifecycleObserver = LifecycleEventObserver { source, event ->
-        eventLifecycle = event
-        if (event == Lifecycle.Event.ON_RESUME) {
-            AdDialog.getInstance().hideLoading()
-            if (isTimeOut || loadFailed || loaded) {
+    private val lifecycleObserver = object :LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            eventLifecycle = event
+            if (event == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
-                if (loaded && appOpenAd != null) {
-                    currentActivity?.let { appOpenAd?.show(it) }
-                } else {
-                    callback?.onAdFailToLoad(error)
+                if (isTimeOut){
+                    AdDialog.getInstance().hideLoading()
+                    callback?.onAdFailToLoad("TimeOut")
+                    lifecycle?.removeObserver(this)
+                } else if (loadFailed || loaded) {
+                    AdDialog.getInstance().hideLoading()
+                    if (loaded) {
+                        currentActivity?.let { appOpenAd?.show(it) }
+                    } else {
+                        callback?.onAdFailToLoad(error)
+                    }
+                    lifecycle?.removeObserver(this)
                 }
             }
         }
+    }
 
+    private fun resetValue() {
+        loaded = false
+        loadFailed = false
+        error = null
     }
 
 
