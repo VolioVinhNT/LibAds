@@ -40,7 +40,9 @@ class AdmobHolder {
                     override fun onAdShow(network: String, adtype: String) {
                         adCallback?.onAdShow(network, adtype)
                         Log.d(TAG, "onAdShow: ")
-                        remove(adsChild)
+                        if (!isKeepAds) {
+                            remove(adsChild)
+                        }
 
                     }
 
@@ -192,7 +194,7 @@ class AdmobHolder {
                     false
                 }
             }
-            if(checkShow) hashMap.remove(key)
+//            if(checkShow) hashMap.remove(key)
             return checkShow
         }
         return false
