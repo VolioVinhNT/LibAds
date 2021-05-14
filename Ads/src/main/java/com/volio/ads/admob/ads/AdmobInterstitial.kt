@@ -66,6 +66,7 @@ class AdmobInterstitial : AdmobAds() {
             timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
             adCallback
         )
+        AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
     }
 
     override fun preload(activity: Activity, adsChild: AdsChild) {
