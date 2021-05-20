@@ -393,5 +393,13 @@ class AdsController private constructor(
             }
         }
     }
+    fun destroy(spaceName: String){
+        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
+        listItem?.let {
+            for (item in it){
+                admobHolder.destroy(item)
+            }
+        }
+    }
 
 }

@@ -233,6 +233,7 @@ class AdmobRewardInterstitial : AdmobAds() {
     }
 
     override fun destroy() {
+        isTimeOut = true
         rewardedAd = null
     }
 
