@@ -116,7 +116,7 @@ class AdmobRewardInterstitial : AdmobAds() {
         resetValue()
         callback = adCallback
         timeClick = System.currentTimeMillis();
-        val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_TEST else adsChild.adsId
+        val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_INTERSTITIAL_TEST else adsChild.adsId
         val rewardedAdLoadCallback = object : RewardedInterstitialAdLoadCallback() {
             override fun onAdLoaded(p0: RewardedInterstitialAd) {
                 Log.d(TAG, "onAdLoaded: ")
@@ -233,6 +233,7 @@ class AdmobRewardInterstitial : AdmobAds() {
     }
 
     override fun destroy() {
+
         isTimeOut = true
         rewardedAd = null
     }
