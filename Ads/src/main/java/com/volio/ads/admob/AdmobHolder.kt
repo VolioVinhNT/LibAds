@@ -107,6 +107,9 @@ class AdmobHolder {
             AdDef.ADS_TYPE.OPEN_APP -> {
                 ads = AdmobOpenAds()
             }
+            AdDef.ADS_TYPE.REWARD_INTERSTITIAL ->{
+                ads = AdmobRewardInterstitial()
+            }
             else -> {
                 Utils.showToastDebug(
                         activity,
@@ -153,6 +156,9 @@ class AdmobHolder {
             AdDef.ADS_TYPE.OPEN_APP -> {
                 ads = AdmobOpenAds()
             }
+            AdDef.ADS_TYPE.REWARD_INTERSTITIAL ->{
+                ads = AdmobRewardInterstitial()
+            }
             else -> {
                 Utils.showToastDebug(
                         activity,
@@ -183,6 +189,7 @@ class AdmobHolder {
                 AdDef.ADS_TYPE.BANNER_ADAPTIVE,
                 AdDef.ADS_TYPE.OPEN_APP,
                 AdDef.ADS_TYPE.REWARD_VIDEO,
+                AdDef.ADS_TYPE.REWARD_INTERSTITIAL,
                 AdDef.ADS_TYPE.INTERSTITIAL -> {
                     ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
                 }

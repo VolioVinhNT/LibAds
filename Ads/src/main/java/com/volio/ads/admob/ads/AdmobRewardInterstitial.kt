@@ -12,6 +12,8 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
 import com.volio.ads.AdCallback
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
@@ -20,7 +22,7 @@ import com.volio.ads.utils.Constant
 import com.volio.ads.utils.Utils
 import java.util.*
 
-class AdmobReward : AdmobAds() {
+class AdmobRewardInterstitial : AdmobAds() {
     private var error: String? = null
 
     private var loadFailed = false
@@ -29,7 +31,7 @@ class AdmobReward : AdmobAds() {
     private var isTimeOut = false
     private var handler = Handler(Looper.getMainLooper())
     private var eventLifecycle: Lifecycle.Event = Lifecycle.Event.ON_RESUME
-    private var rewardedAd: RewardedAd? = null
+    private var rewardedAd: RewardedInterstitialAd? = null
     private var timeClick = 0L
     private var callback: AdCallback? = null
     private val TAG = "AdmobInterstitial"
@@ -115,8 +117,8 @@ class AdmobReward : AdmobAds() {
         callback = adCallback
         timeClick = System.currentTimeMillis();
         val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_TEST else adsChild.adsId
-        val rewardedAdLoadCallback = object : RewardedAdLoadCallback() {
-            override fun onAdLoaded(p0: RewardedAd) {
+        val rewardedAdLoadCallback = object : RewardedInterstitialAdLoadCallback() {
+            override fun onAdLoaded(p0: RewardedInterstitialAd) {
                 Log.d(TAG, "onAdLoaded: ")
                 rewardedAd = p0
                 rewardedAd?.fullScreenContentCallback =
@@ -182,7 +184,7 @@ class AdmobReward : AdmobAds() {
                 }
             }
         }
-        RewardedAd.load(activity,id,AdRequest.Builder()
+        RewardedInterstitialAd.load(activity,id,AdRequest.Builder()
 //            .setHttpTimeoutMillis(timeOut.toInt())
             .build(),rewardedAdLoadCallback)
 

@@ -89,11 +89,10 @@ class AdmobOpenAds : AdmobAds() {
     }
     private val timeOutCallBack = Runnable {
         if (!loaded && !loadFailed) {
+            isTimeOut = true
             if (eventLifecycle == Lifecycle.Event.ON_RESUME){
                 callback?.onAdFailToLoad("TimeOut")
                 lifecycle?.removeObserver(lifecycleObserver)
-            }else {
-                isTimeOut = true
             }
         }
     }
