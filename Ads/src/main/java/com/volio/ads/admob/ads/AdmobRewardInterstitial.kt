@@ -161,7 +161,7 @@ class AdmobRewardInterstitial : AdmobAds() {
 //                            )
                         }
                     }
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload&&!isTimeOut) {
                     Handler(Looper.getMainLooper()).postDelayed(Runnable {
                         AdDialog.getInstance().hideLoading()
                     }, 500)
@@ -177,7 +177,7 @@ class AdmobRewardInterstitial : AdmobAds() {
                 super.onAdFailedToLoad(p0)
                 loadFailed = true
                 error = p0.message
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)

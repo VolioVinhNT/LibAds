@@ -210,6 +210,8 @@ class AdmobHolder {
     public fun destroy(adsChild: AdsChild) {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
         hashMap[key]?.destroy()
+        Log.d(TAG, "destroy: ${hashMap[key] == null}")
+
         hashMap.remove(key)
     }
 
