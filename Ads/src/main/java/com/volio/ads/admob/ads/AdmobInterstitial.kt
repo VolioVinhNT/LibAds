@@ -237,6 +237,7 @@ class AdmobInterstitial : AdmobAds() {
     }
 
     override fun destroy() {
+        isTimeOut = true
         mInterstitialAd = null
     }
 
