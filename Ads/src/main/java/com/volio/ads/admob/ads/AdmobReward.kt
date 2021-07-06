@@ -114,6 +114,10 @@ class AdmobReward : AdmobAds() {
         resetValue()
         callback = adCallback
         timeClick = System.currentTimeMillis();
+        Utils.showToastDebug(
+            activity,
+            "Admob ReWard id: ${adsChild.adsId}"
+        )
         val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_TEST else adsChild.adsId
         val rewardedAdLoadCallback = object : RewardedAdLoadCallback() {
             override fun onAdLoaded(p0: RewardedAd) {
@@ -149,10 +153,7 @@ class AdmobReward : AdmobAds() {
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             rewardedAd = null
                             AdDialog.getInstance().hideLoading()
-                            Utils.showToastDebug(
-                                activity,
-                                "Admob Interstitial id: ${adsChild.adsId}"
-                            )
+
 //                            callback?.onAdShow(
 //                                AdDef.NETWORK.GOOGLE,
 //                                AdDef.ADS_TYPE.INTERSTITIAL
@@ -189,7 +190,7 @@ class AdmobReward : AdmobAds() {
     }
     private val rewardedAdLoadCallback = OnUserEarnedRewardListener {
         callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.REWARD_VIDEO)
-        Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
+//        Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
     }
 
 //        override fun onRewardedAdClosed() {
