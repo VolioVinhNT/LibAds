@@ -36,10 +36,11 @@ class AdDialog {
                             customView(R.layout.dialog_loading)
                             getCustomView().findViewById<TextView>(R.id.tvLoading).text = message
                         }
+                        dialogLoading?.show {
+                            cornerRadius(10f)
+                        }
                     }
-                    dialogLoading?.show {
-                        cornerRadius(10f)
-                    }
+
                 }
             }
         } catch (e: Exception) {
