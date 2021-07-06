@@ -2,6 +2,7 @@ package com.volio.ads.utils
 
 import android.app.ProgressDialog
 import android.content.Context
+import android.util.Log
 import android.widget.TextView
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -29,18 +30,18 @@ class AdDialog {
     ) {
         try {
             if (context != null&&message != null) {
+                Log.i("vcvcvcvcvc","vao0")
                 if (dialogLoading == null) {
-                    if (dialogLoading == null) {
-                        dialogLoading = MaterialDialog(context).apply {
-                            cancelable(false)
-                            customView(R.layout.dialog_loading)
-                            getCustomView().findViewById<TextView>(R.id.tvLoading).text = message
-                        }
-                        dialogLoading?.show {
-                            cornerRadius(10f)
-                        }
-                    }
+                    Log.i("vcvcvcvcvc","vao1")
+                    dialogLoading = MaterialDialog(context).apply {
+                        cancelable(false)
+                        customView(R.layout.dialog_loading_ads)
+                        getCustomView().findViewById<TextView>(R.id.tvLoading).text = message
 
+                    }
+                    dialogLoading!!.show {
+                        cornerRadius(10f)
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -49,7 +50,7 @@ class AdDialog {
 
     fun hideLoading() {
         try {
-            if (dialogLoading != null && dialogLoading!!.isShowing) {
+            if (dialogLoading != null ) {
                 dialogLoading?.dismiss()
                 dialogLoading = null
             }
