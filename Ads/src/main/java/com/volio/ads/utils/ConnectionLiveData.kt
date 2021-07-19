@@ -1,4 +1,4 @@
-package m.tech.duonglieulibrary.util
+package com.volio.ads.utils
 
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
@@ -45,22 +45,24 @@ constructor(var context: Context) : LiveData<Boolean>() {
         } catch (e: Exception) {
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            connectivityManager.registerDefaultNetworkCallback(networkCallback)
-        } else {
-            val request = NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).build()
-            connectivityManager.registerNetworkCallback(request, networkCallback)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                connectivityManager.registerDefaultNetworkCallback(networkCallback)
+            } else {
+                val request = NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).build()
+                connectivityManager.registerNetworkCallback(request, networkCallback)
+            }
+        } catch (e: Exception) {
+            postValue(true)
         }
     }
 
     override fun onInactive() {
         super.onInactive()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                connectivityManager.unregisterNetworkCallback(connectivityManagerCallback)
-            } catch (e: Exception) {
-            }
+        try {
+            connectivityManager.unregisterNetworkCallback(connectivityManagerCallback)
+        } catch (e: Exception) {
         }
     }
 }
