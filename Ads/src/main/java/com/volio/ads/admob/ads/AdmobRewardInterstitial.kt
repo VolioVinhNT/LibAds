@@ -153,7 +153,7 @@ class AdmobRewardInterstitial : AdmobAds() {
                             AdDialog.getInstance().hideLoading()
                             Utils.showToastDebug(
                                 activity,
-                                "Admob Interstitial id: ${adsChild.adsId}"
+                                "Admob ReWard Interstitial id: ${adsChild.adsId}"
                             )
 //                            callback?.onAdShow(
 //                                AdDef.NETWORK.GOOGLE,
