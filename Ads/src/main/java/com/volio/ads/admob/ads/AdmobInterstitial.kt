@@ -99,6 +99,7 @@ class AdmobInterstitial : AdmobAds() {
         if (!loaded && !loadFailed) {
             isTimeOut = true
             if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+                AdDialog.getInstance().hideLoading()
                 callback?.onAdFailToLoad("TimeOut")
                 lifecycle?.removeObserver(lifecycleObserver)
             }
