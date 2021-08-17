@@ -1,4 +1,3 @@
 <resources>
-    <string name="app_name">Ad Manager Native Ads Example</string>
     <string name="ad_attribution">Ad</string>
 </resources>
