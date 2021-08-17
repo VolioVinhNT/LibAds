@@ -117,6 +117,10 @@ class AdmobRewardInterstitial : AdmobAds() {
         callback = adCallback
         timeClick = System.currentTimeMillis();
         val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_INTERSTITIAL_TEST else adsChild.adsId
+        Utils.showToastDebug(
+            activity,
+            "Admob ReWard Interstitial id: ${adsChild.adsId}"
+        )
         val rewardedAdLoadCallback = object : RewardedInterstitialAdLoadCallback() {
             override fun onAdLoaded(p0: RewardedInterstitialAd) {
                 Log.d(TAG, "onAdLoaded: ")
@@ -151,10 +155,10 @@ class AdmobRewardInterstitial : AdmobAds() {
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             rewardedAd = null
                             AdDialog.getInstance().hideLoading()
-                            Utils.showToastDebug(
-                                activity,
-                                "Admob ReWard Interstitial id: ${adsChild.adsId}"
-                            )
+//                            Utils.showToastDebug(
+//                                activity,
+//                                "Admob ReWard Interstitial id: ${adsChild.adsId}"
+//                            )
 //                            callback?.onAdShow(
 //                                AdDef.NETWORK.GOOGLE,
 //                                AdDef.ADS_TYPE.INTERSTITIAL
@@ -175,6 +179,10 @@ class AdmobRewardInterstitial : AdmobAds() {
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
+//                Utils.showToastDebug(
+//                    activity,
+//                    "Admob ReWard Interstitial id: ${adsChild.adsId}"
+//                )
                 loadFailed = true
                 error = p0.message
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
@@ -191,7 +199,7 @@ class AdmobRewardInterstitial : AdmobAds() {
     }
     private val rewardedAdLoadCallback = OnUserEarnedRewardListener {
         callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.REWARD_VIDEO)
-        Utils.showToastDebug(currentActivity, "Admob ReWard Interstitial id: ${adsChild?.adsId}")
+        //Utils.showToastDebug(currentActivity, "Admob ReWard Interstitial id: ${adsChild?.adsId}")
     }
 
 //        override fun onRewardedAdClosed() {
