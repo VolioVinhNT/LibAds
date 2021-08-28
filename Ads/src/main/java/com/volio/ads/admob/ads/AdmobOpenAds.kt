@@ -160,7 +160,7 @@ class AdmobOpenAds : AdmobAds() {
                             )
                         }
                     }
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
+                if (!isTimeOut && eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
                     Handler(Looper.getMainLooper()).postDelayed(Runnable {
                         AdDialog.getInstance().hideLoading()
                     }, 500)
