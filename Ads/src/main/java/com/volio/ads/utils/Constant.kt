@@ -1,6 +1,9 @@
 package com.volio.ads.utils
 
 object Constant {
+
+    var isShowDetailAlbum = false
+    var isShowRate = 1
     var isDebug:Boolean = true
     var SHOW_CENTER_HELP = false
     var SHOW_REPORT_ERROR = false
