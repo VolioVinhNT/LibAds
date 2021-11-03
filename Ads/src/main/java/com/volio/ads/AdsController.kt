@@ -146,6 +146,7 @@ class AdsController private constructor(
         layoutAds: View? = null,
         lifecycle: Lifecycle? = null,
         timeMillisecond: Long = Constant.TIME_OUT_DEFAULT,
+        timeDelayShowAd : Int = 0,
         adCallback: AdCallback? =null
     ) {
         if(isPremium){
@@ -170,6 +171,7 @@ class AdsController private constructor(
                             textLoading,
                             layout,
                             layoutAds,
+                            timeDelayShowAd,
                             adCallback
                         )
                     }

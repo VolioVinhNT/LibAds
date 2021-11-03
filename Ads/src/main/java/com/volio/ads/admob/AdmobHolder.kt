@@ -38,12 +38,11 @@ class AdmobHolder {
                 timeMillisecond,
                 object : AdCallback {
                     override fun onAdShow(network: String, adtype: String) {
-                        adCallback?.onAdShow(network, adtype)
                         Log.d(TAG, "onAdShow: ")
                         if (!isKeepAds) {
                             remove(adsChild)
                         }
-
+                        adCallback?.onAdShow(network, adtype)
                     }
 
                     override fun onAdClose(adType: String) {
@@ -178,6 +177,7 @@ class AdmobHolder {
             loadingText: String?,
             layout: ViewGroup?,
             layoutAds: View?,
+            timeDelayShowAd : Int = 0,
             adCallback: AdCallback?
     ): Boolean {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())

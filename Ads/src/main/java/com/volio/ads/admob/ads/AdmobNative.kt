@@ -279,14 +279,14 @@ class AdmobNative : AdmobAds() {
         return false
 
     }
-    public override fun isDestroy():Boolean = (true)
+    public override fun isDestroy():Boolean = (currentUnifiedNativeAd == null)
     public override fun destroy(){
-//        currentUnifiedNativeAd?.destroy()
-//        currentUnifiedNativeAd = null;
+        currentUnifiedNativeAd?.destroy()
+        currentUnifiedNativeAd = null;
     }
 
     public override fun isLoaded(): Boolean {
-        return false
+        return currentUnifiedNativeAd != null
     }
 
 }
