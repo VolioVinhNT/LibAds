@@ -12,7 +12,7 @@ class MainActivity : AppCompatActivity() {
             activity = this,
             isDebug = true,
             listAppId = arrayListOf("1"),
-            packetName = "com.pdfconverter.imagetopdf.jpgtopdf.pdfconverterforandroid",
+            packetName = "com.pdfconverter.imagetopdf.jpgtopdf.pdfconverterforandroid.test",
             listPathJson = arrayListOf("fan_id.json"),
             lifecycle = lifecycle
         )
