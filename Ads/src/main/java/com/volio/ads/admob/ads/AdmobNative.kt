@@ -1,6 +1,7 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
+import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -198,6 +199,17 @@ class AdmobNative : AdmobAds() {
         builder.forNativeAd { unifiedNativeAd ->
             Log.d(TAG, "load: ")
             adCallback?.onAdShow(AdDef.NETWORK.GOOGLE,AdDef.ADS_TYPE.NATIVE)
+            unifiedNativeAd?.setOnPaidEventListener {
+                kotlin.runCatching {
+                    val params = Bundle()
+                    params.putString("valuemicros", it.valueMicros.toString())
+                    params.putString("currency", it.currencyCode)
+                    params.putString("precision", it.precisionType.toString())
+                    params.putString("adunitid", idAds)
+                    params.putString("network", unifiedNativeAd.responseInfo?.mediationAdapterClassName)
+                    adCallback?.onPaidEvent(params)
+                }
+            }
             if (currentUnifiedNativeAd != null) {
                 currentUnifiedNativeAd?.destroy()
             }
