@@ -1,6 +1,7 @@
 package com.volio.ads.admob
 
 import android.app.Activity
+import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -69,6 +70,10 @@ class AdmobHolder {
 
                     override fun onAdClick() {
                         adCallback?.onAdClick()
+                    }
+
+                    override fun onPaidEvent(params: Bundle) {
+                        adCallback?.onPaidEvent(params)
                     }
 
                 })

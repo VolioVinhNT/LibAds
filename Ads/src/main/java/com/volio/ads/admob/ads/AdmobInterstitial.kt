@@ -135,7 +135,9 @@ class AdmobInterstitial : AdmobAds() {
             override fun onAdLoaded(p0: InterstitialAd) {
                 Log.d(TAG, "onAdLoaded: ")
                 mInterstitialAd = p0
+                Log.d("dsk7", "onAdLoaded: ")
                 mInterstitialAd?.setOnPaidEventListener {
+                    Log.d("dsk7", "padi: ")
                     kotlin.runCatching {
                         val params = Bundle()
                         params.putString("valuemicros", it.valueMicros.toString())
@@ -143,6 +145,7 @@ class AdmobInterstitial : AdmobAds() {
                         params.putString("precision", it.precisionType.toString())
                         params.putString("adunitid", p0.adUnitId)
                         params.putString("network", p0.responseInfo.mediationAdapterClassName)
+                        Log.d("dsk7", "params: $params")
                         callback?.onPaidEvent(params)
                     }
                 }
