@@ -2,6 +2,7 @@ package com.volio.ads.admob.ads
 
 import android.app.Activity
 import android.graphics.Color
+import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
@@ -72,6 +73,17 @@ class AdmobBanner : AdmobAds() {
         adView?.setBackgroundColor(Color.WHITE)
         adView?.adUnitId = id
         adView?.loadAd(AdRequest.Builder().build())
+        adView?.setOnPaidEventListener {
+            kotlin.runCatching {
+                val params = Bundle()
+                params.putString("valuemicros", it.valueMicros.toString())
+                params.putString("currency", it.currencyCode)
+                params.putString("precision", it.precisionType.toString())
+                params.putString("adunitid", adView?.adUnitId)
+                params.putString("network", adView?.responseInfo?.mediationAdapterClassName)
+                adCallback?.onPaidEvent(params)
+            }
+        }
         adView?.adListener = object : AdListener() {
             override fun onAdOpened() {
                 super.onAdOpened()

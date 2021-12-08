@@ -1,6 +1,7 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -134,6 +135,17 @@ class AdmobInterstitial : AdmobAds() {
             override fun onAdLoaded(p0: InterstitialAd) {
                 Log.d(TAG, "onAdLoaded: ")
                 mInterstitialAd = p0
+                mInterstitialAd?.setOnPaidEventListener {
+                    kotlin.runCatching {
+                        val params = Bundle()
+                        params.putString("valuemicros", it.valueMicros.toString())
+                        params.putString("currency", it.currencyCode)
+                        params.putString("precision", it.precisionType.toString())
+                        params.putString("adunitid", p0.adUnitId)
+                        params.putString("network", p0.responseInfo.mediationAdapterClassName)
+                        callback?.onPaidEvent(params)
+                    }
+                }
                 mInterstitialAd?.fullScreenContentCallback =
                     object : FullScreenContentCallback() {
                         override fun onAdDismissedFullScreenContent() {
@@ -243,3 +255,4 @@ class AdmobInterstitial : AdmobAds() {
     }
 
 }
+

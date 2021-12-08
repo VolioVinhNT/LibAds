@@ -1,6 +1,7 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -123,6 +124,17 @@ class AdmobReward : AdmobAds() {
             override fun onAdLoaded(p0: RewardedAd) {
                 Log.d(TAG, "onAdLoaded: ")
                 rewardedAd = p0
+                rewardedAd?.setOnPaidEventListener {
+                    kotlin.runCatching {
+                        val params = Bundle()
+                        params.putString("valuemicros", it.valueMicros.toString())
+                        params.putString("currency", it.currencyCode)
+                        params.putString("precision", it.precisionType.toString())
+                        params.putString("adunitid", p0.adUnitId)
+                        params.putString("network", p0.responseInfo.mediationAdapterClassName)
+                        callback?.onPaidEvent(params)
+                    }
+                }
                 rewardedAd?.fullScreenContentCallback =
                     object : FullScreenContentCallback() {
                         override fun onAdDismissedFullScreenContent() {

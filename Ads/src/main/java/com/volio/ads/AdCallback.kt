@@ -1,5 +1,6 @@
 package com.volio.ads
 
+import android.os.Bundle
 import com.volio.ads.utils.AdDef
 
 interface AdCallback {
@@ -9,5 +10,6 @@ interface AdCallback {
     fun onAdFailToLoad(messageError: String?)
     fun onAdOff()
     fun onAdClick(){}
+    fun onPaidEvent(params: Bundle) {}
 
 }
