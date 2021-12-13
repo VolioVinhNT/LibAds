@@ -8,7 +8,7 @@ import java.io.InputStream
 
 object Utils {
     fun showToastDebug(context: Context?,text:String){
-        if(context != null&&Constant.isDebug) {
+        if(context != null && Constant.isShowToastDebug) {
             Toast.makeText(context, text, Toast.LENGTH_LONG).show()
         }
     }
