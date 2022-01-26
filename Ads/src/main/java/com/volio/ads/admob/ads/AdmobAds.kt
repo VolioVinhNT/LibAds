@@ -1,6 +1,7 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle

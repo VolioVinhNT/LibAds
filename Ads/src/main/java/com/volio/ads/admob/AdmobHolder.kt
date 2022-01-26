@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.volio.ads.AdCallback
+import com.volio.ads.PreloadCallback
 import com.volio.ads.admob.ads.*
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
@@ -138,7 +139,7 @@ class AdmobHolder {
 
     }
 
-    public fun preload(activity: Activity, adsChild: AdsChild) {
+    public fun preload(activity: Activity, adsChild: AdsChild, preloadCallback: PreloadCallback? = null) {
         var ads: AdmobAds? = null
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
         when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
@@ -162,6 +163,10 @@ class AdmobHolder {
             }
             AdDef.ADS_TYPE.REWARD_INTERSTITIAL ->{
                 ads = AdmobRewardInterstitial()
+                try {
+                    (ads as AdmobRewardInterstitial).setPreloadCallback(preloadCallback)
+                } catch (e: Exception) {
+                }
             }
             else -> {
                 Utils.showToastDebug(
