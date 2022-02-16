@@ -116,14 +116,14 @@ class AdsController private constructor(
 
 
 
-    public fun preload(spaceName: String) {
+    public fun preload(spaceName: String, preloadCallback: PreloadCallback? =null) {
         if (isPremium) return
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         if (listItem != null && listItem.size > 0) {
             for (item in listItem) {
                 when (item.network.toLowerCase(Locale.getDefault())) {
                     AdDef.NETWORK.GOOGLE -> {
-                        admobHolder.preload(activity, item)
+                        admobHolder.preload(activity, item, preloadCallback)
                     }
                     AdDef.NETWORK.FACEBOOK ->{
                         fanHolder.preload(activity,item)
