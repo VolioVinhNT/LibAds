@@ -47,8 +47,11 @@ class AdmobAdaptiveBanner : AdmobAds() {
         adCallback: AdCallback?
     ): Boolean {
         if (adView != null && layout != null) {
-            layout.removeAllViews()
-            layout.addView(adView)
+            try {
+                layout.removeAllViews()
+                layout.addView(adView)
+            } catch (e: Exception) {
+            }
             adCallback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
             return true
         } else {
