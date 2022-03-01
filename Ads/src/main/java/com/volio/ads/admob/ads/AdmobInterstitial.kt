@@ -17,6 +17,7 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.AdDialog
@@ -39,11 +40,16 @@ class AdmobInterstitial : AdmobAds() {
     private val TAG = "AdmobInterstitial"
     private var currentActivity: Activity? = null
     private var lifecycle:Lifecycle? = null
+    private var preloadCallback: PreloadCallback? = null
 
     private fun resetValue() {
         loaded = false
         loadFailed = false
         error = null
+    }
+
+    public fun setPreloadCallback(preloadCallback: PreloadCallback?) {
+        this.preloadCallback = preloadCallback
     }
 
     override fun loadAndShow(
@@ -196,6 +202,7 @@ class AdmobInterstitial : AdmobAds() {
                 loaded = true
                 timeLoader = Date().time
                 Log.d(TAG, "onAdLoaded: ")
+                preloadCallback?.onLoadDone()
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -212,9 +219,7 @@ class AdmobInterstitial : AdmobAds() {
         InterstitialAd.load(
             activity,
             id,
-            AdRequest.Builder()
-//                .setHttpTimeoutMillis(timeOut.toInt())
-                .build(),
+            AdRequest.Builder().build(),
             interstitialAdLoadCallback
         )
     }

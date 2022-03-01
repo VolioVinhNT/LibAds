@@ -148,6 +148,10 @@ class AdmobHolder {
             }
             AdDef.ADS_TYPE.INTERSTITIAL -> {
                 ads = AdmobInterstitial()
+                try {
+                    (ads as AdmobInterstitial).setPreloadCallback(preloadCallback)
+                } catch (e: Exception) {
+                }
             }
             AdDef.ADS_TYPE.BANNER -> {
                 ads = AdmobBanner()
