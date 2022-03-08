@@ -17,6 +17,5 @@ class MainActivity : AppCompatActivity() {
             lifecycle = lifecycle
         )
         AdsController.getInstance().loadAndShow("test",layout = findViewById(R.id.layout_ads),lifecycle = lifecycle)
-
     }
 }
