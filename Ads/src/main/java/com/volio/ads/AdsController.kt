@@ -12,11 +12,8 @@ import com.volio.ads.fan.AudienceNetworkInitializeHelper
 import com.volio.ads.fan.FanHolderHolder
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
-import com.volio.ads.utils.AdDef
-import com.volio.ads.utils.Constant
-import com.volio.ads.utils.Utils
+import com.volio.ads.utils.*
 import com.volio.ads.utils.Utils.showToastDebug
-import com.volio.ads.utils.ConnectionLiveData
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -33,20 +30,21 @@ class AdsController private constructor(
     private val hashMapAds: HashMap<String, ArrayList<AdsChild>> = hashMapOf()
     private val admobHolder = AdmobHolder()
     private val fanHolder = FanHolderHolder()
-    private var connectionLiveData : ConnectionLiveData = ConnectionLiveData(activity)
-    private var isConnection:Boolean = true
-    var isPremium:Boolean = false
+    private var connectionLiveData: ConnectionLiveData = ConnectionLiveData(activity)
+    private var isConnection: Boolean = true
+    var isPremium: Boolean = false
+
     companion object {
         private lateinit var adsController: AdsController
         fun init(
             activity: Activity,
-            isDebug:Boolean,
+            isDebug: Boolean,
             listAppId: ArrayList<String>,
             packetName: String,
             listPathJson: ArrayList<String>, lifecycle: Lifecycle
         ) {
             Constant.isDebug = isDebug
-            adsController = AdsController(activity, listAppId, packetName, listPathJson,lifecycle)
+            adsController = AdsController(activity, listAppId, packetName, listPathJson, lifecycle)
         }
 
         fun getInstance(): AdsController {
@@ -56,28 +54,31 @@ class AdsController private constructor(
             return adsController
         }
     }
-    public fun setDebugMode(isDebug: Boolean){
+
+    public fun setDebugMode(isDebug: Boolean) {
         Constant.isDebug = isDebug
     }
+
     public fun getDebugMode() = Constant.isDebug
-    private fun checkAppIdPacket(ads:Ads):Boolean{
+    private fun checkAppIdPacket(ads: Ads): Boolean {
         var checkAppId = false
         var checkPacket = false
-        for (id in listAppId){
+        for (id in listAppId) {
             if (ads.appId == id) {
                 checkAppId = true
                 break
             }
         }
-        if(!checkAppId) showToastDebug(activity, "wrong appId network ${ads.network}")
+        if (!checkAppId) showToastDebug(activity, "wrong appId network ${ads.network}")
 
         if (ads.packetName != packetName) {
             showToastDebug(activity, "wrong packetName")
-        }else{
+        } else {
             checkPacket = true
         }
         return checkAppId && checkPacket
     }
+
     init {
         connectionLiveData.observe({ lifecycleActivity }, {
             isConnection = it
@@ -87,7 +88,7 @@ class AdsController private constructor(
         val listAds = ArrayList<Ads>()
         for (item in listPathJson) {
             try {
-                val data = Utils.getStringAssetFile(item,activity)
+                val data = Utils.getStringAssetFile(item, activity)
                 Log.d(TAG, ": $data")
                 val ads = gson.fromJson<Ads>(data, Ads::class.java)
 
@@ -98,10 +99,10 @@ class AdsController private constructor(
         }
         for (ads in listAds) {
             for (adsChild in ads.listAdsChild) {
-                if(!checkAppIdPacket(ads)) continue
+                if (!checkAppIdPacket(ads)) continue
                 adsChild.network = ads.network
                 adsChild.adsId = adsChild.adsId.trim()
-                if(adsChild.priority == -1) adsChild.priority = ads.priority
+                if (adsChild.priority == -1) adsChild.priority = ads.priority
                 var listItem = hashMapAds[adsChild.spaceName.toLowerCase(Locale.getDefault())]
                 if (listItem == null) {
                     listItem = ArrayList()
@@ -115,8 +116,7 @@ class AdsController private constructor(
     }
 
 
-
-    public fun preload(spaceName: String, preloadCallback: PreloadCallback? =null) {
+    public fun preload(spaceName: String, preloadCallback: PreloadCallback? = null) {
         if (isPremium) return
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         if (listItem != null && listItem.size > 0) {
@@ -125,36 +125,70 @@ class AdsController private constructor(
                     AdDef.NETWORK.GOOGLE -> {
                         admobHolder.preload(activity, item, preloadCallback)
                     }
-                    AdDef.NETWORK.FACEBOOK ->{
-                        fanHolder.preload(activity,item)
+                    AdDef.NETWORK.FACEBOOK -> {
+                        fanHolder.preload(activity, item)
                     }
-                    else ->{
-                        showToastDebug(activity, "not support network ${item.network} check file json")
+                    else -> {
+                        showToastDebug(
+                            activity,
+                            "not support network ${item.network} check file json"
+                        )
                     }
                 }
             }
         } else {
             showToastDebug(activity, "no data check spaceName and file json")
         }
-
     }
+
+
+    public fun checkAD(spaceName: String, stateADCallback: StateADCallback) {
+        if (isPremium) {
+            stateADCallback?.onState(StateLoadAd.NONE)
+            return
+        }
+        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
+        if (listItem != null && listItem.size > 0) {
+            for (item in listItem) {
+                when (item.network.toLowerCase(Locale.getDefault())) {
+                    AdDef.NETWORK.GOOGLE -> {
+                        admobHolder.checkStateAD(activity, item, stateADCallback)
+                    }
+//                    AdDef.NETWORK.FACEBOOK ->{
+//                        fanHolder.preload(activity,item)
+//                    }
+                    else -> {
+                        showToastDebug(
+                            activity,
+                            "not support network ${item.network} check file json"
+                        )
+                    }
+                }
+            }
+        } else {
+            stateADCallback?.onState(StateLoadAd.NONE)
+            showToastDebug(activity, "no data check spaceName and file json")
+        }
+    }
+
+
     public fun show(
         spaceName: String,
-        reloadLoadSpaceName:String? = null,
+        reloadLoadSpaceName: String? = null,
         textLoading: String? = null,
         layout: ViewGroup? = null,
         layoutAds: View? = null,
         lifecycle: Lifecycle? = null,
         timeMillisecond: Long = Constant.TIME_OUT_DEFAULT,
-        timeDelayShowAd : Int = 0,
-        adCallback: AdCallback? =null
+        timeDelayShowAd: Int = 0,
+        adCallback: AdCallback? = null
     ) {
-        if(isPremium){
+        if (isPremium) {
             layout?.visibility = View.GONE
-            adCallback?.onAdShow("","")
+            adCallback?.onAdShow("", "")
             return
         }
-        if (!isConnection){
+        if (!isConnection) {
             adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
             return
         }
@@ -175,7 +209,7 @@ class AdsController private constructor(
                             adCallback
                         )
                     }
-                    AdDef.NETWORK.FACEBOOK->{
+                    AdDef.NETWORK.FACEBOOK -> {
                         checkShow = fanHolder.show(
                             activity,
                             item,
@@ -189,18 +223,18 @@ class AdsController private constructor(
                 if (checkShow) break
             }
             if (!checkShow) {
-                if(reloadLoadSpaceName != null) {
+                if (reloadLoadSpaceName != null) {
                     loadAndShow(
-                            reloadLoadSpaceName,
-                            false,
-                            textLoading,
-                            layout,
-                            layoutAds,
-                            lifecycle,
-                            timeMillisecond,
-                            adCallback
+                        reloadLoadSpaceName,
+                        false,
+                        textLoading,
+                        layout,
+                        layoutAds,
+                        lifecycle,
+                        timeMillisecond,
+                        adCallback
                     )
-                }else{
+                } else {
                     adCallback?.onAdFailToLoad("")
                 }
             }
@@ -221,12 +255,12 @@ class AdsController private constructor(
         timeMillisecond: Long? = null,
         adCallback: AdCallback? = null
     ) {
-        if(isPremium){
+        if (isPremium) {
             layout?.visibility = View.GONE
-            adCallback?.onAdShow("","")
+            adCallback?.onAdShow("", "")
             return
         }
-        if (!isConnection){
+        if (!isConnection) {
             adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
             return
         }
@@ -352,6 +386,7 @@ class AdsController private constructor(
             }
         }
     }
+
     private fun getChildPriority(listItem: ArrayList<AdsChild>, priority: Int): AdsChild? {
         var value = Int.MAX_VALUE
         var adsChild: AdsChild? = null
@@ -365,14 +400,15 @@ class AdsController private constructor(
         }
         return adsChild
     }
-    public fun allowShowAds(allow:Boolean,spaceName: String,network: String){
-        if(allow) return
+
+    public fun allowShowAds(allow: Boolean, spaceName: String, network: String) {
+        if (allow) return
         val list = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         Log.d(TAG, "allowShowAds: 1")
         list?.let {
             Log.d(TAG, "allowShowAds: 2")
-            for (item in it){
-                if(item.network == network.toLowerCase(Locale.getDefault())){
+            for (item in it) {
+                if (item.network == network.toLowerCase(Locale.getDefault())) {
                     it.remove(item)
                     break
                 }
@@ -380,24 +416,26 @@ class AdsController private constructor(
             hashMapAds[spaceName] = it
         }
     }
-    public fun setPriority(spaceName: String,network: String){
+
+    public fun setPriority(spaceName: String, network: String) {
         val list = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         list?.let {
             var min = 0
-            for (item in list){
-                if(item.network == network.toLowerCase(Locale.getDefault())) {
+            for (item in list) {
+                if (item.network == network.toLowerCase(Locale.getDefault())) {
                     item.priority = 0
-                }else{
+                } else {
                     min += 1
                     item.priority = min
                 }
             }
         }
     }
-    fun destroy(spaceName: String){
+
+    fun destroy(spaceName: String) {
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         listItem?.let {
-            for (item in it){
+            for (item in it) {
                 admobHolder.destroy(item)
             }
         }

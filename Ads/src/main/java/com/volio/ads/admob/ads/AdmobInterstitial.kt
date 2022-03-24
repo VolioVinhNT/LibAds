@@ -18,11 +18,9 @@ import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
+import com.volio.ads.StateADCallback
 import com.volio.ads.model.AdsChild
-import com.volio.ads.utils.AdDef
-import com.volio.ads.utils.AdDialog
-import com.volio.ads.utils.Constant
-import com.volio.ads.utils.Utils
+import com.volio.ads.utils.*
 import java.util.*
 
 class AdmobInterstitial : AdmobAds() {
@@ -41,6 +39,7 @@ class AdmobInterstitial : AdmobAds() {
     private var currentActivity: Activity? = null
     private var lifecycle:Lifecycle? = null
     private var preloadCallback: PreloadCallback? = null
+    private var stateLoadAd = StateLoadAd.NONE
 
     private fun resetValue() {
         loaded = false
@@ -51,6 +50,11 @@ class AdmobInterstitial : AdmobAds() {
     public fun setPreloadCallback(preloadCallback: PreloadCallback?) {
         this.preloadCallback = preloadCallback
     }
+
+    public fun setStateAdCallback(stateADCallback: StateADCallback?){
+        stateADCallback?.onState(stateLoadAd)
+    }
+
 
     override fun loadAndShow(
         activity: Activity,
@@ -95,6 +99,7 @@ class AdmobInterstitial : AdmobAds() {
         AdDialog.getInstance().showLoadingWithMessage(activity, loadingText)
         if (loaded && mInterstitialAd != null) {
             mInterstitialAd?.show(activity)
+            stateLoadAd = StateLoadAd.NONE
             return true
         }
 //        else {
@@ -108,6 +113,7 @@ class AdmobInterstitial : AdmobAds() {
             if (eventLifecycle == Lifecycle.Event.ON_RESUME){
                 AdDialog.getInstance().hideLoading()
                 callback?.onAdFailToLoad("TimeOut")
+                stateLoadAd = StateLoadAd.FAILED
                 lifecycle?.removeObserver(lifecycleObserver)
             }
         }
@@ -120,6 +126,7 @@ class AdmobInterstitial : AdmobAds() {
         timeOut: Long,
         adCallback: AdCallback?
     ) {
+        stateLoadAd = StateLoadAd.LOADING
         if (System.currentTimeMillis() - timeClick < 500) return
         textLoading?.let {
             AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
@@ -139,6 +146,7 @@ class AdmobInterstitial : AdmobAds() {
         val id = if (Constant.isDebug) Constant.ID_ADMOB_INTERSTITIAL_TEST else adsChild.adsId
         val interstitialAdLoadCallback = object : InterstitialAdLoadCallback() {
             override fun onAdLoaded(p0: InterstitialAd) {
+                stateLoadAd = StateLoadAd.SUCCESS
                 Log.d(TAG, "onAdLoaded: ")
                 mInterstitialAd = p0
                 mInterstitialAd?.setOnPaidEventListener {
@@ -181,6 +189,7 @@ class AdmobInterstitial : AdmobAds() {
                             super.onAdShowedFullScreenContent()
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             mInterstitialAd = null
+                            stateLoadAd = StateLoadAd.NONE
                             AdDialog.getInstance().hideLoading()
                             Utils.showToastDebug(
                                 activity,
@@ -207,6 +216,7 @@ class AdmobInterstitial : AdmobAds() {
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
+                stateLoadAd = StateLoadAd.FAILED
                 loadFailed = true
                 error = p0.message
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
@@ -232,12 +242,14 @@ class AdmobInterstitial : AdmobAds() {
                 if (isTimeOut){
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad("TimeOut")
+                    stateLoadAd = StateLoadAd.FAILED
                     lifecycle?.removeObserver(this)
                 } else if (loadFailed || loaded) {
                     AdDialog.getInstance().hideLoading()
                     if (loaded) {
                         currentActivity?.let { mInterstitialAd?.show(it) }
                     } else {
+                        stateLoadAd = StateLoadAd.FAILED
                         callback?.onAdFailToLoad(error)
                     }
                     lifecycle?.removeObserver(this)
