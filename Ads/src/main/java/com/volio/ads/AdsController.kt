@@ -142,17 +142,21 @@ class AdsController private constructor(
     }
 
 
-    public fun checkAD(spaceName: String, stateADCallback: StateADCallback) {
+    public fun checkAD(spaceName: String) : StateLoadAd {
         if (isPremium) {
-            stateADCallback?.onState(StateLoadAd.NONE)
-            return
+            return StateLoadAd.NONE
         }
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         if (listItem != null && listItem.size > 0) {
+            var s = StateLoadAd.NONE
             for (item in listItem) {
                 when (item.network.toLowerCase(Locale.getDefault())) {
                     AdDef.NETWORK.GOOGLE -> {
-                        admobHolder.checkStateAD(activity, item, stateADCallback)
+                        admobHolder.checkStateAD(activity, item, object:StateADCallback{
+                            override fun onState(state: StateLoadAd) {
+                                s =  state
+                            }
+                        })
                     }
 //                    AdDef.NETWORK.FACEBOOK ->{
 //                        fanHolder.preload(activity,item)
@@ -165,9 +169,10 @@ class AdsController private constructor(
                     }
                 }
             }
+            return  s
         } else {
-            stateADCallback?.onState(StateLoadAd.NONE)
             showToastDebug(activity, "no data check spaceName and file json")
+            return   StateLoadAd.NONE
         }
     }
 
