@@ -211,6 +211,16 @@ class AdmobHolder {
             stateADCallback?.onState(StateLoadAd.NONE)
         }
 
+        if (ads != null && ads is AdmobReward) {
+            try {
+                ads.setStateAdCallback(stateADCallback)
+            } catch (e: Exception) {
+            }
+        } else {
+            stateADCallback?.onState(StateLoadAd.NONE)
+        }
+
+
 //        when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
 //            AdDef.ADS_TYPE.NATIVE -> {
 //                ads = AdmobNative()

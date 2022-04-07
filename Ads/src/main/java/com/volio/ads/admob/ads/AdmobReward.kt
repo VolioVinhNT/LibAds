@@ -14,11 +14,9 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.StateADCallback
 import com.volio.ads.model.AdsChild
-import com.volio.ads.utils.AdDef
-import com.volio.ads.utils.AdDialog
-import com.volio.ads.utils.Constant
-import com.volio.ads.utils.Utils
+import com.volio.ads.utils.*
 import java.util.*
 
 class AdmobReward : AdmobAds() {
@@ -37,11 +35,16 @@ class AdmobReward : AdmobAds() {
     private var currentActivity: Activity? = null
     private var adsChild:AdsChild? = null
     private var lifecycle:Lifecycle? = null
+    private var stateLoadAd = StateLoadAd.NONE
 
     private fun resetValue() {
         loaded = false
         loadFailed = false
         error = null
+    }
+
+    public fun setStateAdCallback(stateADCallback: StateADCallback?){
+        stateADCallback?.onState(stateLoadAd)
     }
 
     override fun loadAndShow(
@@ -77,6 +80,7 @@ class AdmobReward : AdmobAds() {
         this.callback = adCallback
         AdDialog.getInstance().showLoadingWithMessage(activity,loadingText)
         if (loaded && rewardedAd != null) {
+            stateLoadAd = StateLoadAd.NONE
             rewardedAd?.show(activity,rewardedAdLoadCallback)
             return true
         }
@@ -88,6 +92,7 @@ class AdmobReward : AdmobAds() {
         if (!loaded && !loadFailed) {
             isTimeOut = true
             if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+                stateLoadAd = StateLoadAd.FAILED
                 callback?.onAdFailToLoad("TimeOut")
                 lifecycle?.removeObserver(lifecycleObserver)
             }
@@ -101,6 +106,7 @@ class AdmobReward : AdmobAds() {
         timeOut: Long,
         adCallback: AdCallback?
     ) {
+        stateLoadAd = StateLoadAd.LOADING
         this.lifecycle = lifecycle
         this.adsChild = adsChild
         if (System.currentTimeMillis() - timeClick < 500) return
@@ -123,6 +129,7 @@ class AdmobReward : AdmobAds() {
         val rewardedAdLoadCallback = object : RewardedAdLoadCallback() {
             override fun onAdLoaded(p0: RewardedAd) {
                 Log.d(TAG, "onAdLoaded: ")
+                stateLoadAd = StateLoadAd.SUCCESS
                 rewardedAd = p0
                 rewardedAd?.setOnPaidEventListener {
                     kotlin.runCatching {
@@ -142,7 +149,7 @@ class AdmobReward : AdmobAds() {
                             Log.d(TAG, "onAdDismissedFullScreenContent: ")
                             callback?.onAdClose(AdDef.ADS_TYPE.INTERSTITIAL)
                             rewardedAd = null
-
+                            stateLoadAd = StateLoadAd.NONE
                             //// perform your code that you wants to do after ad dismissed or closed
                         }
 
@@ -165,7 +172,7 @@ class AdmobReward : AdmobAds() {
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             rewardedAd = null
                             AdDialog.getInstance().hideLoading()
-
+                            stateLoadAd = StateLoadAd.NONE
 //                            callback?.onAdShow(
 //                                AdDef.NETWORK.GOOGLE,
 //                                AdDef.ADS_TYPE.INTERSTITIAL
@@ -186,6 +193,7 @@ class AdmobReward : AdmobAds() {
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
+                stateLoadAd = StateLoadAd.FAILED
                 loadFailed = true
                 error = p0.message
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload&&!isTimeOut) {
@@ -219,6 +227,7 @@ class AdmobReward : AdmobAds() {
             if (event == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
                 if (isTimeOut){
+                    stateLoadAd = StateLoadAd.FAILED
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad("TimeOut")
                     lifecycle?.removeObserver(this)
@@ -228,6 +237,7 @@ class AdmobReward : AdmobAds() {
                         currentActivity?.let { rewardedAd?.show(it,rewardedAdLoadCallback) }
                     } else {
                         callback?.onAdFailToLoad(error)
+                        stateLoadAd = StateLoadAd.FAILED
                     }
                     lifecycle?.removeObserver(this)
                 }
