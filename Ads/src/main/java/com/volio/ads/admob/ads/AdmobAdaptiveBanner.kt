@@ -49,6 +49,9 @@ class AdmobAdaptiveBanner : AdmobAds() {
         if (adView != null && layout != null) {
             try {
                 layout.removeAllViews()
+                if (adView!!.parent != null) {
+                    (adView!!.parent as ViewGroup).removeView(adView) // <- fix
+                }
                 layout.addView(adView)
             } catch (e: Exception) {
             }
