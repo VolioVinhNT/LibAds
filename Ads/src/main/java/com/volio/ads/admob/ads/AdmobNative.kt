@@ -31,6 +31,8 @@ class AdmobNative : AdmobAds() {
     var currentUnifiedNativeAd: NativeAd? = null
     private var activity:Activity? = null
     private var adsChild:AdsChild? = null
+    private var adCallbackMain: AdCallback?=null
+
     private fun populateUnifiedNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
         // Set the media view.
         val viewGroup = adView.findViewById<ViewGroup>(R.id.ad_media)
@@ -192,13 +194,14 @@ class AdmobNative : AdmobAds() {
     }
 
     private fun load(activity: Activity, adsChild: AdsChild, adCallback: AdCallback?, loadSuccess:()->Unit){
+        adCallbackMain = adCallback
         this.adsChild = adsChild
         this.activity = activity;
         val idAds = if(Constant.isDebug) Constant.ID_ADMOB_NATIVE_TEST else adsChild.adsId
         val builder = AdLoader.Builder(activity.applicationContext, idAds)
         builder.forNativeAd { unifiedNativeAd ->
             Log.d(TAG, "load: ")
-            adCallback?.onAdShow(AdDef.NETWORK.GOOGLE,AdDef.ADS_TYPE.NATIVE)
+            adCallbackMain?.onAdShow(AdDef.NETWORK.GOOGLE,AdDef.ADS_TYPE.NATIVE)
             unifiedNativeAd?.setOnPaidEventListener {
                 kotlin.runCatching {
                     val params = Bundle()
@@ -207,7 +210,7 @@ class AdmobNative : AdmobAds() {
                     params.putString("precision", it.precisionType.toString())
                     params.putString("adunitid", idAds)
                     params.putString("network", unifiedNativeAd.responseInfo?.mediationAdapterClassName)
-                    adCallback?.onPaidEvent(params)
+                    adCallbackMain?.onPaidEvent(params)
                 }
             }
             if (currentUnifiedNativeAd != null) {
@@ -231,7 +234,7 @@ class AdmobNative : AdmobAds() {
         val adLoader = builder.withAdListener(object : AdListener() {
             override fun onAdFailedToLoad(loadAdError: LoadAdError) {
                 Log.d(TAG, "onAdFailedToLoad: ${loadAdError.code} "+loadAdError.message)
-                adCallback?.onAdFailToLoad(loadAdError.message)
+                adCallbackMain?.onAdFailToLoad(loadAdError.message)
             }
 
             override fun onAdLoaded() {
@@ -243,13 +246,13 @@ class AdmobNative : AdmobAds() {
 //                Log.i("dsadsadsadsadsdsa","ad click")
 //                super.onAdClicked()
 //                Utils.showToastDebug(activity,"id native: ${adsChild.adsId}")
-//                adCallback?.onAdClick()
+//                adCallbackMain?.onAdClick()
 
             }
 
             override fun onAdOpened() {
                 Utils.showToastDebug(activity,"id native: ${adsChild.adsId}")
-                adCallback?.onAdClick()
+                adCallbackMain?.onAdClick()
                 super.onAdOpened()
             }
         }).build()
@@ -265,6 +268,8 @@ class AdmobNative : AdmobAds() {
         adCallback: AdCallback?
     ): Boolean {
         Log.d(TAG, "show: ${layout == null}")
+        adCallbackMain = adCallback
+
         if(layout != null) {
             if (layoutAds != null) {
                 val unifiedNativeAdView = NativeAdView(activity)

@@ -48,6 +48,37 @@ class AdmobAdaptiveBanner : AdmobAds() {
     ): Boolean {
         if (adView != null && layout != null) {
             try {
+
+                adView?.adListener = object : AdListener() {
+                    override fun onAdClicked() {
+                        super.onAdClicked()
+                    }
+
+                    override fun onAdOpened() {
+                        super.onAdOpened()
+                        Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${adsChild.adsId}")
+                        adCallback?.onAdClick()
+                    }
+
+                    override fun onAdClosed() {
+                        super.onAdClosed()
+                        adCallback?.onAdClose(AdDef.NETWORK.GOOGLE)
+                    }
+
+                    override fun onAdFailedToLoad(p0: LoadAdError?) {
+                        super.onAdFailedToLoad(p0)
+                        Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${p0?.message}")
+                        adCallback?.onAdFailToLoad(p0?.message)
+                    }
+
+                    override fun onAdLoaded() {
+                        super.onAdLoaded()
+                        isLoadSuccess = true
+
+                        timeLoader = Date().time
+                    }
+                }
+                adCallback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
                 layout.removeAllViews()
                 if (adView!!.parent != null) {
                     (adView!!.parent as ViewGroup).removeView(adView) // <- fix
@@ -55,7 +86,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
                 layout.addView(adView)
             } catch (e: Exception) {
             }
-            adCallback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
+
             return true
         } else {
             Utils.showToastDebug(activity, "layout ad native not null")
