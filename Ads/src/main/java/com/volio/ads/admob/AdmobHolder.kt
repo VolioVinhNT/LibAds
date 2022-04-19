@@ -300,23 +300,38 @@ class AdmobHolder {
     ) {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
         val ads: AdmobAds? = hashMap[key]
-        Log.d(TAG, "showLoadedAd: ${ads != null} ${ads?.isDestroy()} ${ads?.wasLoadTimeLessThanNHoursAgo(1)}")
+        Log.d(
+            TAG,
+            "showLoadedAd: ${ads != null} ${ads?.isDestroy()} ${ads?.wasLoadTimeLessThanNHoursAgo(1)}"
+        )
         if (ads != null && !ads.isDestroy() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
             if (ads.getStateLoadAd() == StateLoadAd.SUCCESS) {
                 Log.d(TAG, "showLoadedAd: 1")
                 ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
             } else {
                 Log.d(TAG, "showLoadedAd: 2")
+                if (ads.getStateLoadAd() == StateLoadAd.LOADING) {
+                    ads.setPreloadCallback(object : PreloadCallback {
+                        override fun onLoadDone() {
+                            ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+                        }
 
-                ads.setPreloadCallback(object : PreloadCallback {
-                    override fun onLoadDone() {
-                        ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
-                    }
-
-                    override fun onLoadFail() {
-                        adCallback?.onAdFailToLoad("")
-                    }
-                })
+                        override fun onLoadFail() {
+                            adCallback?.onAdFailToLoad("")
+                        }
+                    })
+                } else {
+                    loadAndShow(
+                        activity,
+                        adsChild,
+                        loadingText,
+                        layout,
+                        layoutAds,
+                        lifecycle,
+                        timeMillisecond,
+                        adCallback
+                    )
+                }
             }
         } else {
             Log.d(TAG, "showLoadedAd: 3")

@@ -452,6 +452,18 @@ class AdsController private constructor(
         }
     }
 
+    fun getStatusPreload(spaceName: String): StateLoadAd {
+        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
+        if (listItem != null) {
+            for (item in listItem) {
+                if (item.network.toLowerCase(Locale.getDefault()) == AdDef.NETWORK.GOOGLE) {
+                    return admobHolder.getStatusPreload(item)
+                }
+            }
+        }
+        return StateLoadAd.NONE
+    }
+
     public fun setPriority(spaceName: String, network: String) {
         val list = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         list?.let {
