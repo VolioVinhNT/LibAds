@@ -12,7 +12,6 @@ import android.widget.RatingBar
 import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
-import com.google.android.gms.ads.VideoController.VideoLifecycleCallbacks
 import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 
@@ -20,23 +19,27 @@ import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.google.android.gms.ads.nativead.NativeAdView
 
 import com.volio.ads.AdCallback
+import com.volio.ads.PreloadCallback
 import com.volio.ads.R
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.Constant
+import com.volio.ads.utils.StateLoadAd
 import com.volio.ads.utils.Utils
 import java.util.*
 
 class AdmobNative : AdmobAds() {
     var currentUnifiedNativeAd: NativeAd? = null
-    private var activity:Activity? = null
-    private var adsChild:AdsChild? = null
-    private var adCallbackMain: AdCallback?=null
+    private var activity: Activity? = null
+    private var adsChild: AdsChild? = null
+    private var adCallbackMain: AdCallback? = null
+    private var callbackPreload: PreloadCallback? = null
+    private var stateLoadAd = StateLoadAd.NONE
 
     private fun populateUnifiedNativeAdView(nativeAd: NativeAd, adView: NativeAdView) {
         // Set the media view.
         val viewGroup = adView.findViewById<ViewGroup>(R.id.ad_media)
-        if(viewGroup != null) {
+        if (viewGroup != null) {
             val mediaView = MediaView(adView.context)
             viewGroup.addView(
                 mediaView,
@@ -46,8 +49,8 @@ class AdmobNative : AdmobAds() {
                 )
             )
             adView.mediaView = mediaView
-        }else{
-            if(Constant.isDebug){
+        } else {
+            if (Constant.isDebug) {
                 val mediaView = MediaView(adView.context)
                 adView.addView(
                     mediaView,
@@ -61,8 +64,8 @@ class AdmobNative : AdmobAds() {
         }
 
         val viewGroupIcon = adView.findViewById<View>(R.id.ad_app_icon)
-        if(viewGroupIcon != null) {
-            if(viewGroupIcon is ViewGroup) {
+        if (viewGroupIcon != null) {
+            if (viewGroupIcon is ViewGroup) {
                 val nativeAdIcon = ImageView(adView.context)
                 viewGroupIcon.addView(
                     nativeAdIcon,
@@ -72,7 +75,7 @@ class AdmobNative : AdmobAds() {
                     )
                 )
                 adView.iconView = nativeAdIcon
-            }else {
+            } else {
                 adView.iconView = viewGroupIcon
             }
 
@@ -89,7 +92,7 @@ class AdmobNative : AdmobAds() {
 
         // The headline and media content are guaranteed to be in every UnifiedNativeAd.
         (adView.headlineView as TextView).text = nativeAd.headline
-        if(adView.mediaView != null) {
+        if (adView.mediaView != null) {
             adView.mediaView.setMediaContent(nativeAd.mediaContent)
         }
 
@@ -101,21 +104,21 @@ class AdmobNative : AdmobAds() {
             adView.bodyView.visibility = View.VISIBLE
             (adView.bodyView as TextView).text = nativeAd.body
         }
-        if(adView.callToActionView != null) {
+        if (adView.callToActionView != null) {
             if (adView.callToActionView != null) {
                 if (nativeAd.callToAction == null) {
                     adView.callToActionView.visibility = View.INVISIBLE
                 } else {
                     adView.callToActionView.visibility = View.VISIBLE
-                    if(adView.callToActionView is Button) {
+                    if (adView.callToActionView is Button) {
                         (adView.callToActionView as Button).text = nativeAd.callToAction
-                    }else{
+                    } else {
                         (adView.callToActionView as TextView).text = nativeAd.callToAction
                     }
                 }
             }
         }
-        if(adView.iconView != null) {
+        if (adView.iconView != null) {
             if (nativeAd.icon == null) {
                 adView.iconView.visibility = View.GONE
             } else {
@@ -125,7 +128,7 @@ class AdmobNative : AdmobAds() {
                 adView.iconView.visibility = View.VISIBLE
             }
         }
-        if(adView.priceView != null) {
+        if (adView.priceView != null) {
             if (nativeAd.price == null) {
                 adView.priceView.visibility = View.INVISIBLE
             } else {
@@ -133,7 +136,7 @@ class AdmobNative : AdmobAds() {
                 (adView.priceView as TextView).text = nativeAd.price
             }
         }
-        if(adView.storeView != null) {
+        if (adView.storeView != null) {
             if (nativeAd.store == null) {
                 adView.storeView.visibility = View.INVISIBLE
             } else {
@@ -141,7 +144,7 @@ class AdmobNative : AdmobAds() {
                 (adView.storeView as TextView).text = nativeAd.store
             }
         }
-        if(adView.starRatingView != null) {
+        if (adView.starRatingView != null) {
             if (nativeAd.starRating == null) {
                 adView.starRatingView.visibility = View.INVISIBLE
             } else {
@@ -149,7 +152,7 @@ class AdmobNative : AdmobAds() {
                 adView.starRatingView.visibility = View.VISIBLE
             }
         }
-        if(adView.advertiserView != null) {
+        if (adView.advertiserView != null) {
             if (nativeAd.advertiser == null) {
                 adView.advertiserView.visibility = View.INVISIBLE
             } else {
@@ -187,21 +190,28 @@ class AdmobNative : AdmobAds() {
             show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
         })
     }
-    override fun preload(activity: Activity,adsChild: AdsChild){
-        load(activity,adsChild,null,loadSuccess = {
+
+    override fun preload(activity: Activity, adsChild: AdsChild) {
+        load(activity, adsChild, null, loadSuccess = {
 
         })
     }
 
-    private fun load(activity: Activity, adsChild: AdsChild, adCallback: AdCallback?, loadSuccess:()->Unit){
+    private fun load(
+        activity: Activity,
+        adsChild: AdsChild,
+        adCallback: AdCallback?,
+        loadSuccess: () -> Unit
+    ) {
         adCallbackMain = adCallback
+        stateLoadAd = StateLoadAd.LOADING
         this.adsChild = adsChild
-        this.activity = activity;
-        val idAds = if(Constant.isDebug) Constant.ID_ADMOB_NATIVE_TEST else adsChild.adsId
+        this.activity = activity
+        val idAds = if (Constant.isDebug) Constant.ID_ADMOB_NATIVE_TEST else adsChild.adsId
         val builder = AdLoader.Builder(activity.applicationContext, idAds)
         builder.forNativeAd { unifiedNativeAd ->
             Log.d(TAG, "load: ")
-            adCallbackMain?.onAdShow(AdDef.NETWORK.GOOGLE,AdDef.ADS_TYPE.NATIVE)
+            adCallbackMain?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.NATIVE)
             unifiedNativeAd?.setOnPaidEventListener {
                 kotlin.runCatching {
                     val params = Bundle()
@@ -209,7 +219,10 @@ class AdmobNative : AdmobAds() {
                     params.putString("currency", it.currencyCode)
                     params.putString("precision", it.precisionType.toString())
                     params.putString("adunitid", idAds)
-                    params.putString("network", unifiedNativeAd.responseInfo?.mediationAdapterClassName)
+                    params.putString(
+                        "network",
+                        unifiedNativeAd.responseInfo?.mediationAdapterClassName
+                    )
                     adCallbackMain?.onPaidEvent(params)
                 }
             }
@@ -233,12 +246,15 @@ class AdmobNative : AdmobAds() {
         builder.withNativeAdOptions(adOptions)
         val adLoader = builder.withAdListener(object : AdListener() {
             override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                Log.d(TAG, "onAdFailedToLoad: ${loadAdError.code} "+loadAdError.message)
+                Log.d(TAG, "onAdFailedToLoad: ${loadAdError.code} " + loadAdError.message)
                 adCallbackMain?.onAdFailToLoad(loadAdError.message)
+                stateLoadAd = StateLoadAd.FAILED
+                callbackPreload?.onLoadFail()
             }
 
             override fun onAdLoaded() {
-                Log.i("dsadsadsadsadsdsa","ad loadedd")
+                stateLoadAd = StateLoadAd.SUCCESS
+                callbackPreload?.onLoadDone()
                 super.onAdLoaded()
             }
 
@@ -251,14 +267,15 @@ class AdmobNative : AdmobAds() {
             }
 
             override fun onAdOpened() {
-                Utils.showToastDebug(activity,"id native: ${adsChild.adsId}")
+                Utils.showToastDebug(activity, "id native: ${adsChild.adsId}")
                 adCallbackMain?.onAdClick()
                 super.onAdOpened()
             }
         }).build()
         adLoader.loadAd(AdRequest.Builder().build())
     }
-    private  val TAG = "AdmobNative"
+
+    private val TAG = "AdmobNative"
     override fun show(
         activity: Activity,
         adsChild: AdsChild,
@@ -270,7 +287,7 @@ class AdmobNative : AdmobAds() {
         Log.d(TAG, "show: ${layout == null}")
         adCallbackMain = adCallback
 
-        if(layout != null) {
+        if (layout != null) {
             if (layoutAds != null) {
                 val unifiedNativeAdView = NativeAdView(activity)
                 unifiedNativeAdView.layoutParams = ViewGroup.LayoutParams(
@@ -298,20 +315,29 @@ class AdmobNative : AdmobAds() {
 
             }
             return true
-        }else{
+        } else {
             Utils.showToastDebug(activity, "layout ad native not null")
         }
         return false
 
     }
-    public override fun isDestroy():Boolean = (currentUnifiedNativeAd == null)
-    public override fun destroy(){
+
+    override fun setPreloadCallback(preloadCallback: PreloadCallback?) {
+        callbackPreload = preloadCallback
+    }
+
+    public override fun isDestroy(): Boolean = (currentUnifiedNativeAd == null)
+    public override fun destroy() {
         currentUnifiedNativeAd?.destroy()
         currentUnifiedNativeAd = null;
     }
 
     public override fun isLoaded(): Boolean {
         return currentUnifiedNativeAd != null
+    }
+
+    override fun getStateLoadAd(): StateLoadAd {
+        return stateLoadAd
     }
 
 }

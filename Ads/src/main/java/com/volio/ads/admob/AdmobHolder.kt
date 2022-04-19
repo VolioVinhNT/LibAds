@@ -15,7 +15,6 @@ import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.StateLoadAd
 import com.volio.ads.utils.Utils
 import java.util.*
-import kotlin.collections.HashMap
 
 private const val TAG = "AdsController"
 
@@ -157,10 +156,6 @@ class AdmobHolder {
             }
             AdDef.ADS_TYPE.INTERSTITIAL -> {
                 ads = AdmobInterstitial()
-                try {
-                    (ads as AdmobInterstitial).setPreloadCallback(preloadCallback)
-                } catch (e: Exception) {
-                }
             }
             AdDef.ADS_TYPE.BANNER -> {
                 ads = AdmobBanner()
@@ -176,10 +171,6 @@ class AdmobHolder {
             }
             AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
                 ads = AdmobRewardInterstitial()
-                try {
-                    (ads as AdmobRewardInterstitial).setPreloadCallback(preloadCallback)
-                } catch (e: Exception) {
-                }
             }
             else -> {
                 Utils.showToastDebug(
@@ -189,6 +180,7 @@ class AdmobHolder {
 
             }
         }
+        ads?.setPreloadCallback(preloadCallback)
         ads?.preload(activity, adsChild)
         if (ads != null) hashMap[key] = ads
     }
@@ -207,7 +199,7 @@ class AdmobHolder {
                 ads.setStateAdCallback(stateADCallback)
             } catch (e: Exception) {
             }
-        } else  if (ads != null && ads is AdmobReward) {
+        } else if (ads != null && ads is AdmobReward) {
             try {
                 ads.setStateAdCallback(stateADCallback)
             } catch (e: Exception) {
@@ -296,6 +288,52 @@ class AdmobHolder {
         return false
     }
 
+    fun showLoadedAd(
+        activity: Activity,
+        adsChild: AdsChild,
+        loadingText: String?,
+        layout: ViewGroup?,
+        layoutAds: View?,
+        lifecycle: Lifecycle?,
+        timeMillisecond: Long?,
+        adCallback: AdCallback?
+    ) {
+        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
+        val ads: AdmobAds? = hashMap[key]
+        Log.d(TAG, "showLoadedAd: ${ads != null} ${ads?.isDestroy()} ${ads?.wasLoadTimeLessThanNHoursAgo(1)}")
+        if (ads != null && !ads.isDestroy() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
+            if (ads.getStateLoadAd() == StateLoadAd.SUCCESS) {
+                Log.d(TAG, "showLoadedAd: 1")
+                ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+            } else {
+                Log.d(TAG, "showLoadedAd: 2")
+
+                ads.setPreloadCallback(object : PreloadCallback {
+                    override fun onLoadDone() {
+                        ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+                    }
+
+                    override fun onLoadFail() {
+                        adCallback?.onAdFailToLoad("")
+                    }
+                })
+            }
+        } else {
+            Log.d(TAG, "showLoadedAd: 3")
+
+            loadAndShow(
+                activity,
+                adsChild,
+                loadingText,
+                layout,
+                layoutAds,
+                lifecycle,
+                timeMillisecond,
+                adCallback
+            )
+        }
+    }
+
     public fun destroy(adsChild: AdsChild) {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
         hashMap[key]?.destroy()
@@ -307,5 +345,13 @@ class AdmobHolder {
     public fun remove(adsChild: AdsChild) {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
         hashMap.remove(key)
+    }
+
+    fun getStatusPreload(adsChild: AdsChild): StateLoadAd {
+        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
+        hashMap[key]?.let {
+            return it.getStateLoadAd()
+        }
+        return StateLoadAd.NONE
     }
 }

@@ -38,17 +38,17 @@ class AdmobInterstitial : AdmobAds() {
     private val TAG = "AdmobInterstitial"
     private var currentActivity: Activity? = null
     private var lifecycle:Lifecycle? = null
-    private var preloadCallback: PreloadCallback? = null
+    private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
-
+    private var isloading = false
     private fun resetValue() {
         loaded = false
         loadFailed = false
         error = null
     }
 
-    public fun setPreloadCallback(preloadCallback: PreloadCallback?) {
-        this.preloadCallback = preloadCallback
+    override fun setPreloadCallback(preloadCallback: PreloadCallback?) {
+        callbackPreload = preloadCallback
     }
 
     public fun setStateAdCallback(stateADCallback: StateADCallback?){
@@ -107,6 +107,8 @@ class AdmobInterstitial : AdmobAds() {
 //        }
         return false;
     }
+
+
     private val timeOutCallBack = Runnable {
         if (!loaded && !loadFailed) {
             isTimeOut = true
@@ -126,6 +128,7 @@ class AdmobInterstitial : AdmobAds() {
         timeOut: Long,
         adCallback: AdCallback?
     ) {
+        isloading = true
         stateLoadAd = StateLoadAd.LOADING
         if (System.currentTimeMillis() - timeClick < 500) return
         textLoading?.let {
@@ -211,7 +214,7 @@ class AdmobInterstitial : AdmobAds() {
                 loaded = true
                 timeLoader = Date().time
                 Log.d(TAG, "onAdLoaded: ")
-                preloadCallback?.onLoadDone()
+                callbackPreload?.onLoadDone()
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -224,6 +227,7 @@ class AdmobInterstitial : AdmobAds() {
                     callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
+                callbackPreload?.onLoadFail()
             }
         }
         InterstitialAd.load(
@@ -260,6 +264,10 @@ class AdmobInterstitial : AdmobAds() {
 
     override fun isLoaded(): Boolean {
         return loaded
+    }
+
+    override fun getStateLoadAd(): StateLoadAd {
+        return stateLoadAd
     }
 
     override fun isDestroy(): Boolean {

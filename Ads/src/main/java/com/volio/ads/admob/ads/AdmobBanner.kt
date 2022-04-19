@@ -8,14 +8,19 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
 import com.volio.ads.AdCallback
+import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.Constant
+import com.volio.ads.utils.StateLoadAd
 import com.volio.ads.utils.Utils
 import java.util.*
 
 class AdmobBanner : AdmobAds() {
     private var adView: AdView? = null
+    private var callback: AdCallback? = null
+    private var stateLoadAd:StateLoadAd = StateLoadAd.NONE
+    private var callbackPreload:PreloadCallback? = null
     override fun loadAndShow(
         activity: Activity,
         adsChild: AdsChild,
@@ -26,9 +31,10 @@ class AdmobBanner : AdmobAds() {
         timeMillisecond: Long?,
         adCallback: AdCallback?
     ) {
+        callback = adCallback
         adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
-        load(activity, adsChild, adCallback, loadSuccess = {
-                    show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+        load(activity, adsChild, callback, loadSuccess = {
+                    show(activity, adsChild, loadingText, layout, layoutAds, callback)
                 })
     }
 
@@ -40,15 +46,20 @@ class AdmobBanner : AdmobAds() {
         layoutAds: View?,
         adCallback: AdCallback?
     ): Boolean {
+        callback = adCallback
         if (adView != null && layout != null) {
             layout.removeAllViews()
             layout.addView(adView)
-            adCallback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
+            callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
             return true
         } else {
             Utils.showToastDebug(activity, "layout ad native not null")
         }
         return false
+    }
+
+    override fun setPreloadCallback(preloadCallback: PreloadCallback?) {
+        callbackPreload = preloadCallback
     }
 
     public override fun preload(activity: Activity, adsChild: AdsChild) {
@@ -60,9 +71,12 @@ class AdmobBanner : AdmobAds() {
     private fun load(
         activity: Activity,
         adsChild: AdsChild,
-        adCallback: AdCallback?, loadSuccess: () -> Unit
+        adCallback: AdCallback?,
+        loadSuccess: () -> Unit
     ) {
         isLoadSuccess = false
+        stateLoadAd = StateLoadAd.LOADING
+        callback = adCallback
         val id: String = if (Constant.isDebug) {
             Constant.ID_ADMOB_BANNER_TEST
         } else {
@@ -81,31 +95,35 @@ class AdmobBanner : AdmobAds() {
                 params.putString("precision", it.precisionType.toString())
                 params.putString("adunitid", adView?.adUnitId)
                 params.putString("network", adView?.responseInfo?.mediationAdapterClassName)
-                adCallback?.onPaidEvent(params)
+                callback?.onPaidEvent(params)
             }
         }
         adView?.adListener = object : AdListener() {
             override fun onAdOpened() {
                 super.onAdOpened()
                 Utils.showToastDebug(activity,"Admob Banner id: ${adsChild.adsId}")
-                adCallback?.onAdClick()
+                callback?.onAdClick()
 
             }
 
             override fun onAdClosed() {
                 super.onAdClosed()
-                adCallback?.onAdClose(AdDef.ADS_TYPE.BANNER)
+                callback?.onAdClose(AdDef.ADS_TYPE.BANNER)
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError?) {
                 super.onAdFailedToLoad(p0)
+                stateLoadAd = StateLoadAd.FAILED
+                callbackPreload?.onLoadFail()
 
             }
 
             override fun onAdLoaded() {
                 super.onAdLoaded()
+                stateLoadAd = StateLoadAd.SUCCESS
                 isLoadSuccess = true
                 timeLoader = Date().time
+                callbackPreload?.onLoadDone()
                 loadSuccess()
             }
         }
@@ -140,10 +158,14 @@ class AdmobBanner : AdmobAds() {
     }
 
     override fun isDestroy(): Boolean {
-        return !isLoadSuccess
+        return adView == null
     }
 
     override fun isLoaded(): Boolean {
         return isLoadSuccess
+    }
+
+    override fun getStateLoadAd(): StateLoadAd {
+        return stateLoadAd
     }
 }

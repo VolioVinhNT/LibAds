@@ -16,11 +16,9 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
-import com.volio.ads.utils.AdDef
-import com.volio.ads.utils.AdDialog
-import com.volio.ads.utils.Constant
-import com.volio.ads.utils.Utils
+import com.volio.ads.utils.*
 import java.util.*
 
 class AdmobOpenAds : AdmobAds() {
@@ -41,7 +39,8 @@ class AdmobOpenAds : AdmobAds() {
     private var currentActivity: Activity? = null
     private var lifecycle:Lifecycle? = null
 
-
+    private var callbackPreload: PreloadCallback? = null
+    private var stateLoadAd = StateLoadAd.NONE
     val TAG = "AdmobOpenAds"
     override fun loadAndShow(
         activity: Activity,
@@ -107,7 +106,7 @@ class AdmobOpenAds : AdmobAds() {
         this.lifecycle = lifecycle
         this.adsChild = adsChild
         this.callback = adCallback
-        callback = adCallback
+        stateLoadAd = StateLoadAd.LOADING
         timeClick = System.currentTimeMillis();
         val id = if (Constant.isDebug) Constant.ID_ADMOB_OPEN_APP_TEST else adsChild.adsId
         if (!preload) {
@@ -170,6 +169,8 @@ class AdmobOpenAds : AdmobAds() {
                 loaded = true
                 timeLoader = Date().time
                 Log.d(TAG, "onAdLoaded: ")
+                stateLoadAd = StateLoadAd.SUCCESS
+                callbackPreload?.onLoadDone()
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -181,6 +182,8 @@ class AdmobOpenAds : AdmobAds() {
                     callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
+                stateLoadAd = StateLoadAd.FAILED
+                callbackPreload?.onLoadFail()
             }
         }
         val request: AdRequest = AdRequest.Builder()
@@ -232,5 +235,13 @@ class AdmobOpenAds : AdmobAds() {
 
     override fun destroy() {
         appOpenAd = null
+    }
+
+    override fun getStateLoadAd(): StateLoadAd {
+        return stateLoadAd
+    }
+
+    override fun setPreloadCallback(preloadCallback: PreloadCallback?) {
+        callbackPreload = preloadCallback
     }
 }

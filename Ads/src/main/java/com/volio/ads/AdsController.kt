@@ -15,7 +15,6 @@ import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
 import com.volio.ads.utils.Utils.showToastDebug
 import java.util.*
-import kotlin.collections.ArrayList
 
 private const val TAG = "AdsController"
 
@@ -142,7 +141,7 @@ class AdsController private constructor(
     }
 
 
-    public fun checkAD(spaceName: String) : StateLoadAd {
+    public fun checkAD(spaceName: String): StateLoadAd {
         if (isPremium) {
             return StateLoadAd.NONE
         }
@@ -152,9 +151,9 @@ class AdsController private constructor(
             for (item in listItem) {
                 when (item.network.toLowerCase(Locale.getDefault())) {
                     AdDef.NETWORK.GOOGLE -> {
-                        admobHolder.checkStateAD(activity, item, object:StateADCallback{
+                        admobHolder.checkStateAD(activity, item, object : StateADCallback {
                             override fun onState(state: StateLoadAd) {
-                                s =  state
+                                s = state
                             }
                         })
                     }
@@ -170,10 +169,39 @@ class AdsController private constructor(
 
                 }
             }
-            return  s
+            return s
         } else {
             showToastDebug(activity, "no data check spaceName and file json")
-            return   StateLoadAd.NONE
+            return StateLoadAd.NONE
+        }
+    }
+
+    fun showLoadedAd(
+        spaceName: String,
+        loadingText: String? = null,
+        layout: ViewGroup? = null,
+        layoutAds: View? = null,
+        lifecycle: Lifecycle? = null,
+        timeMillisecond: Long = Constant.TIME_OUT_DEFAULT,
+        adCallback: AdCallback? = null
+    ) {
+        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
+        if (listItem != null) {
+            for (item in listItem) {
+                if (item.network.toLowerCase(Locale.getDefault()) == AdDef.NETWORK.GOOGLE) {
+                    admobHolder.showLoadedAd(
+                        activity,
+                        item,
+                        loadingText,
+                        layout,
+                        layoutAds,
+                        lifecycle,
+                        timeMillisecond,
+                        adCallback
+                    )
+                    break
+                }
+            }
         }
     }
 
@@ -392,6 +420,7 @@ class AdsController private constructor(
             }
         }
     }
+
 
     private fun getChildPriority(listItem: ArrayList<AdsChild>, priority: Int): AdsChild? {
         var value = Int.MAX_VALUE

@@ -14,6 +14,7 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.PreloadCallback
 import com.volio.ads.StateADCallback
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
@@ -36,6 +37,7 @@ class AdmobReward : AdmobAds() {
     private var adsChild:AdsChild? = null
     private var lifecycle:Lifecycle? = null
     private var stateLoadAd = StateLoadAd.NONE
+    private var callbackPreload: PreloadCallback? = null
 
     private fun resetValue() {
         loaded = false
@@ -189,6 +191,7 @@ class AdmobReward : AdmobAds() {
                 loaded = true
                 timeLoader = Date().time
                 Log.d(TAG, "onAdLoaded: ")
+                callbackPreload?.onLoadDone()
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -201,6 +204,7 @@ class AdmobReward : AdmobAds() {
                     callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
+                callbackPreload?.onLoadFail()
             }
         }
         RewardedAd.load(activity,id,AdRequest.Builder()
@@ -256,6 +260,14 @@ class AdmobReward : AdmobAds() {
 
     override fun destroy() {
         rewardedAd = null
+    }
+
+    override fun getStateLoadAd(): StateLoadAd {
+        return stateLoadAd
+    }
+
+    override fun setPreloadCallback(preloadCallback: PreloadCallback?) {
+        callbackPreload = preloadCallback
     }
 
 }

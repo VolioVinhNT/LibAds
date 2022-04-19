@@ -11,17 +11,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.*
-import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
-import com.volio.ads.utils.AdDef
-import com.volio.ads.utils.AdDialog
-import com.volio.ads.utils.Constant
-import com.volio.ads.utils.Utils
+import com.volio.ads.utils.*
 import java.util.*
 
 class AdmobRewardInterstitial : AdmobAds() {
@@ -40,7 +35,8 @@ class AdmobRewardInterstitial : AdmobAds() {
     private var currentActivity: Activity? = null
     private var adsChild: AdsChild? = null
     private var lifecycle: Lifecycle? = null
-    private var preloadCallback: PreloadCallback? = null
+    private var callbackPreload: PreloadCallback? = null
+    private var stateLoadAd = StateLoadAd.NONE
 
     private fun resetValue() {
         loaded = false
@@ -48,8 +44,8 @@ class AdmobRewardInterstitial : AdmobAds() {
         error = null
     }
 
-    public fun setPreloadCallback(preloadCallback: PreloadCallback?) {
-        this.preloadCallback = preloadCallback
+    override fun setPreloadCallback(preloadCallback: PreloadCallback?) {
+        callbackPreload = preloadCallback
     }
 
     override fun loadAndShow(
@@ -73,7 +69,6 @@ class AdmobRewardInterstitial : AdmobAds() {
             timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
             adCallback
         )
-        isLoaded()
     }
 
     override fun preload(activity: Activity, adsChild: AdsChild) {
@@ -130,6 +125,7 @@ class AdmobRewardInterstitial : AdmobAds() {
             handler.postDelayed(timeOutCallBack, timeOut)
         }
         resetValue()
+        stateLoadAd = StateLoadAd.LOADING
         callback = adCallback
         timeClick = System.currentTimeMillis();
         val id =
@@ -202,7 +198,8 @@ class AdmobRewardInterstitial : AdmobAds() {
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
                 timeLoader = Date().time
-                preloadCallback?.onLoadDone()
+                stateLoadAd = StateLoadAd.SUCCESS
+                callbackPreload?.onLoadDone()
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -218,6 +215,8 @@ class AdmobRewardInterstitial : AdmobAds() {
                     callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
+                stateLoadAd = StateLoadAd.FAILED
+                callbackPreload?.onLoadFail()
             }
         }
         RewardedInterstitialAd.load(
@@ -275,6 +274,10 @@ class AdmobRewardInterstitial : AdmobAds() {
 
         isTimeOut = true
         rewardedAd = null
+    }
+
+    override fun getStateLoadAd(): StateLoadAd {
+        return stateLoadAd
     }
 
 }
