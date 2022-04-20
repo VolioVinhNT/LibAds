@@ -1,5 +1,5 @@
 package com.volio.ads.utils
 
 enum class StateLoadAd {
-    LOADING, SUCCESS, FAILED, NONE,NULL
+    LOADING, SUCCESS, FAILED, HAS_BEEN_OPENED, NONE, NULL
 }

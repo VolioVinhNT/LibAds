@@ -153,6 +153,7 @@ class AdmobOpenAds : AdmobAds() {
                                 activity,
                                 "Admob OpenAds id: ${adsChild.adsId}"
                             )
+                            stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
                             callback?.onAdShow(
                                 AdDef.NETWORK.GOOGLE,
                                 AdDef.ADS_TYPE.OPEN_APP

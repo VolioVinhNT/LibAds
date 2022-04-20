@@ -150,7 +150,6 @@ class AdmobInterstitial : AdmobAds() {
         val interstitialAdLoadCallback = object : InterstitialAdLoadCallback() {
             override fun onAdLoaded(p0: InterstitialAd) {
                 stateLoadAd = StateLoadAd.SUCCESS
-                Log.d(TAG, "onAdLoaded: ")
                 mInterstitialAd = p0
                 mInterstitialAd?.setOnPaidEventListener {
                     kotlin.runCatching {
@@ -176,7 +175,7 @@ class AdmobInterstitial : AdmobAds() {
 
                         override fun onAdFailedToShowFullScreenContent(adError: AdError) {
                             super.onAdFailedToShowFullScreenContent(adError)
-                            Log.d(TAG, "onAdFailedToShowFullScreenContent: ")
+                            Log.d(TAG, "onAdFailedToShowFullScreenContent: $adError")
                             mInterstitialAd = null
                             loadFailed = true
                             error = adError.message
@@ -192,7 +191,7 @@ class AdmobInterstitial : AdmobAds() {
                             super.onAdShowedFullScreenContent()
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             mInterstitialAd = null
-                            stateLoadAd = StateLoadAd.NONE
+                            stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
                             AdDialog.getInstance().hideLoading()
                             Utils.showToastDebug(
                                 activity,
@@ -230,12 +229,21 @@ class AdmobInterstitial : AdmobAds() {
                 callbackPreload?.onLoadFail()
             }
         }
-        InterstitialAd.load(
-            activity,
-            id,
-            AdRequest.Builder().build(),
-            interstitialAdLoadCallback
-        )
+//        InterstitialAd.load(
+//            activity,
+//            id,
+//            AdRequest.Builder().build(),
+//            interstitialAdLoadCallback
+//        )
+        Handler(Looper.getMainLooper()).postDelayed(Runnable {
+            InterstitialAd.load(
+                activity,
+                id,
+                AdRequest.Builder().build(),
+                interstitialAdLoadCallback
+            )
+        },4000)
+
     }
 
     private val lifecycleObserver = object :LifecycleEventObserver {

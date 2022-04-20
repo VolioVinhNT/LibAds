@@ -228,6 +228,7 @@ class AdmobRewardInterstitial : AdmobAds() {
     }
 
     private val rewardedAdLoadCallback = OnUserEarnedRewardListener {
+        stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
         callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.REWARD_VIDEO)
         //Utils.showToastDebug(currentActivity, "Admob ReWard Interstitial id: ${adsChild?.adsId}")
     }

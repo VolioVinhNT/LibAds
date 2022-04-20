@@ -174,7 +174,7 @@ class AdmobReward : AdmobAds() {
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             rewardedAd = null
                             AdDialog.getInstance().hideLoading()
-                            stateLoadAd = StateLoadAd.NONE
+                            stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
 //                            callback?.onAdShow(
 //                                AdDef.NETWORK.GOOGLE,
 //                                AdDef.ADS_TYPE.INTERSTITIAL

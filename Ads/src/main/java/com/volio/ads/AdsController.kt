@@ -256,21 +256,17 @@ class AdsController private constructor(
                 }
                 if (checkShow) break
             }
-            if (!checkShow) {
-                if (reloadLoadSpaceName != null) {
-                    loadAndShow(
-                        reloadLoadSpaceName,
-                        false,
-                        textLoading,
-                        layout,
-                        layoutAds,
-                        lifecycle,
-                        timeMillisecond,
-                        adCallback
-                    )
-                } else {
-                    adCallback?.onAdFailToLoad("")
-                }
+            if (!checkShow && reloadLoadSpaceName != null) {
+                loadAndShow(
+                    reloadLoadSpaceName,
+                    false,
+                    textLoading,
+                    layout,
+                    layoutAds,
+                    lifecycle,
+                    timeMillisecond,
+                    adCallback
+                )
             }
         } else {
             showToastDebug(activity, "no data check spaceName and file json")
