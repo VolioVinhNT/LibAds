@@ -229,21 +229,13 @@ class AdmobInterstitial : AdmobAds() {
                 callbackPreload?.onLoadFail()
             }
         }
-//        InterstitialAd.load(
-//            activity,
-//            id,
-//            AdRequest.Builder().build(),
-//            interstitialAdLoadCallback
-//        )
-        Handler(Looper.getMainLooper()).postDelayed(Runnable {
-            InterstitialAd.load(
-                activity,
-                id,
-                AdRequest.Builder().build(),
-                interstitialAdLoadCallback
-            )
-        },4000)
-
+        InterstitialAd.load(
+            activity,
+            id,
+            AdRequest.Builder().build(),
+            interstitialAdLoadCallback
+        )
+        
     }
 
     private val lifecycleObserver = object :LifecycleEventObserver {
