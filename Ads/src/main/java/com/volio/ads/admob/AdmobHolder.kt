@@ -367,6 +367,6 @@ class AdmobHolder {
         hashMap[key]?.let {
             return it.getStateLoadAd()
         }
-        return StateLoadAd.NONE
+        return StateLoadAd.NULL
     }
 }
