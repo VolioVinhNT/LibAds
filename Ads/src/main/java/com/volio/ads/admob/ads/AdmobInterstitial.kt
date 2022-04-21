@@ -235,7 +235,7 @@ class AdmobInterstitial : AdmobAds() {
             AdRequest.Builder().build(),
             interstitialAdLoadCallback
         )
-        
+
     }
 
     private val lifecycleObserver = object :LifecycleEventObserver {
