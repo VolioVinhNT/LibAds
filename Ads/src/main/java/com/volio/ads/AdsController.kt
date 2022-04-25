@@ -52,6 +52,7 @@ class AdsController private constructor(
             }
             return adsController
         }
+        fun checkInit() = ::adsController.isInitialized
     }
 
     public fun setDebugMode(isDebug: Boolean) {
