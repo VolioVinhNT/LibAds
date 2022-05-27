@@ -5,7 +5,7 @@ object Constant {
     var isShowDetailAlbum = false
     var isShowDetailMedia = false
     var isShowRate = 1
-    var isDebug:Boolean = true
+    var isDebug:Boolean = false
     var SHOW_CENTER_HELP = false
     var SHOW_REPORT_ERROR = false
     var isShowToastDebug = false

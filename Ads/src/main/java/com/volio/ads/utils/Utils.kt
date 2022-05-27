@@ -7,12 +7,15 @@ import android.widget.Toast
 import java.io.InputStream
 
 object Utils {
-    fun showToastDebug(context: Context?,text:String){
-        if(context != null && Constant.isShowToastDebug) {
-            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+    fun showToastDebug(context: Context?, text: String) {
+        if (context != null) {
+            if (Constant.isShowToastDebug || Constant.isDebug) {
+                Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+            }
         }
     }
-    fun getStringAssetFile(path: String,activity:Activity): String? {
+
+    fun getStringAssetFile(path: String, activity: Activity): String? {
         var json: String? = null
         try {
             val inputStream: InputStream = activity.assets.open(path)
@@ -23,6 +26,7 @@ object Utils {
         }
         return json
     }
+
     fun convertDpToPixel(dp: Float, context: Context): Float {
         return dp * (context.resources
             .displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
