@@ -92,24 +92,24 @@ class AdmobNative : AdmobAds() {
 
         // The headline and media content are guaranteed to be in every UnifiedNativeAd.
         (adView.headlineView as TextView).text = nativeAd.headline
-        if (adView.mediaView != null) {
-            adView.mediaView.setMediaContent(nativeAd.mediaContent)
+        if (adView.mediaView != null && nativeAd.mediaContent != null ) {
+            adView.mediaView!!.setMediaContent(nativeAd.mediaContent!!)
         }
 
         // These assets aren't guaranteed to be in every UnifiedNativeAd, so it's important to
         // check before trying to display them.
         if (nativeAd.body == null) {
-            adView.bodyView.visibility = View.INVISIBLE
+            adView.bodyView!!.visibility = View.INVISIBLE
         } else {
-            adView.bodyView.visibility = View.VISIBLE
+            adView.bodyView!!.visibility = View.VISIBLE
             (adView.bodyView as TextView).text = nativeAd.body
         }
         if (adView.callToActionView != null) {
             if (adView.callToActionView != null) {
                 if (nativeAd.callToAction == null) {
-                    adView.callToActionView.visibility = View.INVISIBLE
+                    adView.callToActionView!!.visibility = View.INVISIBLE
                 } else {
-                    adView.callToActionView.visibility = View.VISIBLE
+                    adView.callToActionView!!.visibility = View.VISIBLE
                     if (adView.callToActionView is Button) {
                         (adView.callToActionView as Button).text = nativeAd.callToAction
                     } else {
@@ -120,44 +120,44 @@ class AdmobNative : AdmobAds() {
         }
         if (adView.iconView != null) {
             if (nativeAd.icon == null) {
-                adView.iconView.visibility = View.GONE
+                adView.iconView!!.visibility = View.GONE
             } else {
                 (adView.iconView as ImageView).setImageDrawable(
-                    nativeAd.icon.drawable
+                    nativeAd.icon!!.drawable
                 )
-                adView.iconView.visibility = View.VISIBLE
+                adView.iconView!!.visibility = View.VISIBLE
             }
         }
         if (adView.priceView != null) {
             if (nativeAd.price == null) {
-                adView.priceView.visibility = View.INVISIBLE
+                adView.priceView!!.visibility = View.INVISIBLE
             } else {
-                adView.priceView.visibility = View.VISIBLE
+                adView.priceView!!.visibility = View.VISIBLE
                 (adView.priceView as TextView).text = nativeAd.price
             }
         }
         if (adView.storeView != null) {
             if (nativeAd.store == null) {
-                adView.storeView.visibility = View.INVISIBLE
+                adView.storeView!!.visibility = View.INVISIBLE
             } else {
-                adView.storeView.visibility = View.VISIBLE
+                adView.storeView!!.visibility = View.VISIBLE
                 (adView.storeView as TextView).text = nativeAd.store
             }
         }
         if (adView.starRatingView != null) {
             if (nativeAd.starRating == null) {
-                adView.starRatingView.visibility = View.INVISIBLE
+                adView.starRatingView!!.visibility = View.INVISIBLE
             } else {
                 (adView.starRatingView as RatingBar).rating = nativeAd.starRating!!.toFloat()
-                adView.starRatingView.visibility = View.VISIBLE
+                adView.starRatingView!!.visibility = View.VISIBLE
             }
         }
         if (adView.advertiserView != null) {
             if (nativeAd.advertiser == null) {
-                adView.advertiserView.visibility = View.INVISIBLE
+                adView.advertiserView!!.visibility = View.INVISIBLE
             } else {
                 (adView.advertiserView as TextView).text = nativeAd.advertiser
-                adView.advertiserView.visibility = View.VISIBLE
+                adView.advertiserView!!.visibility = View.VISIBLE
             }
         }
 

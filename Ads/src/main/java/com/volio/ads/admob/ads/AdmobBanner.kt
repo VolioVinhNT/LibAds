@@ -83,7 +83,10 @@ class AdmobBanner : AdmobAds() {
             adsChild.adsId
         }
         adView = AdView(activity)
-        adView?.adSize = getAdsize(adsChild.adsSize)
+        val adSize = getAdsize(adsChild.adsSize)
+        adSize?.let {
+            adView?.setAdSize(it)
+        }
         adView?.setBackgroundColor(Color.WHITE)
         adView?.adUnitId = id
         adView?.loadAd(AdRequest.Builder().build())
@@ -111,7 +114,7 @@ class AdmobBanner : AdmobAds() {
                 callback?.onAdClose(AdDef.ADS_TYPE.BANNER)
             }
 
-            override fun onAdFailedToLoad(p0: LoadAdError?) {
+            override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
                 stateLoadAd = StateLoadAd.FAILED
                 callbackPreload?.onLoadFail()

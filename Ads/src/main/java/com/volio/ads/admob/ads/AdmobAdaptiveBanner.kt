@@ -66,11 +66,12 @@ class AdmobAdaptiveBanner : AdmobAds() {
                         callback?.onAdClose(AdDef.NETWORK.GOOGLE)
                     }
 
-                    override fun onAdFailedToLoad(p0: LoadAdError?) {
+                    override fun onAdFailedToLoad(p0: LoadAdError) {
                         super.onAdFailedToLoad(p0)
                         Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${p0?.message}")
                         callback?.onAdFailToLoad(p0?.message)
                     }
+
 
                     override fun onAdLoaded() {
                         super.onAdLoaded()
@@ -122,7 +123,12 @@ class AdmobAdaptiveBanner : AdmobAds() {
         adView = AdView(activity.applicationContext)
         adView?.setBackgroundColor(Color.WHITE)
         adView?.adUnitId = id
-        adView?.adSize = getAdsize(activity)
+
+
+        val adSize = getAdsize(activity)
+        adSize?.let {
+            adView?.setAdSize(it)
+        }
 
 //        adView?.adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
 //            activity,
@@ -147,7 +153,8 @@ class AdmobAdaptiveBanner : AdmobAds() {
                 callback?.onAdClose(AdDef.NETWORK.GOOGLE)
             }
 
-            override fun onAdFailedToLoad(p0: LoadAdError?) {
+
+            override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
                 Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${p0?.message}")
                 callback?.onAdFailToLoad(p0?.message)
