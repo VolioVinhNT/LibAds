@@ -37,7 +37,7 @@ class AdmobInterstitial : AdmobAds() {
     private var callback: AdCallback? = null
     private val TAG = "AdmobInterstitial"
     private var currentActivity: Activity? = null
-    private var lifecycle:Lifecycle? = null
+    private var lifecycle: Lifecycle? = null
     private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
     private var isloading = false
@@ -51,7 +51,7 @@ class AdmobInterstitial : AdmobAds() {
         callbackPreload = preloadCallback
     }
 
-    public fun setStateAdCallback(stateADCallback: StateADCallback?){
+    fun setStateAdCallback(stateADCallback: StateADCallback?) {
         stateADCallback?.onState(stateLoadAd)
     }
 
@@ -105,14 +105,14 @@ class AdmobInterstitial : AdmobAds() {
 //        else {
 //            adCallback?.onAdFailToLoad(error)
 //        }
-        return false;
+        return false
     }
 
 
     private val timeOutCallBack = Runnable {
         if (!loaded && !loadFailed) {
             isTimeOut = true
-            if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+            if (eventLifecycle == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
                 callback?.onAdFailToLoad("TimeOut")
                 stateLoadAd = StateLoadAd.FAILED
@@ -120,6 +120,7 @@ class AdmobInterstitial : AdmobAds() {
             }
         }
     }
+
     private fun load(
         activity: Activity,
         adsChild: AdsChild,
@@ -140,12 +141,12 @@ class AdmobInterstitial : AdmobAds() {
         if (!preload) {
             lifecycle?.addObserver(lifecycleObserver)
             handler.removeCallbacks(timeOutCallBack)
-            handler.postDelayed(timeOutCallBack,timeOut)
+            handler.postDelayed(timeOutCallBack, timeOut)
         }
         resetValue()
         this.callback = adCallback
         this.lifecycle = lifecycle
-        timeClick = System.currentTimeMillis();
+        timeClick = System.currentTimeMillis()
         val id = if (Constant.isDebug) Constant.ID_ADMOB_INTERSTITIAL_TEST else adsChild.adsId
         val interstitialAdLoadCallback = object : InterstitialAdLoadCallback() {
             override fun onAdLoaded(p0: InterstitialAd) {
@@ -179,7 +180,7 @@ class AdmobInterstitial : AdmobAds() {
                             mInterstitialAd = null
                             loadFailed = true
                             error = adError.message
-                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
+                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                                 AdDialog.getInstance().hideLoading()
                                 callback?.onAdFailToLoad(adError.message)
                                 lifecycle?.removeObserver(lifecycleObserver)
@@ -201,6 +202,11 @@ class AdmobInterstitial : AdmobAds() {
                                 AdDef.NETWORK.GOOGLE,
                                 AdDef.ADS_TYPE.INTERSTITIAL
                             )
+                        }
+
+                        override fun onAdClicked() {
+                            super.onAdClicked()
+                            callback?.onAdClick()
                         }
                     }
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
@@ -238,12 +244,12 @@ class AdmobInterstitial : AdmobAds() {
 
     }
 
-    private val lifecycleObserver = object :LifecycleEventObserver {
+    private val lifecycleObserver = object : LifecycleEventObserver {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
             eventLifecycle = event
             if (event == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
-                if (isTimeOut){
+                if (isTimeOut) {
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad("TimeOut")
                     stateLoadAd = StateLoadAd.FAILED
