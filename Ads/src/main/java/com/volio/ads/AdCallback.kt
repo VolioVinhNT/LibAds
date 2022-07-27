@@ -11,5 +11,6 @@ interface AdCallback {
     fun onAdOff()
     fun onAdClick(){}
     fun onPaidEvent(params: Bundle) {}
+    fun onRewardShow(network: String, adtype: String) {}
 
 }

@@ -77,6 +77,10 @@ class AdmobHolder {
                     adCallback?.onAdClick()
                 }
 
+                override fun onRewardShow(network: String, adtype: String) {
+                    adCallback?.onRewardShow(network,adtype)
+                }
+
                 override fun onPaidEvent(params: Bundle) {
                     adCallback?.onPaidEvent(params)
                 }

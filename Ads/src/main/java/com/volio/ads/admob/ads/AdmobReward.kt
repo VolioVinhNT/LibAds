@@ -32,7 +32,7 @@ class AdmobReward : AdmobAds() {
     private var rewardedAd: RewardedAd? = null
     private var timeClick = 0L
     private var callback: AdCallback? = null
-    private val TAG = "AdmobInterstitial"
+    private val TAG = "AdmobReward"
     private var currentActivity: Activity? = null
     private var adsChild:AdsChild? = null
     private var lifecycle:Lifecycle? = null
@@ -171,15 +171,24 @@ class AdmobReward : AdmobAds() {
 
                         override fun onAdShowedFullScreenContent() {
                             super.onAdShowedFullScreenContent()
+                            Log.d(TAG, "onAdShowedFullScreenContent: ${callback==null}")
+                            callback!!.onRewardShow(
+                                AdDef.NETWORK.GOOGLE,
+                                AdDef.ADS_TYPE.INTERSTITIAL
+                            )
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             rewardedAd = null
                             AdDialog.getInstance().hideLoading()
                             stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
-//                            callback?.onAdShow(
-//                                AdDef.NETWORK.GOOGLE,
-//                                AdDef.ADS_TYPE.INTERSTITIAL
-//                            )
+
                         }
+
+
+                        override fun onAdClicked() {
+                            super.onAdClicked()
+                            callback?.onAdClick()
+                        }
+
                     }
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
                     Handler(Looper.getMainLooper()).postDelayed(Runnable {
