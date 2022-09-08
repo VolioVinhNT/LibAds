@@ -3,8 +3,10 @@ package com.volio.ads.admob.ads
 import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
 import com.volio.ads.AdCallback
@@ -33,9 +35,9 @@ class AdmobBanner : AdmobAds() {
     ) {
         callback = adCallback
         adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
-        load(activity, adsChild, callback, loadSuccess = {
-                    show(activity, adsChild, loadingText, layout, layoutAds, callback)
-                })
+        load(activity,layout, adsChild, callback, loadSuccess = {
+            show(activity, adsChild, loadingText, layout, layoutAds, callback)
+        })
     }
 
     override fun show(
@@ -49,6 +51,7 @@ class AdmobBanner : AdmobAds() {
         callback = adCallback
         if (adView != null && layout != null) {
             layout.removeAllViews()
+            (adView?.parent as ViewGroup?)?.removeAllViews()
             layout.addView(adView)
             callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
             return true
@@ -63,13 +66,14 @@ class AdmobBanner : AdmobAds() {
     }
 
     public override fun preload(activity: Activity, adsChild: AdsChild) {
-        load(activity, adsChild, null, loadSuccess = {
+        load(activity, null, adsChild, null, loadSuccess = {
 
         })
     }
 
     private fun load(
         activity: Activity,
+        layout: ViewGroup?,
         adsChild: AdsChild,
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
@@ -84,10 +88,18 @@ class AdmobBanner : AdmobAds() {
         }
         adView = AdView(activity)
         val adSize = getAdsize(adsChild.adsSize)
+
+        layout?.let { viewG ->
+            val lp = viewG.layoutParams
+            lp.width = adSize?.getWidthInPixels(viewG.context)?: 0
+            lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
+            viewG.layoutParams = lp
+        }
+
+
         adSize?.let {
             adView?.setAdSize(it)
         }
-        adView?.setBackgroundColor(Color.WHITE)
         adView?.adUnitId = id
         adView?.loadAd(AdRequest.Builder().build())
         adView?.setOnPaidEventListener {
