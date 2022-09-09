@@ -34,7 +34,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
         adCallback: AdCallback?
     ) {
         callback = adCallback
-        load(activity, adsChild, callback, loadSuccess = {
+        load(activity, adsChild, layout, callback, loadSuccess = {
             show(activity, adsChild, loadingText, layout, layoutAds, callback)
         })
     }
@@ -57,7 +57,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                     override fun onAdOpened() {
                         super.onAdOpened()
-                        Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${adsChild.adsId}")
+                        Utils.showToastDebug(activity, "Admob AdapBanner: ${adsChild.adsId}")
                         callback?.onAdClick()
                     }
 
@@ -68,7 +68,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                     override fun onAdFailedToLoad(p0: LoadAdError) {
                         super.onAdFailedToLoad(p0)
-                        Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${p0?.message}")
+                        Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
                         callback?.onAdFailToLoad(p0?.message)
                     }
 
@@ -101,7 +101,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     }
 
     override fun preload(activity: Activity, adsChild: AdsChild) {
-        load(activity, adsChild, null, loadSuccess = {
+        load(activity, adsChild, null,null, loadSuccess = {
 
         })
     }
@@ -109,6 +109,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     private fun load(
         activity: Activity,
         adsChild: AdsChild,
+        layout: ViewGroup?,
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
     ) {
@@ -130,10 +131,14 @@ class AdmobAdaptiveBanner : AdmobAds() {
             adView?.setAdSize(it)
         }
 
-//        adView?.adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-//            activity,
-//            getScreenWidth(activity)
-//        )
+        layout?.let { viewG ->
+            val lp = viewG.layoutParams
+            lp.width = adSize?.getWidthInPixels(viewG.context)?: 0
+            lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
+            viewG.layoutParams = lp
+        }
+
+
         adView?.loadAd(
             AdRequest.Builder().build()
         )
@@ -144,7 +149,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
             override fun onAdOpened() {
                 super.onAdOpened()
-                Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${adsChild.adsId}")
+                Utils.showToastDebug(activity, "Admob AdapBanner: ${adsChild.adsId}")
                 callback?.onAdClick()
             }
 
@@ -156,7 +161,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
-                Utils.showToastDebug(activity, "Admob AdaptiveBanner id: ${p0?.message}")
+                Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
                 callback?.onAdFailToLoad(p0?.message)
                 stateLoadAd = StateLoadAd.FAILED
                 callbackPreload?.onLoadFail()
