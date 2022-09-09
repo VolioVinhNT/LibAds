@@ -310,7 +310,6 @@ class AdmobHolder {
         )
         if (ads != null && !ads.isDestroy() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
             if (ads.getStateLoadAd() == StateLoadAd.SUCCESS) {
-                Log.d(TAG, "showLoadedAd: 1")
                 ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
             } else {
                 Log.d(TAG, "showLoadedAd: 2")

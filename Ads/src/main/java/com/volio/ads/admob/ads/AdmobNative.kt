@@ -232,6 +232,7 @@ class AdmobNative : AdmobAds() {
 
             currentUnifiedNativeAd?.destroy()
             currentUnifiedNativeAd = unifiedNativeAd
+
             loadSuccess()
             timeLoader = Date().time
 

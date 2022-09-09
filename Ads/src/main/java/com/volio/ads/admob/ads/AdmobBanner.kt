@@ -33,13 +33,16 @@ class AdmobBanner : AdmobAds() {
         timeMillisecond: Long?,
         adCallback: AdCallback?
     ) {
+
+        group = layout
         callback = adCallback
         adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
-        load(activity,layout, adsChild, callback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds, callback)
+        load(activity,group, adsChild, callback, loadSuccess = {
+            show(activity, adsChild, loadingText, group, layoutAds, callback)
         })
     }
 
+    private var group:ViewGroup? = null
     override fun show(
         activity: Activity,
         adsChild: AdsChild,
@@ -48,6 +51,7 @@ class AdmobBanner : AdmobAds() {
         layoutAds: View?,
         adCallback: AdCallback?
     ): Boolean {
+        group = layout
         callback = adCallback
         if (adView != null && layout != null) {
             layout.removeAllViews()
@@ -135,6 +139,7 @@ class AdmobBanner : AdmobAds() {
 
             override fun onAdLoaded() {
                 super.onAdLoaded()
+//                group?.removeAllViews()
                 stateLoadAd = StateLoadAd.SUCCESS
                 isLoadSuccess = true
                 timeLoader = Date().time
