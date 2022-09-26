@@ -240,7 +240,7 @@ class AdsController private constructor(
                             textLoading,
                             layout,
                             layoutAds,
-                            timeDelayShowAd,
+                            timeDelayShowAd,lifecycle,
                             adCallback
                         )
                     }

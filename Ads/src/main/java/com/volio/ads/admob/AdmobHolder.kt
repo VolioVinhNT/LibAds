@@ -78,7 +78,7 @@ class AdmobHolder {
                 }
 
                 override fun onRewardShow(network: String, adtype: String) {
-                    adCallback?.onRewardShow(network,adtype)
+                    adCallback?.onRewardShow(network, adtype)
                 }
 
                 override fun onPaidEvent(params: Bundle) {
@@ -263,6 +263,7 @@ class AdmobHolder {
         layout: ViewGroup?,
         layoutAds: View?,
         timeDelayShowAd: Int = 0,
+        lifecycle: Lifecycle? = null,
         adCallback: AdCallback?
     ): Boolean {
         val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
@@ -276,7 +277,7 @@ class AdmobHolder {
                 AdDef.ADS_TYPE.REWARD_VIDEO,
                 AdDef.ADS_TYPE.REWARD_INTERSTITIAL,
                 AdDef.ADS_TYPE.INTERSTITIAL -> {
-                    ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+                    ads.show(activity, adsChild, loadingText, layout, layoutAds, lifecycle,adCallback)
                 }
                 else -> {
                     Utils.showToastDebug(
@@ -310,13 +311,13 @@ class AdmobHolder {
         )
         if (ads != null && !ads.isDestroy() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
             if (ads.getStateLoadAd() == StateLoadAd.SUCCESS) {
-                ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+                ads.show(activity, adsChild, loadingText, layout, layoutAds,lifecycle, adCallback)
             } else {
                 Log.d(TAG, "showLoadedAd: 2")
                 if (ads.getStateLoadAd() == StateLoadAd.LOADING) {
                     ads.setPreloadCallback(object : PreloadCallback {
                         override fun onLoadDone() {
-                            ads.show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+                            ads.show(activity, adsChild, loadingText, layout, layoutAds,lifecycle ,adCallback)
                         }
 
                         override fun onLoadFail() {

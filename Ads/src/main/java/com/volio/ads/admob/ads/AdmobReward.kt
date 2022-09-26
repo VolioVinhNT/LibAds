@@ -76,6 +76,7 @@ class AdmobReward : AdmobAds() {
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
+        lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean {
         this.currentActivity = activity

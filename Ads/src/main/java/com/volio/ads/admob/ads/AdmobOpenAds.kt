@@ -76,6 +76,7 @@ class AdmobOpenAds : AdmobAds() {
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
+        lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean {
         this.callback = adCallback

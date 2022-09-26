@@ -34,6 +34,7 @@ abstract class AdmobAds {
         loadingText: String? ,
         layout: ViewGroup? ,
         layoutAds: View? ,
+        lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean
     abstract fun setPreloadCallback(preloadCallback: PreloadCallback?)

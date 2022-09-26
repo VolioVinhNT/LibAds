@@ -35,7 +35,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     ) {
         callback = adCallback
         load(activity, adsChild, layout, callback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds, callback)
+            show(activity, adsChild, loadingText, layout, layoutAds,lifecycle ,callback)
         })
     }
 
@@ -45,6 +45,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
+        lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean {
         callback = adCallback

@@ -21,8 +21,8 @@ import java.util.*
 class AdmobBanner : AdmobAds() {
     private var adView: AdView? = null
     private var callback: AdCallback? = null
-    private var stateLoadAd:StateLoadAd = StateLoadAd.NONE
-    private var callbackPreload:PreloadCallback? = null
+    private var stateLoadAd: StateLoadAd = StateLoadAd.NONE
+    private var callbackPreload: PreloadCallback? = null
     override fun loadAndShow(
         activity: Activity,
         adsChild: AdsChild,
@@ -36,19 +36,20 @@ class AdmobBanner : AdmobAds() {
 
         group = layout
         callback = adCallback
-        adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
-        load(activity,group, adsChild, callback, loadSuccess = {
-            show(activity, adsChild, loadingText, group, layoutAds, callback)
+
+        load(activity, group, adsChild, callback, loadSuccess = {
+            show(activity, adsChild, loadingText, group, layoutAds, lifecycle, callback)
         })
     }
 
-    private var group:ViewGroup? = null
+    private var group: ViewGroup? = null
     override fun show(
         activity: Activity,
         adsChild: AdsChild,
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
+        lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean {
         group = layout
@@ -82,6 +83,7 @@ class AdmobBanner : AdmobAds() {
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
     ) {
+        adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
         isLoadSuccess = false
         stateLoadAd = StateLoadAd.LOADING
         callback = adCallback
@@ -95,7 +97,7 @@ class AdmobBanner : AdmobAds() {
 
         layout?.let { viewG ->
             val lp = viewG.layoutParams
-            lp.width = adSize?.getWidthInPixels(viewG.context)?: 0
+            lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
             lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
             viewG.layoutParams = lp
         }
@@ -120,7 +122,7 @@ class AdmobBanner : AdmobAds() {
         adView?.adListener = object : AdListener() {
             override fun onAdOpened() {
                 super.onAdOpened()
-                Utils.showToastDebug(activity,"Admob Banner id: ${adsChild.adsId}")
+                Utils.showToastDebug(activity, "Admob Banner id: ${adsChild.adsId}")
                 callback?.onAdClick()
 
             }

@@ -187,7 +187,7 @@ class AdmobNative : AdmobAds() {
         adCallback: AdCallback?
     ) {
         load(activity, adsChild, adCallback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds, adCallback)
+            show(activity, adsChild, loadingText, layout, layoutAds, lifecycle,adCallback)
         })
     }
 
@@ -283,6 +283,7 @@ class AdmobNative : AdmobAds() {
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
+        lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean {
         Log.d(TAG, "show: ${layout == null}")
