@@ -97,18 +97,26 @@ class AdmobInterstitial : AdmobAds() {
     ): Boolean {
         callback = adCallback
         currentActivity = activity
-        lifecycle?.addObserver(object : LifecycleEventObserver {
-            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                if (event == Lifecycle.Event.ON_RESUME) {
-                    lifecycle?.removeObserver(this)
-                    AdDialog.getInstance().showLoadingWithMessage(activity, loadingText)
-                    if (loaded && mInterstitialAd != null) {
-                        mInterstitialAd?.show(activity)
-                        stateLoadAd = StateLoadAd.NONE
+        if (lifecycle != null){
+            lifecycle?.addObserver(object : LifecycleEventObserver {
+                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                    if (event == Lifecycle.Event.ON_RESUME) {
+                        lifecycle?.removeObserver(this)
+                        AdDialog.getInstance().showLoadingWithMessage(activity, loadingText)
+                        if (loaded && mInterstitialAd != null) {
+                            mInterstitialAd?.show(activity)
+                            stateLoadAd = StateLoadAd.NONE
+                        }
                     }
                 }
+            })
+        } else {
+            AdDialog.getInstance().showLoadingWithMessage(activity, loadingText)
+            if (loaded && mInterstitialAd != null) {
+                mInterstitialAd?.show(activity)
+                stateLoadAd = StateLoadAd.NONE
             }
-        })
+        }
         return true
     }
 
