@@ -1,7 +1,10 @@
 package com.volio.ads
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -34,7 +37,13 @@ class AdsController private constructor(
     var isPremium: Boolean = false
 
     companion object {
+
+        @SuppressLint("StaticFieldLeak")
         private lateinit var adsController: AdsController
+
+        @SuppressLint("StaticFieldLeak")
+        var mTopActivity : Activity? = null
+
         fun init(
             activity: Activity,
             isDebug: Boolean,
@@ -44,6 +53,36 @@ class AdsController private constructor(
         ) {
             Constant.isDebug = isDebug
             adsController = AdsController(activity, listAppId, packetName, listPathJson, lifecycle)
+
+            activity.application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+
+                }
+
+                override fun onActivityStarted(activity: Activity) {
+
+                }
+
+                override fun onActivityResumed(activity: Activity) {
+                    mTopActivity = activity
+                }
+
+                override fun onActivityPaused(activity: Activity) {
+
+                }
+
+                override fun onActivityStopped(activity: Activity) {
+
+                }
+
+                override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {
+
+                }
+
+                override fun onActivityDestroyed(activity: Activity) {
+                    mTopActivity = null
+                }
+            })
         }
 
         fun getInstance(): AdsController {
@@ -240,7 +279,7 @@ class AdsController private constructor(
                             textLoading,
                             layout,
                             layoutAds,
-                            timeDelayShowAd,lifecycle,
+                            timeDelayShowAd, lifecycle,
                             adCallback
                         )
                     }

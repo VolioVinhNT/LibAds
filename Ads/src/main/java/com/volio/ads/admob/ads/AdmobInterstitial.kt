@@ -10,13 +10,11 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
 import com.volio.ads.StateADCallback
 import com.volio.ads.model.AdsChild
@@ -92,12 +90,12 @@ class AdmobInterstitial : AdmobAds() {
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
-        lifecycle: Lifecycle? ,
+        lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean {
         callback = adCallback
         currentActivity = activity
-        if (lifecycle != null){
+        if (lifecycle != null) {
             lifecycle?.addObserver(object : LifecycleEventObserver {
                 override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
                     if (event == Lifecycle.Event.ON_RESUME) {
@@ -218,6 +216,9 @@ class AdmobInterstitial : AdmobAds() {
 
                         override fun onAdClicked() {
                             super.onAdClicked()
+                            if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
+                                AdsController.mTopActivity?.finish()
+                            }
                             callback?.onAdClick()
                         }
                     }
