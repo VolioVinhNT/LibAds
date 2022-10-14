@@ -9,13 +9,11 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import com.google.android.gms.ads.AdError
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.FullScreenContentCallback
-import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.*
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
@@ -143,6 +141,13 @@ class AdmobOpenAds : AdmobAds() {
                                 lifecycle?.removeObserver(lifecycleObserver)
                             }
                             /// perform your action here when ad will not load
+                        }
+
+                        override fun onAdClicked() {
+                            super.onAdClicked()
+                            if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
+                                AdsController.mTopActivity?.finish()
+                            }
                         }
 
                         override fun onAdShowedFullScreenContent() {

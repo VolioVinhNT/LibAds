@@ -14,6 +14,7 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
 import com.volio.ads.StateADCallback
 import com.volio.ads.model.AdsChild
@@ -187,6 +188,9 @@ class AdmobReward : AdmobAds() {
 
                         override fun onAdClicked() {
                             super.onAdClicked()
+                            if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
+                                AdsController.mTopActivity?.finish()
+                            }
                             callback?.onAdClick()
                         }
 

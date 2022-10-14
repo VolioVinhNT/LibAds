@@ -14,6 +14,7 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
 import com.volio.ads.AdCallback
+import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
@@ -231,6 +232,9 @@ class AdmobRewardInterstitial : AdmobAds() {
     private val rewardedAdLoadCallback = OnUserEarnedRewardListener {
         stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
         callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.REWARD_VIDEO)
+        if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
+            AdsController.mTopActivity?.finish()
+        }
         //Utils.showToastDebug(currentActivity, "Admob ReWard Interstitial id: ${adsChild?.adsId}")
     }
 
