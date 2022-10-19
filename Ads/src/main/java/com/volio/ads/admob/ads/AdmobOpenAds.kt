@@ -145,6 +145,7 @@ class AdmobOpenAds : AdmobAds() {
 
                         override fun onAdClicked() {
                             super.onAdClicked()
+                            callback?.onAdClick()
                             if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
                                 AdsController.mTopActivity?.finish()
                             }
