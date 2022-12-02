@@ -489,7 +489,7 @@ class AdsController private constructor(
     }
 
     fun getStatusPreload(spaceName: String): StateLoadAd {
-        if (!isConnection) return StateLoadAd.NO_INTERNET
+//        if (!isConnection) return StateLoadAd.NO_INTERNET
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         if (listItem != null) {
             for (item in listItem) {
