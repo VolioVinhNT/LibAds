@@ -144,6 +144,12 @@ class AdmobAdaptiveBanner : AdmobAds() {
             AdRequest.Builder().build()
         )
         adView?.adListener = object : AdListener() {
+
+            override fun onAdImpression() {
+                super.onAdImpression()
+                adCallback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
+            }
+
             override fun onAdClicked() {
                 super.onAdClicked()
             }

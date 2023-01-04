@@ -154,6 +154,12 @@ class AdmobRewardInterstitial : AdmobAds() {
                 }
                 rewardedAd?.fullScreenContentCallback =
                     object : FullScreenContentCallback() {
+
+                        override fun onAdImpression() {
+                            super.onAdImpression()
+                            adCallback?.onAdImpression(AdDef.ADS_TYPE.REWARD_INTERSTITIAL)
+                        }
+
                         override fun onAdDismissedFullScreenContent() {
                             super.onAdDismissedFullScreenContent()
                             Log.d(TAG, "onAdDismissedFullScreenContent: ")

@@ -40,6 +40,11 @@ class AdmobHolder {
             lifecycle,
             timeMillisecond,
             object : AdCallback {
+
+                override fun onAdImpression(adType: String) {
+                    super.onAdImpression(adType)
+                    adCallback?.onAdImpression(adType)
+                }
                 override fun onAdShow(network: String, adtype: String) {
                     Log.d(TAG, "onAdShow: ")
                     if (!isKeepAds) {

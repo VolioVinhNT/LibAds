@@ -246,6 +246,12 @@ class AdmobNative : AdmobAds() {
             .build()
         builder.withNativeAdOptions(adOptions)
         val adLoader = builder.withAdListener(object : AdListener() {
+
+            override fun onAdImpression() {
+                super.onAdImpression()
+                adCallback?.onAdImpression(AdDef.ADS_TYPE.NATIVE)
+            }
+
             override fun onAdFailedToLoad(loadAdError: LoadAdError) {
                 Log.d(TAG, "onAdFailedToLoad: ${loadAdError.code} " + loadAdError.message)
                 adCallbackMain?.onAdFailToLoad(loadAdError.message)

@@ -120,6 +120,12 @@ class AdmobOpenAds : AdmobAds() {
                 appOpenAd = p0
                 appOpenAd?.fullScreenContentCallback =
                     object : FullScreenContentCallback() {
+
+                        override fun onAdImpression() {
+                            super.onAdImpression()
+                            adCallback?.onAdImpression(AdDef.ADS_TYPE.OPEN_APP)
+                        }
+
                         override fun onAdDismissedFullScreenContent() {
                             super.onAdDismissedFullScreenContent()
                             Log.d(TAG, "onAdDismissedFullScreenContent: ")

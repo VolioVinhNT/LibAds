@@ -1,12 +1,9 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
-import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
 import com.volio.ads.AdCallback
@@ -120,6 +117,12 @@ class AdmobBanner : AdmobAds() {
             }
         }
         adView?.adListener = object : AdListener() {
+
+            override fun onAdImpression() {
+                super.onAdImpression()
+                adCallback?.onAdImpression(AdDef.ADS_TYPE.BANNER)
+            }
+
             override fun onAdOpened() {
                 super.onAdOpened()
                 Utils.showToastDebug(activity, "Admob Banner id: ${adsChild.adsId}")
