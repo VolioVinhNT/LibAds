@@ -175,6 +175,12 @@ class AdmobInterstitial : AdmobAds() {
                 }
                 mInterstitialAd?.fullScreenContentCallback =
                     object : FullScreenContentCallback() {
+
+                        override fun onAdImpression() {
+                            super.onAdImpression()
+                            callback?.onAdImpression(AdDef.ADS_TYPE.INTERSTITIAL)
+                        }
+
                         override fun onAdDismissedFullScreenContent() {
                             super.onAdDismissedFullScreenContent()
                             Log.d(TAG, "onAdDismissedFullScreenContent: ")

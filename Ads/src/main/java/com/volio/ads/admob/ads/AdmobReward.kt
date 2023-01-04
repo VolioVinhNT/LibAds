@@ -148,6 +148,12 @@ class AdmobReward : AdmobAds() {
                 }
                 rewardedAd?.fullScreenContentCallback =
                     object : FullScreenContentCallback() {
+
+                        override fun onAdImpression() {
+                            super.onAdImpression()
+                            adCallback?.onAdImpression(AdDef.ADS_TYPE.REWARD_VIDEO)
+                        }
+
                         override fun onAdDismissedFullScreenContent() {
                             super.onAdDismissedFullScreenContent()
                             Log.d(TAG, "onAdDismissedFullScreenContent: ")

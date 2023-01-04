@@ -1,7 +1,6 @@
 package com.volio.ads
 
 import android.os.Bundle
-import com.volio.ads.utils.AdDef
 
 interface AdCallback {
 
@@ -12,5 +11,5 @@ interface AdCallback {
     fun onAdClick(){}
     fun onPaidEvent(params: Bundle) {}
     fun onRewardShow(network: String, adtype: String) {}
-
+    fun onAdImpression(adType: String) {}
 }
