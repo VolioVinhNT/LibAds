@@ -10,6 +10,8 @@ object Constant {
     var SHOW_REPORT_ERROR = false
     var isShowToastDebug = false
 
+    val KeyCustomImpression = "ad_impression_custom"
+
 
 //    const val ID_ADMOB_INTERSTITIAL_TEST = "ca-app-pub-3940256099942544/8691691433"
     const val ID_ADMOB_INTERSTITIAL_TEST = "ca-app-pub-3940256099942544/1033173712"

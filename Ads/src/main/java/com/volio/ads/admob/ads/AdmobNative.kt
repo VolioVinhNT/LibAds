@@ -17,6 +17,8 @@ import com.google.android.gms.ads.nativead.NativeAd
 
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.google.android.gms.ads.nativead.NativeAdView
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
@@ -250,6 +252,7 @@ class AdmobNative : AdmobAds() {
             override fun onAdImpression() {
                 super.onAdImpression()
                 adCallback?.onAdImpression(AdDef.ADS_TYPE.NATIVE)
+                Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
             }
 
             override fun onAdFailedToLoad(loadAdError: LoadAdError) {

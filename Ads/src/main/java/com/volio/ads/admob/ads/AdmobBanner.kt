@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
@@ -117,10 +119,9 @@ class AdmobBanner : AdmobAds() {
             }
         }
         adView?.adListener = object : AdListener() {
-
             override fun onAdImpression() {
                 super.onAdImpression()
-                adCallback?.onAdImpression(AdDef.ADS_TYPE.BANNER)
+                Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
             }
 
             override fun onAdOpened() {

@@ -1,6 +1,7 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -12,6 +13,8 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.volio.ads.AdCallback
 import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
@@ -124,6 +127,7 @@ class AdmobOpenAds : AdmobAds() {
                         override fun onAdImpression() {
                             super.onAdImpression()
                             adCallback?.onAdImpression(AdDef.ADS_TYPE.OPEN_APP)
+                            Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                         }
 
                         override fun onAdDismissedFullScreenContent() {

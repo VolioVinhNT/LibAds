@@ -13,6 +13,8 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.volio.ads.AdCallback
 import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
@@ -179,6 +181,7 @@ class AdmobInterstitial : AdmobAds() {
                         override fun onAdImpression() {
                             super.onAdImpression()
                             callback?.onAdImpression(AdDef.ADS_TYPE.INTERSTITIAL)
+                            Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                         }
 
                         override fun onAdDismissedFullScreenContent() {

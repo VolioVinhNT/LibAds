@@ -2,11 +2,16 @@ package com.volio.ads.admob.ads
 
 import android.app.Activity
 import android.graphics.Color
+import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.google.android.gms.ads.*
+import com.google.firebase.FirebaseApp
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.model.AdsChild
@@ -73,6 +78,10 @@ class AdmobAdaptiveBanner : AdmobAds() {
                         callback?.onAdFailToLoad(p0?.message)
                     }
 
+                    override fun onAdImpression() {
+                        super.onAdImpression()
+                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
+                    }
 
                     override fun onAdLoaded() {
                         super.onAdLoaded()
@@ -144,11 +153,6 @@ class AdmobAdaptiveBanner : AdmobAds() {
             AdRequest.Builder().build()
         )
         adView?.adListener = object : AdListener() {
-
-            override fun onAdImpression() {
-                super.onAdImpression()
-                adCallback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-            }
 
             override fun onAdClicked() {
                 super.onAdClicked()
