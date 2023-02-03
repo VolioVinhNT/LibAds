@@ -199,6 +199,7 @@ class AdmobInterstitial : AdmobAds() {
                             mInterstitialAd = null
                             loadFailed = true
                             error = adError.message
+                            callback?.onAdFailToShow(adError.message)
                             if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                                 AdDialog.getInstance().hideLoading()
                                 callback?.onAdFailToLoad(adError.message)
