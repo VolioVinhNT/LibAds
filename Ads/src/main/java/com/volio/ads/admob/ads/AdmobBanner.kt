@@ -2,6 +2,7 @@ package com.volio.ads.admob.ads
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
@@ -121,6 +122,7 @@ class AdmobBanner : AdmobAds() {
         adView?.adListener = object : AdListener() {
             override fun onAdImpression() {
                 super.onAdImpression()
+                Log.e("TAG", "onAdImpression: " )
                 Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
             }
 

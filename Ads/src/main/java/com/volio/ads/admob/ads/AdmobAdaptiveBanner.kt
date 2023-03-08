@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.Color
 import android.os.Bundle
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
@@ -80,6 +81,8 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                     override fun onAdImpression() {
                         super.onAdImpression()
+                        Log.e("TAG", "onAdImpression: " )
+                        callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
                         Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                     }
 
@@ -169,6 +172,12 @@ class AdmobAdaptiveBanner : AdmobAds() {
                 callback?.onAdClose(AdDef.NETWORK.GOOGLE)
             }
 
+
+            override fun onAdImpression() {
+                super.onAdImpression()
+                callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
+                Log.e("TAG", "onAdImpression: " )
+            }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
                 super.onAdFailedToLoad(p0)
