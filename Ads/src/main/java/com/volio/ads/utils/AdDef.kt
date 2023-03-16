@@ -25,7 +25,7 @@ class AdDef {
      class GOOGLE_AD_BANNER {
         companion object {
             const val BANNER_320x50 = "BANNER_320x50"
-            const val LARGE_BANNER_320x100 = "LARGE_BANNER_320x100 "
+            const val LARGE_BANNER_320x100 = "LARGE_BANNER_320x100"
             const val MEDIUM_RECTANGLE_300x250 = "MEDIUM_RECTANGLE_300x250"
             const val FULL_BANNER_468x60 = "FULL_BANNER_468x60"
             const val LEADERBOARD_728x90 = "LEADERBOARD_728x90"

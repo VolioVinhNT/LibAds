@@ -93,6 +93,8 @@ class AdmobAdaptiveBanner : AdmobAds() {
                         timeLoader = Date().time
                     }
                 }
+
+
                 callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
                 layout.removeAllViews()
                 if (adView!!.parent != null) {

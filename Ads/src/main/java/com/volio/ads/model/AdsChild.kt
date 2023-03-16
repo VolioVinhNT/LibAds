@@ -13,7 +13,8 @@ class AdsChild {
     var adsId:String = "null"
     @SerializedName("priority")
     var priority:Int = -1
-    var adsSize:String = AdDef.GOOGLE_AD_BANNER.BANNER_320x50
+
+    var adsSize:String = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
     override fun toString(): String {
         return "AdsChild(network='$network', spaceName='$spaceName', adsType='$adsType', adsId='$adsId', priority=$priority)"
     }

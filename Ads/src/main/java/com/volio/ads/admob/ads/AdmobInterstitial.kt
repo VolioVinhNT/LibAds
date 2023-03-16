@@ -165,6 +165,7 @@ class AdmobInterstitial : AdmobAds() {
                 stateLoadAd = StateLoadAd.SUCCESS
                 mInterstitialAd = p0
                 mInterstitialAd?.setOnPaidEventListener {
+
                     kotlin.runCatching {
                         val params = Bundle()
                         params.putString("valuemicros", it.valueMicros.toString())
@@ -175,63 +176,60 @@ class AdmobInterstitial : AdmobAds() {
                         callback?.onPaidEvent(params)
                     }
                 }
-                mInterstitialAd?.fullScreenContentCallback =
-                    object : FullScreenContentCallback() {
+                mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
 
-                        override fun onAdImpression() {
-                            super.onAdImpression()
-                            callback?.onAdImpression(AdDef.ADS_TYPE.INTERSTITIAL)
-                            Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
-                        }
-
-                        override fun onAdDismissedFullScreenContent() {
-                            super.onAdDismissedFullScreenContent()
-                            Log.d(TAG, "onAdDismissedFullScreenContent: ")
-                            callback?.onAdClose(AdDef.ADS_TYPE.INTERSTITIAL)
-                            mInterstitialAd = null
-
-                            //// perform your code that you wants to do after ad dismissed or closed
-                        }
-
-                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                            super.onAdFailedToShowFullScreenContent(adError)
-                            Log.d(TAG, "onAdFailedToShowFullScreenContent: $adError")
-                            mInterstitialAd = null
-                            loadFailed = true
-                            error = adError.message
-                            callback?.onAdFailToShow(adError.message)
-                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
-                                AdDialog.getInstance().hideLoading()
-                                callback?.onAdFailToLoad(adError.message)
-                                lifecycle?.removeObserver(lifecycleObserver)
-                            }
-                            /// perform your action here when ad will not load
-                        }
-
-                        override fun onAdShowedFullScreenContent() {
-                            super.onAdShowedFullScreenContent()
-                            Log.d(TAG, "onAdShowedFullScreenContent: ")
-                            mInterstitialAd = null
-                            stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
-                            AdDialog.getInstance().hideLoading()
-                            Utils.showToastDebug(
-                                activity,
-                                "Admob Interstitial id: ${adsChild.adsId}"
-                            )
-                            callback?.onAdShow(
-                                AdDef.NETWORK.GOOGLE,
-                                AdDef.ADS_TYPE.INTERSTITIAL
-                            )
-                        }
-
-                        override fun onAdClicked() {
-                            super.onAdClicked()
-                            if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
-                                AdsController.mTopActivity?.finish()
-                            }
-                            callback?.onAdClick()
-                        }
+                    override fun onAdImpression() {
+                        super.onAdImpression()
+                        callback?.onAdImpression(AdDef.ADS_TYPE.INTERSTITIAL)
+                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                     }
+
+                    override fun onAdDismissedFullScreenContent() {
+                        super.onAdDismissedFullScreenContent()
+                        Log.d(TAG, "onAdDismissedFullScreenContent: ")
+                        callback?.onAdClose(AdDef.ADS_TYPE.INTERSTITIAL)
+                        mInterstitialAd = null
+
+                        //// perform your code that you wants to do after ad dismissed or closed
+                    }
+
+                    override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                        super.onAdFailedToShowFullScreenContent(adError)
+                        Log.d(TAG, "onAdFailedToShowFullScreenContent: $adError")
+                        mInterstitialAd = null
+                        loadFailed = true
+                        error = adError.message
+                        callback?.onAdFailToShow(adError.message)
+                        if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
+                            AdDialog.getInstance().hideLoading()
+                            callback?.onAdFailToLoad(adError.message)
+                            lifecycle?.removeObserver(lifecycleObserver)
+                        }
+                        /// perform your action here when ad will not load
+                    }
+
+                    override fun onAdShowedFullScreenContent() {
+                        super.onAdShowedFullScreenContent()
+                        Log.d(TAG, "onAdShowedFullScreenContent: ")
+                        mInterstitialAd = null
+                        stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
+                        AdDialog.getInstance().hideLoading()
+                        Utils.showToastDebug(
+                            activity, "Admob Interstitial id: ${adsChild.adsId}"
+                        )
+                        callback?.onAdShow(
+                            AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.INTERSTITIAL
+                        )
+                    }
+
+                    override fun onAdClicked() {
+                        super.onAdClicked()
+                        if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
+                            AdsController.mTopActivity?.finish()
+                        }
+                        callback?.onAdClick()
+                    }
+                }
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
                     Handler(Looper.getMainLooper()).postDelayed(Runnable {
                         AdDialog.getInstance().hideLoading()
@@ -259,10 +257,7 @@ class AdmobInterstitial : AdmobAds() {
             }
         }
         InterstitialAd.load(
-            activity,
-            id,
-            AdRequest.Builder().build(),
-            interstitialAdLoadCallback
+            activity, id, AdRequest.Builder().build(), interstitialAdLoadCallback
         )
 
     }

@@ -83,7 +83,8 @@ class AdmobBanner : AdmobAds() {
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
     ) {
-        adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
+//        adsChild.adsSize = AdDef.GOOGLE_AD_BANNER.MEDIUM_RECTANGLE_300x250
+        adsChild.adsSize = adsChild.adsSize
         isLoadSuccess = false
         stateLoadAd = StateLoadAd.LOADING
         callback = adCallback
