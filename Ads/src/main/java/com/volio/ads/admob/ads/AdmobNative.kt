@@ -251,7 +251,7 @@ class AdmobNative : AdmobAds() {
 
             override fun onAdImpression() {
                 super.onAdImpression()
-                adCallback?.onAdImpression(AdDef.ADS_TYPE.NATIVE)
+                adCallbackMain?.onAdImpression(AdDef.ADS_TYPE.NATIVE)
                 Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
             }
 
