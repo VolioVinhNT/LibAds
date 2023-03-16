@@ -121,6 +121,17 @@ class AdmobOpenAds : AdmobAds() {
             override fun onAdLoaded(p0: AppOpenAd) {
                 Log.d(TAG, "onAdLoaded: ")
                 appOpenAd = p0
+                appOpenAd?.onPaidEventListener = OnPaidEventListener {
+                    kotlin.runCatching {
+                        val params = Bundle()
+                        params.putString("valuemicros", it.valueMicros.toString())
+                        params.putString("currency", it.currencyCode)
+                        params.putString("precision", it.precisionType.toString())
+                        params.putString("adunitid", p0.adUnitId)
+                        params.putString("network", p0.responseInfo.mediationAdapterClassName)
+                        callback?.onPaidEvent(params)
+                    }
+                }
                 appOpenAd?.fullScreenContentCallback =
                     object : FullScreenContentCallback() {
 

@@ -57,6 +57,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
         callback = adCallback
         if (adView != null && layout != null) {
             try {
+
                 adView?.adListener = object : AdListener() {
                     override fun onAdClicked() {
                         super.onAdClicked()
@@ -191,6 +192,18 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
             override fun onAdLoaded() {
                 super.onAdLoaded()
+                adView?.onPaidEventListener = OnPaidEventListener {
+                    kotlin.runCatching {
+                        Log.d("dsk8", "advalue: $it")
+                        val params = Bundle()
+                        params.putString("valuemicros", it.valueMicros.toString())
+                        params.putString("currency", it.currencyCode)
+                        params.putString("precision", it.precisionType.toString())
+                        params.putString("adunitid", adView?.adUnitId)
+                        params.putString("network", adView?.responseInfo?.mediationAdapterClassName)
+                        callback?.onPaidEvent(params)
+                    }
+                }
                 stateLoadAd = StateLoadAd.SUCCESS
                 isLoadSuccess = true
                 callbackPreload?.onLoadDone()
