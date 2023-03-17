@@ -29,6 +29,6 @@ interface AdCallback {
 
     fun onRewardShow(network: String, adtype: String) {}
     fun onAdImpression(adType: String) {
-
+        Log.d("dsk9", "adType: $adType")
     }
 }

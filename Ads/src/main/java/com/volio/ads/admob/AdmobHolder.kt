@@ -38,59 +38,61 @@ class AdmobHolder {
             layout,
             layoutAds,
             lifecycle,
-            timeMillisecond,
-            object : AdCallback {
+            timeMillisecond, adCallback
+//            object : AdCallback {
+//
+//                override fun onAdImpression(adType: String) {
+//                    super.onAdImpression(adType)
+//                    adCallback?.onAdImpression(adType)
+//                }
+//                override fun onAdShow(network: String, adtype: String) {
+//                    Log.d(TAG, "onAdShow: ")
+//                    if (!isKeepAds) {
+//                        remove(adsChild)
+//                    }
+//                    adCallback?.onAdShow(network, adtype)
+//                }
+//
+//                override fun onAdClose(adType: String) {
+//                    Log.d(TAG, "onAdClose: ")
+//                    adCallback?.onAdClose(adType)
+//                }
+//
+//                override fun onAdFailToLoad(messageError: String?) {
+//                    Log.d(TAG, "onAdFailToLoad: " + messageError)
+//                    Utils.showToastDebug(
+//                        activity,
+//                        "Admob ${adsChild.adsType} id: ${adsChild.adsId}"
+//                    )
+//
+//                    if (!isKeepAds) {
+//                        remove(adsChild)
+//                    }
+//                    if (failCheck()) {
+//                        adCallback?.onAdFailToLoad(messageError)
+//                    }
+//                }
+//
+//                override fun onAdOff() {
+//                    Log.d(TAG, "onAdOff: ")
+//                    adCallback?.onAdOff()
+//                }
+//
+//                override fun onAdClick() {
+//                    adCallback?.onAdClick()
+//                }
+//
+//                override fun onRewardShow(network: String, adtype: String) {
+//                    adCallback?.onRewardShow(network, adtype)
+//                }
+//
+//                override fun onPaidEvent(params: Bundle) {
+//                    adCallback?.onPaidEvent(params)
+//                }
+//
+//            }
 
-                override fun onAdImpression(adType: String) {
-                    super.onAdImpression(adType)
-                    adCallback?.onAdImpression(adType)
-                }
-                override fun onAdShow(network: String, adtype: String) {
-                    Log.d(TAG, "onAdShow: ")
-                    if (!isKeepAds) {
-                        remove(adsChild)
-                    }
-                    adCallback?.onAdShow(network, adtype)
-                }
-
-                override fun onAdClose(adType: String) {
-                    Log.d(TAG, "onAdClose: ")
-                    adCallback?.onAdClose(adType)
-                }
-
-                override fun onAdFailToLoad(messageError: String?) {
-                    Log.d(TAG, "onAdFailToLoad: " + messageError)
-                    Utils.showToastDebug(
-                        activity,
-                        "Admob ${adsChild.adsType} id: ${adsChild.adsId}"
-                    )
-
-                    if (!isKeepAds) {
-                        remove(adsChild)
-                    }
-                    if (failCheck()) {
-                        adCallback?.onAdFailToLoad(messageError)
-                    }
-                }
-
-                override fun onAdOff() {
-                    Log.d(TAG, "onAdOff: ")
-                    adCallback?.onAdOff()
-                }
-
-                override fun onAdClick() {
-                    adCallback?.onAdClick()
-                }
-
-                override fun onRewardShow(network: String, adtype: String) {
-                    adCallback?.onRewardShow(network, adtype)
-                }
-
-                override fun onPaidEvent(params: Bundle) {
-                    adCallback?.onPaidEvent(params)
-                }
-
-            })
+        )
     }
 
     private fun loadAndShow(
