@@ -9,7 +9,6 @@ object Constant {
     var SHOW_CENTER_HELP = false
     var SHOW_REPORT_ERROR = false
     var isShowToastDebug = false
-    var isTrackAdRevenue = true
 
     val KeyCustomImpression = "ad_impression_custom"
 
