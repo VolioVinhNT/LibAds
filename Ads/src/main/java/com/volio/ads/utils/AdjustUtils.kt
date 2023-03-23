@@ -1,5 +1,8 @@
 package com.volio.ads.utils
 
+import com.adjust.sdk.Adjust
+import com.adjust.sdk.AdjustEvent
+
 object AdjustUtils {
 
 
@@ -13,5 +16,8 @@ object AdjustUtils {
 
     var isTrackAdRevenue = false
 
+    fun logEvent(name: String) {
+        Adjust.trackEvent(AdjustEvent(name))
+    }
 
 }
