@@ -78,7 +78,7 @@ dependencies {
 
 
 
-//    implementation 'com.google.ads.mediation:pangle:5.0.1.1.0'
+    implementation 'com.google.ads.mediation:pangle:5.0.1.1.0'
 
 //    implementation files('libs/pangle-5.0.1.1.0.aar')
 
