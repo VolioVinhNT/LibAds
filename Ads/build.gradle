@@ -4,12 +4,11 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.2"
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
 
@@ -32,6 +31,14 @@ android {
     }
 }
 
+//repositories {
+//    google()
+//    mavenCentral()
+//    maven {
+//        url 'https://artifact.bytedance.com/repository/pangle/'
+//    }
+//}
+
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:1.4.31"
@@ -45,7 +52,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    implementation 'com.google.firebase:firebase-ads:21.0.0'
+    implementation 'com.google.android.gms:play-services-ads:22.0.0'
     implementation platform('com.google.firebase:firebase-bom:27.1.0')
     implementation 'com.google.firebase:firebase-analytics-ktx'
 
@@ -56,12 +63,25 @@ dependencies {
 
     implementation 'androidx.annotation:annotation:1.2.0'
     implementation 'com.facebook.android:audience-network-sdk:6.11.0'
-    implementation 'com.google.ads.mediation:facebook:6.11.0.1'
 
     // Material dialog
     def material_dialog_version = "3.3.0"
     implementation "com.afollestad.material-dialogs:core:$material_dialog_version"
     implementation "com.afollestad.material-dialogs:lifecycle:$material_dialog_version"
+
+    // mediation
+    implementation 'com.google.ads.mediation:facebook:6.13.7.0'
+    implementation 'com.google.ads.mediation:adcolony:4.8.0.1'
+    implementation 'com.google.ads.mediation:applovin:11.8.2.0'
+    implementation 'com.google.ads.mediation:vungle:6.12.1.0'
+
+
+
+
+    implementation 'com.google.ads.mediation:pangle:5.0.1.1.0'
+
+//    implementation files('libs/pangle-5.0.1.1.0.aar')
+
 
 //    def lifecycle_version = "2.2.0"
 //    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
