@@ -31,8 +31,10 @@ interface AdCallback {
             val adRevenue = AdjustAdRevenue(AdjustConfig.AD_REVENUE_ADMOB)
             val amount = params.getString("valuemicros")?.toInt()
             val currencyCode = params.getString("currency")
+            val adId = params.getString("adunitid")
             val finalRevenue: Double = amount!! / 1000000.0
             adRevenue.setRevenue(finalRevenue, currencyCode)
+            adRevenue.setAdRevenueUnit(adId)
             Adjust.trackAdRevenue(adRevenue)
         }
     }
