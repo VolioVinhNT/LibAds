@@ -147,7 +147,7 @@ class AdmobRewardInterstitial : AdmobAds() {
                         params.putString("valuemicros", it.valueMicros.toString())
                         params.putString("currency", it.currencyCode)
                         params.putString("precision", it.precisionType.toString())
-                        params.putString("adunitid", p0.adUnitId)
+                        params.putString("ad_unit_id", p0.adUnitId)
                         params.putString("network", p0.responseInfo.mediationAdapterClassName)
                         callback?.onPaidEvent(params)
                     }

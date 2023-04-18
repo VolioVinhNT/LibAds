@@ -12,6 +12,8 @@ object Constant {
 
     val KeyCustomImpression = "ad_impression_custom"
 
+    var isTrackAdmobRevenue = false
+
 
 
 

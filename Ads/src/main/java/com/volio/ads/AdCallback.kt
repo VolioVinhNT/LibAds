@@ -6,6 +6,8 @@ import com.adjust.sdk.Adjust
 import com.adjust.sdk.AdjustAdRevenue
 import com.adjust.sdk.AdjustConfig
 import com.adjust.sdk.AdjustEvent
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.ktx.Firebase
 import com.volio.ads.utils.AdjustUtils
 import com.volio.ads.utils.AdjustUtils.ad_click
 import com.volio.ads.utils.AdjustUtils.ad_impression
@@ -37,6 +39,9 @@ interface AdCallback {
             adRevenue.setAdRevenueUnit(adId)
             Adjust.trackAdRevenue(adRevenue)
         }
+//        if (Constant.isTrackAdmobRevenue){
+//            Firebase.analytics.logEvent("ad_revenue_custom",params)
+//        }
     }
 
     fun onRewardShow(network: String, adtype: String) {}

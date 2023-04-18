@@ -217,10 +217,10 @@ class AdmobNative : AdmobAds() {
             unifiedNativeAd?.setOnPaidEventListener {
                 kotlin.runCatching {
                     val params = Bundle()
-                    params.putString("valuemicros", it.valueMicros.toString())
+                    params.putString("revenue_micros", it.valueMicros.toString())
                     params.putString("currency", it.currencyCode)
-                    params.putString("precision", it.precisionType.toString())
-                    params.putString("adunitid", idAds)
+                    params.putString("precision_type", it.precisionType.toString())
+                    params.putString("ad_unit_id", idAds)
                     params.putString(
                         "network",
                         unifiedNativeAd.responseInfo?.mediationAdapterClassName
