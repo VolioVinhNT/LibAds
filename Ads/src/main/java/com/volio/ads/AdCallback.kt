@@ -29,19 +29,22 @@ interface AdCallback {
         }
     }
     fun onPaidEvent(params: Bundle) {
+//        if (Constant.isTrackAdmobRevenue){
+//            Log.d("dsk8", "onPaidEvent: $params")
+//            Firebase.analytics.logEvent("ad_revenue_custom",params)
+//        }
+
         if (isTrackAdRevenue) {
             val adRevenue = AdjustAdRevenue(AdjustConfig.AD_REVENUE_ADMOB)
-            val amount = params.getString("valuemicros")?.toInt()
+            val amount = params.getString("revenue_micros")?.toInt()
             val currencyCode = params.getString("currency")
-            val adId = params.getString("adunitid")
+            val adId = params.getString("ad_unit_id")
             val finalRevenue: Double = amount!! / 1000000.0
             adRevenue.setRevenue(finalRevenue, currencyCode)
             adRevenue.setAdRevenueUnit(adId)
+            Log.d("dsk8", "onPaidEvent adjust: $params")
             Adjust.trackAdRevenue(adRevenue)
         }
-//        if (Constant.isTrackAdmobRevenue){
-//            Firebase.analytics.logEvent("ad_revenue_custom",params)
-//        }
     }
 
     fun onRewardShow(network: String, adtype: String) {}

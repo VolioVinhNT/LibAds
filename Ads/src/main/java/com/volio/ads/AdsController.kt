@@ -353,22 +353,7 @@ class AdsController private constructor(
                     layoutAds,
                     lifecycle,
                     timeMillisecond,
-                    listItem, object :AdCallback{
-                        override fun onAdShow(network: String, adtype: String) {
-                            adCallback?.onAdShow(network, adtype)
-                        }
-
-                        override fun onAdClose(adType: String) {
-                            adCallback?.onAdClose(adType)
-                        }
-
-                        override fun onAdFailToLoad(messageError: String?) {
-                        }
-
-                        override fun onAdOff() {
-                        }
-
-                    }
+                    listItem, adCallback
                 )
             } else {
                 showToastDebug(contextUse, "no data check priority file json")
