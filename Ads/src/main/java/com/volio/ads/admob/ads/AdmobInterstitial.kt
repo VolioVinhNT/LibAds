@@ -172,7 +172,14 @@ class AdmobInterstitial : AdmobAds() {
                         params.putString("currency", it.currencyCode)
                         params.putString("precision_type", it.precisionType.toString())
                         params.putString("ad_unit_id", p0.adUnitId)
-                        params.putString("network", p0.responseInfo.mediationAdapterClassName)
+                        val adapterResponseInfo = p0?.responseInfo?.loadedAdapterResponseInfo
+                        adapterResponseInfo?.let { it ->
+                            params.putString("ad_source_id", it.adSourceId)
+                            params.putString("ad_source_name", it.adSourceName)
+                            params.putString("ad_source_instance_id", it.adSourceInstanceId)
+                            params.putString("ad_source_instance_name", it.adSourceInstanceName)
+                            params.putString("latency", it.latencyMillis.toString())
+                        }
                         callback?.onPaidEvent(params)
                     }
                 }

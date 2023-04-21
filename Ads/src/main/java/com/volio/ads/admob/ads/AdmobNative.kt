@@ -221,10 +221,14 @@ class AdmobNative : AdmobAds() {
                     params.putString("currency", it.currencyCode)
                     params.putString("precision_type", it.precisionType.toString())
                     params.putString("ad_unit_id", idAds)
-                    params.putString(
-                        "network",
-                        unifiedNativeAd.responseInfo?.mediationAdapterClassName
-                    )
+                    val adapterResponseInfo = unifiedNativeAd?.responseInfo?.loadedAdapterResponseInfo
+                    adapterResponseInfo?.let { it ->
+                        params.putString("ad_source_id", it.adSourceId)
+                        params.putString("ad_source_name", it.adSourceName)
+                        params.putString("ad_source_instance_id", it.adSourceInstanceId)
+                        params.putString("ad_source_instance_name", it.adSourceInstanceName)
+                        params.putString("latency", it.latencyMillis.toString())
+                    }
                     adCallbackMain?.onPaidEvent(params)
                 }
             }

@@ -38,7 +38,7 @@ class AdmobOpenAds : AdmobAds() {
 
     private var appOpenAd: AppOpenAd? = null
     private var currentActivity: Activity? = null
-    private var lifecycle:Lifecycle? = null
+    private var lifecycle: Lifecycle? = null
 
     private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
@@ -88,15 +88,17 @@ class AdmobOpenAds : AdmobAds() {
         }
         return false
     }
+
     private val timeOutCallBack = Runnable {
         if (!loaded && !loadFailed) {
             isTimeOut = true
-            if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+            if (eventLifecycle == Lifecycle.Event.ON_RESUME) {
                 callback?.onAdFailToLoad("TimeOut")
                 lifecycle?.removeObserver(lifecycleObserver)
             }
         }
     }
+
     private fun load(
         activity: Activity,
         adsChild: AdsChild,
@@ -114,7 +116,7 @@ class AdmobOpenAds : AdmobAds() {
         if (!preload) {
             lifecycle?.addObserver(lifecycleObserver)
             handler.removeCallbacks(timeOutCallBack)
-            handler.postDelayed(timeOutCallBack,timeOut)
+            handler.postDelayed(timeOutCallBack, timeOut)
         }
         resetValue()
         val openAdLoadCallback = object : AppOpenAdLoadCallback() {
@@ -128,7 +130,14 @@ class AdmobOpenAds : AdmobAds() {
                         params.putString("currency", it.currencyCode)
                         params.putString("precision_type", it.precisionType.toString())
                         params.putString("ad_unit_id", p0.adUnitId)
-                        params.putString("network", p0.responseInfo.mediationAdapterClassName)
+                        val adapterResponseInfo = p0.responseInfo.loadedAdapterResponseInfo
+                        adapterResponseInfo?.let {it->
+                            params.putString("ad_source_id", it.adSourceId)
+                            params.putString("ad_source_name", it.adSourceName)
+                            params.putString("ad_source_instance_id", it.adSourceInstanceId)
+                            params.putString("ad_source_instance_name", it.adSourceInstanceName)
+                            params.putString("latency", it.latencyMillis.toString())
+                        }
                         callback?.onPaidEvent(params)
                     }
                 }
@@ -225,12 +234,12 @@ class AdmobOpenAds : AdmobAds() {
 
     }
 
-    private val lifecycleObserver = object :LifecycleEventObserver {
+    private val lifecycleObserver = object : LifecycleEventObserver {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
             eventLifecycle = event
             if (event == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
-                if (isTimeOut){
+                if (isTimeOut) {
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad("TimeOut")
                     lifecycle?.removeObserver(this)
