@@ -57,7 +57,7 @@ dependencies {
 
     implementation 'androidx.annotation:annotation:1.2.0'
     implementation 'com.facebook.android:audience-network-sdk:6.11.0'
-    implementation 'com.google.ads.mediation:facebook:6.13.7.0'
+    implementation 'com.google.ads.mediation:facebook:6.11.0.1'
 
     // Material dialog
     def material_dialog_version = "3.3.0"
