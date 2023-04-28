@@ -24,15 +24,16 @@ interface AdCallback {
     fun onAdFailToShow(messageError: String?) {}
     fun onAdOff()
     fun onAdClick() {
-        if (isLogAdClick){
+        if (isLogAdClick) {
             Adjust.trackEvent(AdjustEvent(ad_click))
         }
     }
+
     fun onPaidEvent(params: Bundle) {
-//        if (Constant.isTrackAdmobRevenue){
-//            Log.d("dsk8", "onPaidEvent: $params")
-//            Firebase.analytics.logEvent("ad_revenue_custom",params)
-//        }
+        if (Constant.isTrackAdmobRevenue) {
+            Log.d("dsk8", "onPaidEvent admob: $params")
+            Firebase.analytics.logEvent("ad_revenue_custom", params)
+        }
 
         if (isTrackAdRevenue) {
             val adRevenue = AdjustAdRevenue(AdjustConfig.AD_REVENUE_ADMOB)
