@@ -74,11 +74,8 @@ dependencies {
     implementation 'com.google.ads.mediation:adcolony:4.8.0.1'
     implementation 'com.google.ads.mediation:applovin:11.8.2.0'
     implementation 'com.google.ads.mediation:vungle:6.12.1.0'
-
-
-
-
     implementation 'com.google.ads.mediation:pangle:5.0.1.1.0'
+    implementation 'com.google.ads.mediation:mintegral:16.4.31.0'
 
 //    implementation files('libs/pangle-5.0.1.1.0.aar')
 
