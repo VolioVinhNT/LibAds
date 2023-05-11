@@ -139,16 +139,12 @@ class AdmobReward : AdmobAds() {
                     kotlin.runCatching {
                         val params = Bundle()
                         params.putString("revenue_micros", it.valueMicros.toString())
-                        params.putString("currency", it.currencyCode)
                         params.putString("precision_type", it.precisionType.toString())
                         params.putString("ad_unit_id", p0.adUnitId)
-                        val adapterResponseInfo = rewardedAd?.responseInfo?.loadedAdapterResponseInfo
+                        val adapterResponseInfo = p0?.responseInfo?.loadedAdapterResponseInfo
                         adapterResponseInfo?.let { it ->
                             params.putString("ad_source_id", it.adSourceId)
                             params.putString("ad_source_name", it.adSourceName)
-                            params.putString("ad_source_instance_id", it.adSourceInstanceId)
-                            params.putString("ad_source_instance_name", it.adSourceInstanceName)
-                            params.putString("latency", it.latencyMillis.toString())
                         }
                         callback?.onPaidEvent(params)
                     }
