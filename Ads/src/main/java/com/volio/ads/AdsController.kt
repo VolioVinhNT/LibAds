@@ -49,7 +49,7 @@ class AdsController private constructor(
             isDebug: Boolean,
             listAppId: ArrayList<String>,
             packetName: String,
-            listPathJson: ArrayList<String>, lifecycle: Lifecycle
+            listPathJson: ArrayList<String>, lifecycle: Lifecycle, isUseVer22 : Boolean
         ) {
             Constant.isDebug = isDebug
             adsController = AdsController(activity, listAppId, packetName, listPathJson, lifecycle)
