@@ -127,7 +127,7 @@ class AdmobOpenAds : AdmobAds() {
                         override fun onAdImpression() {
                             super.onAdImpression()
                             adCallback?.onAdImpression(AdDef.ADS_TYPE.OPEN_APP)
-                            Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
+//                            Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                         }
 
                         override fun onAdDismissedFullScreenContent() {

@@ -181,7 +181,7 @@ class AdmobInterstitial : AdmobAds() {
                     override fun onAdImpression() {
                         super.onAdImpression()
                         callback?.onAdImpression(AdDef.ADS_TYPE.INTERSTITIAL)
-                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
+//                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                     }
 
                     override fun onAdDismissedFullScreenContent() {

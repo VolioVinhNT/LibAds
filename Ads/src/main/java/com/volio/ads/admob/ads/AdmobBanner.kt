@@ -124,7 +124,7 @@ class AdmobBanner : AdmobAds() {
             override fun onAdImpression() {
                 super.onAdImpression()
                 Log.e("TAG", "onAdImpression: " )
-                Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
+//                Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
             }
 
             override fun onAdOpened() {

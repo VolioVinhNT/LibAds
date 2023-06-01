@@ -83,7 +83,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
                         super.onAdImpression()
                         Log.e("TAG", "onAdImpression: " )
                         callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
+//                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                     }
 
                     override fun onAdLoaded() {
