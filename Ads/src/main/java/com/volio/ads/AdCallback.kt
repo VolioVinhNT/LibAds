@@ -1,20 +1,6 @@
 package com.volio.ads
 
 import android.os.Bundle
-import android.util.Log
-import com.adjust.sdk.Adjust
-import com.adjust.sdk.AdjustAdRevenue
-import com.adjust.sdk.AdjustConfig
-import com.adjust.sdk.AdjustEvent
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
-import com.volio.ads.utils.AdjustUtils
-import com.volio.ads.utils.AdjustUtils.ad_click
-import com.volio.ads.utils.AdjustUtils.ad_impression
-import com.volio.ads.utils.AdjustUtils.isLogAdClick
-import com.volio.ads.utils.AdjustUtils.isLogAdImpression
-import com.volio.ads.utils.AdjustUtils.isTrackAdRevenue
-import com.volio.ads.utils.Constant
 
 interface AdCallback {
 
@@ -24,33 +10,15 @@ interface AdCallback {
     fun onAdFailToShow(messageError: String?) {}
     fun onAdOff()
     fun onAdClick() {
-        if (isLogAdClick) {
-            Adjust.trackEvent(AdjustEvent(ad_click))
-        }
+
     }
 
     fun onPaidEvent(params: Bundle) {
-        if (Constant.isTrackAdmobRevenue) {
-            Firebase.analytics.logEvent("ad_revenue_custom", params)
-        }
-
-        if (isTrackAdRevenue) {
-            val adRevenue = AdjustAdRevenue(AdjustConfig.AD_REVENUE_ADMOB)
-            val amount = params.getString("revenue_micros")?.toInt()
-//            val currencyCode = params.getString("currency")
-            val adId = params.getString("ad_unit_id")
-            val finalRevenue: Double = amount!! / 1000000.0
-            adRevenue.setRevenue(finalRevenue, "usd")
-            adRevenue.setAdRevenueUnit(adId)
-            Log.d("dsk8", "onPaidEvent adjust: $params")
-            Adjust.trackAdRevenue(adRevenue)
-        }
+//
     }
 
     fun onRewardShow(network: String, adtype: String) {}
     fun onAdImpression(adType: String) {
-        if (isLogAdImpression) {
-            Adjust.trackEvent(AdjustEvent(ad_impression))
-        }
+
     }
 }
