@@ -68,6 +68,7 @@ dependencies {
     def material_dialog_version = "3.3.0"
     implementation "com.afollestad.material-dialogs:core:$material_dialog_version"
     implementation "com.afollestad.material-dialogs:lifecycle:$material_dialog_version"
+    implementation 'com.adjust.sdk:adjust-android:4.30.1'
 
     // mediation
     implementation 'com.google.ads.mediation:facebook:6.14.0.0'

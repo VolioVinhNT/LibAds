@@ -35,6 +35,7 @@ class AdsController private constructor(
     private var connectionLiveData: ConnectionLiveData = ConnectionLiveData(activity)
     private var isConnection: Boolean = true
     var isPremium: Boolean = false
+    var isTrackAdRevenue = true
 
     companion object {
 
@@ -352,17 +353,13 @@ class AdsController private constructor(
                     layoutAds,
                     lifecycle,
                     timeMillisecond,
-                    listItem,
-                    adCallback
+                    listItem, adCallback
                 )
             } else {
                 showToastDebug(contextUse, "no data check priority file json")
                 adCallback?.onAdFailToLoad("")
-
             }
-
         }
-
     }
 
     private fun loadAdsPriority(

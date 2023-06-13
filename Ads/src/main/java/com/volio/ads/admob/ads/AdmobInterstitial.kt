@@ -168,11 +168,14 @@ class AdmobInterstitial : AdmobAds() {
 
                     kotlin.runCatching {
                         val params = Bundle()
-                        params.putString("valuemicros", it.valueMicros.toString())
-                        params.putString("currency", it.currencyCode)
-                        params.putString("precision", it.precisionType.toString())
-                        params.putString("adunitid", p0.adUnitId)
-                        params.putString("network", p0.responseInfo.mediationAdapterClassName)
+                        params.putString("revenue_micros", it.valueMicros.toString())
+                        params.putString("precision_type", it.precisionType.toString())
+                        params.putString("ad_unit_id", p0.adUnitId)
+                        val adapterResponseInfo = p0?.responseInfo?.loadedAdapterResponseInfo
+                        adapterResponseInfo?.let { it ->
+                            params.putString("ad_source_id", it.adSourceId)
+                            params.putString("ad_source_name", it.adSourceName)
+                        }
                         callback?.onPaidEvent(params)
                     }
                 }

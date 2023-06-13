@@ -27,7 +27,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     private var isLoadSuccess = false
     private var adView: AdView? = null
     private var callback: AdCallback? = null
-    private var callbackPreload:PreloadCallback? = null
+    private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
     override fun loadAndShow(
         activity: Activity,
@@ -41,7 +41,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     ) {
         callback = adCallback
         load(activity, adsChild, layout, callback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds,lifecycle ,callback)
+            show(activity, adsChild, loadingText, layout, layoutAds, lifecycle, callback)
         })
     }
 
@@ -57,6 +57,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
         callback = adCallback
         if (adView != null && layout != null) {
             try {
+
                 adView?.adListener = object : AdListener() {
                     override fun onAdClicked() {
                         super.onAdClicked()
@@ -81,7 +82,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                     override fun onAdImpression() {
                         super.onAdImpression()
-                        Log.e("TAG", "onAdImpression: " )
+                        Log.e("TAG", "onAdImpression: ")
                         callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
 //                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                     }
@@ -116,7 +117,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     }
 
     override fun preload(activity: Activity, adsChild: AdsChild) {
-        load(activity, adsChild, null,null, loadSuccess = {
+        load(activity, adsChild, null, null, loadSuccess = {
 
         })
     }
@@ -148,7 +149,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
         layout?.let { viewG ->
             val lp = viewG.layoutParams
-            lp.width = adSize?.getWidthInPixels(viewG.context)?: 0
+            lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
             lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
             viewG.layoutParams = lp
         }
@@ -178,7 +179,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
             override fun onAdImpression() {
                 super.onAdImpression()
                 callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-                Log.e("TAG", "onAdImpression: " )
+                Log.e("TAG", "onAdImpression: ")
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -191,6 +192,20 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
             override fun onAdLoaded() {
                 super.onAdLoaded()
+                adView?.onPaidEventListener = OnPaidEventListener {
+                    kotlin.runCatching {
+                        val params = Bundle()
+                        params.putString("revenue_micros", it.valueMicros.toString())
+                        params.putString("precision_type", it.precisionType.toString())
+                        params.putString("ad_unit_id", adView?.adUnitId)
+                        val adapterResponseInfo = adView?.responseInfo?.loadedAdapterResponseInfo
+                        adapterResponseInfo?.let { it ->
+                            params.putString("ad_source_id", it.adSourceId)
+                            params.putString("ad_source_name", it.adSourceName)
+                        }
+                        callback?.onPaidEvent(params)
+                    }
+                }
                 stateLoadAd = StateLoadAd.SUCCESS
                 isLoadSuccess = true
                 callbackPreload?.onLoadDone()

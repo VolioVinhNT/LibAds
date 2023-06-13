@@ -94,7 +94,7 @@ class AdmobNative : AdmobAds() {
 
         // The headline and media content are guaranteed to be in every UnifiedNativeAd.
         (adView.headlineView as TextView).text = nativeAd.headline
-        if (adView.mediaView != null && nativeAd.mediaContent != null ) {
+        if (adView.mediaView != null && nativeAd.mediaContent != null) {
             adView.mediaView!!.setMediaContent(nativeAd.mediaContent!!)
         }
 
@@ -189,7 +189,7 @@ class AdmobNative : AdmobAds() {
         adCallback: AdCallback?
     ) {
         load(activity, adsChild, adCallback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds, lifecycle,adCallback)
+            show(activity, adsChild, loadingText, layout, layoutAds, lifecycle, adCallback)
         })
     }
 
@@ -217,14 +217,15 @@ class AdmobNative : AdmobAds() {
             unifiedNativeAd?.setOnPaidEventListener {
                 kotlin.runCatching {
                     val params = Bundle()
-                    params.putString("valuemicros", it.valueMicros.toString())
-                    params.putString("currency", it.currencyCode)
-                    params.putString("precision", it.precisionType.toString())
-                    params.putString("adunitid", idAds)
-                    params.putString(
-                        "network",
-                        unifiedNativeAd.responseInfo?.mediationAdapterClassName
-                    )
+                    params.putString("revenue_micros", it.valueMicros.toString())
+                    params.putString("precision_type", it.precisionType.toString())
+                    params.putString("ad_unit_id", idAds)
+                    val adapterResponseInfo =
+                        unifiedNativeAd?.responseInfo?.loadedAdapterResponseInfo
+                    adapterResponseInfo?.let { it ->
+                        params.putString("ad_source_id", it.adSourceId)
+                        params.putString("ad_source_name", it.adSourceName)
+                    }
                     adCallbackMain?.onPaidEvent(params)
                 }
             }
