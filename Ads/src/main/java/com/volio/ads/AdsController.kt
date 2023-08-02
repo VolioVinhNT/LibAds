@@ -43,19 +43,22 @@ class AdsController private constructor(
         private lateinit var adsController: AdsController
 
         @SuppressLint("StaticFieldLeak")
-        var mTopActivity : Activity? = null
+        var mTopActivity: Activity? = null
 
         fun init(
             activity: Activity,
             isDebug: Boolean,
             listAppId: ArrayList<String>,
             packetName: String,
-            listPathJson: ArrayList<String>, lifecycle: Lifecycle, isUseVer22 : Boolean
+            listPathJson: ArrayList<String>,
+            lifecycle: Lifecycle,
+            isUseVer22: Boolean
         ) {
             Constant.isDebug = isDebug
             adsController = AdsController(activity, listAppId, packetName, listPathJson, lifecycle)
 
-            activity.application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            activity.application.registerActivityLifecycleCallbacks(object :
+                Application.ActivityLifecycleCallbacks {
                 override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
 
                 }
@@ -92,6 +95,7 @@ class AdsController private constructor(
             }
             return adsController
         }
+
         fun checkInit() = ::adsController.isInitialized
     }
 
@@ -170,8 +174,7 @@ class AdsController private constructor(
                     }
                     else -> {
                         showToastDebug(
-                            activity,
-                            "not support network ${item.network} check file json"
+                            activity, "not support network ${item.network} check file json"
                         )
                     }
                 }
@@ -203,8 +206,7 @@ class AdsController private constructor(
 //                    }
                     else -> {
                         showToastDebug(
-                            activity,
-                            "not support network ${item.network} check file json"
+                            activity, "not support network ${item.network} check file json"
                         )
                     }
 
@@ -280,18 +282,14 @@ class AdsController private constructor(
                             textLoading,
                             layout,
                             layoutAds,
-                            timeDelayShowAd, lifecycle,
+                            timeDelayShowAd,
+                            lifecycle,
                             adCallback
                         )
                     }
                     AdDef.NETWORK.FACEBOOK -> {
                         checkShow = fanHolder.show(
-                            activity,
-                            item,
-                            textLoading,
-                            layout,
-                            layoutAds,
-                            adCallback
+                            activity, item, textLoading, layout, layoutAds, adCallback
                         )
                     }
                 }
@@ -308,6 +306,9 @@ class AdsController private constructor(
                     timeMillisecond,
                     adCallback
                 )
+            } else {
+                adCallback?.onAdFailToShow("app in background long time")
+                destroy(spaceName)
             }
         } else {
             showToastDebug(activity, "no data check spaceName and file json")
@@ -353,7 +354,8 @@ class AdsController private constructor(
                     layoutAds,
                     lifecycle,
                     timeMillisecond,
-                    listItem, adCallback
+                    listItem,
+                    adCallback
                 )
             } else {
                 showToastDebug(contextUse, "no data check priority file json")
@@ -406,8 +408,7 @@ class AdsController private constructor(
                             )
                             false
                         }
-                    }
-                )
+                    })
 
             }
             AdDef.NETWORK.FACEBOOK -> {
@@ -443,8 +444,7 @@ class AdsController private constructor(
                             )
                             false
                         }
-                    }
-                )
+                    })
 
             }
             else -> {
