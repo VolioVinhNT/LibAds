@@ -307,17 +307,11 @@ class AdsController private constructor(
                         timeMillisecond,
                         adCallback
                     )
+                } else {
+                    adCallback?.onAdFailToShow("app in background long time")
+                    destroy(spaceName)
                 }
-            } else {
-                adCallback?.onAdFailToShow("app in background long time")
-                destroy(spaceName)
-            }
-            
-
-            /* else {
-                 adCallback?.onAdFailToShow("app in background long time")
-                 destroy(spaceName)
-             }*/
+            } 
         } else {
             showToastDebug(activity, "no data check spaceName and file json")
             adCallback?.onAdFailToLoad("")
