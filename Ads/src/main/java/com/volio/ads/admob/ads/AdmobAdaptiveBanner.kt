@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
+import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.*
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -27,7 +28,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     private var isLoadSuccess = false
     private var adView: AdView? = null
     private var callback: AdCallback? = null
-    private var callbackPreload:PreloadCallback? = null
+    private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
     override fun loadAndShow(
         activity: Activity,
@@ -41,7 +42,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     ) {
         callback = adCallback
         load(activity, adsChild, layout, callback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds,lifecycle ,callback)
+            show(activity, adsChild, loadingText, layout, layoutAds, lifecycle, callback)
         })
     }
 
@@ -81,7 +82,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                     override fun onAdImpression() {
                         super.onAdImpression()
-                        Log.e("TAG", "onAdImpression: " )
+                        Log.e("TAG", "onAdImpression: ")
                         callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
                         Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
                     }
@@ -116,7 +117,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     }
 
     override fun preload(activity: Activity, adsChild: AdsChild) {
-        load(activity, adsChild, null,null, loadSuccess = {
+        load(activity, adsChild, null, null, loadSuccess = {
 
         })
     }
@@ -130,13 +131,17 @@ class AdmobAdaptiveBanner : AdmobAds() {
     ) {
         callback = adCallback
         val id: String = if (Constant.isDebug) {
-            Constant.ID_ADMOB_BANNER_TEST
+            if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
+                Constant.ID_ADMOB_BANNER_COLLAPSIVE_TEST
+            } else {
+                Constant.ID_ADMOB_BANNER_TEST
+            }
         } else {
             adsChild.adsId
         }
         stateLoadAd = StateLoadAd.LOADING
         isLoadSuccess = false
-        adView = AdView(activity.applicationContext)
+        adView = AdView(activity)
         adView?.setBackgroundColor(Color.WHITE)
         adView?.adUnitId = id
 
@@ -148,15 +153,25 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
         layout?.let { viewG ->
             val lp = viewG.layoutParams
-            lp.width = adSize?.getWidthInPixels(viewG.context)?: 0
+            lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
             lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
             viewG.layoutParams = lp
         }
 
+        if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
+            Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
+            val extras = Bundle()
+            extras.putString("collapsible", "bottom")
+            adView?.loadAd(
+                AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
+            )
+        } else {
+            adView?.loadAd(
+                AdRequest.Builder().build()
+            )
+        }
 
-        adView?.loadAd(
-            AdRequest.Builder().build()
-        )
+
         adView?.adListener = object : AdListener() {
 
             override fun onAdClicked() {
@@ -178,7 +193,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
             override fun onAdImpression() {
                 super.onAdImpression()
                 callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-                Log.e("TAG", "onAdImpression: " )
+                Log.e("TAG", "onAdImpression: ")
             }
 
             override fun onAdFailedToLoad(p0: LoadAdError) {
