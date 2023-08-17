@@ -62,7 +62,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
 
     implementation 'androidx.annotation:annotation:1.2.0'
-    implementation 'com.facebook.android:audience-network-sdk:6.11.0'
+    implementation 'com.facebook.android:audience-network-sdk:6.15.0'
 
     // Material dialog
     def material_dialog_version = "3.3.0"
@@ -71,7 +71,7 @@ dependencies {
 //    implementation 'com.adjust.sdk:adjust-android:4.30.1'
 
     // mediation
-    implementation 'com.google.ads.mediation:facebook:6.14.0.0'
+    implementation 'com.google.ads.mediation:facebook:6.15.0.0'
     implementation 'com.google.ads.mediation:adcolony:4.8.0.2'
     implementation 'com.google.ads.mediation:applovin:11.10.1.0'
     implementation 'com.google.ads.mediation:vungle:6.12.1.1'

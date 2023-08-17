@@ -41,7 +41,7 @@ class AudienceNetworkInitializeHelper : AudienceNetworkAds.InitListener {
      *
      * @param context Application or Activity.
      */
-    internal fun initialize(context: Context) {
+    fun initialize(context: Context) {
       if (!AudienceNetworkAds.isInitialized(context)) {
         if (Constant.isDebug) {
           AdSettings.turnOnSDKDebugger(context)
