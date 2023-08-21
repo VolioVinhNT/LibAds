@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
+import com.google.android.gms.ads.MobileAds
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.fan.AudienceNetworkInitializeHelper
@@ -55,6 +56,7 @@ class AdsController private constructor(
             isUseVer22: Boolean
         ) {
             Constant.isDebug = isDebug
+            MobileAds.initialize(activity)
             adsController = AdsController(activity, listAppId, packetName, listPathJson, lifecycle)
 
             activity.application.registerActivityLifecycleCallbacks(object :
