@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
+import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.*
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -131,13 +132,17 @@ class AdmobAdaptiveBanner : AdmobAds() {
     ) {
         callback = adCallback
         val id: String = if (Constant.isDebug) {
-            Constant.ID_ADMOB_BANNER_TEST
+            if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
+                Constant.ID_ADMOB_BANNER_COLLAPSIVE_TEST
+            } else {
+                Constant.ID_ADMOB_BANNER_TEST
+            }
         } else {
             adsChild.adsId
         }
         stateLoadAd = StateLoadAd.LOADING
         isLoadSuccess = false
-        adView = AdView(activity.applicationContext)
+        adView = AdView(activity)
         adView?.setBackgroundColor(Color.WHITE)
         adView?.adUnitId = id
 
@@ -154,10 +159,20 @@ class AdmobAdaptiveBanner : AdmobAds() {
             viewG.layoutParams = lp
         }
 
+        if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
+            Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
+            val extras = Bundle()
+            extras.putString("collapsible", "bottom")
+            adView?.loadAd(
+                AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
+            )
+        } else {
+            adView?.loadAd(
+                AdRequest.Builder().build()
+            )
+        }
 
-        adView?.loadAd(
-            AdRequest.Builder().build()
-        )
+
         adView?.adListener = object : AdListener() {
 
             override fun onAdClicked() {

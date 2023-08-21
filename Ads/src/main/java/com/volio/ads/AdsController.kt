@@ -265,10 +265,10 @@ class AdsController private constructor(
             adCallback?.onAdShow("", "")
             return
         }
-        if (!isConnection) {
-            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
-            return
-        }
+//        if (!isConnection) {
+//            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
+//            return
+//        }
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         if (listItem != null && listItem.size > 0) {
             listItem.sortWith(compareBy { it.priority })
@@ -334,10 +334,10 @@ class AdsController private constructor(
             adCallback?.onAdShow("", "")
             return
         }
-        if (!isConnection) {
-            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
-            return
-        }
+//        if (!isConnection) {
+//            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
+//            return
+//        }
         val contextUse = this.activity
         val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
         if (listItem == null || listItem.size == 0) {

@@ -213,8 +213,10 @@ class AdmobOpenAds : AdmobAds() {
                 error = p0.message
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
                     AdDialog.getInstance().hideLoading()
-                    callback?.onAdFailToLoad(p0.message)
                     lifecycle?.removeObserver(lifecycleObserver)
+                    if (!isTimeOut){
+                        callback?.onAdFailToLoad(p0.message)
+                    }
                 }
                 stateLoadAd = StateLoadAd.FAILED
                 callbackPreload?.onLoadFail()
