@@ -58,16 +58,15 @@ class AdmobAdaptiveBanner : AdmobAds() {
         callback = adCallback
         if (adView != null && layout != null) {
             try {
-
                 adView?.adListener = object : AdListener() {
                     override fun onAdClicked() {
                         super.onAdClicked()
+                        callback?.onAdClick()
                     }
 
                     override fun onAdOpened() {
                         super.onAdOpened()
                         Utils.showToastDebug(activity, "Admob AdapBanner: ${adsChild.adsId}")
-                        callback?.onAdClick()
                     }
 
                     override fun onAdClosed() {
@@ -177,12 +176,12 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
             override fun onAdClicked() {
                 super.onAdClicked()
+                callback?.onAdClick()
             }
 
             override fun onAdOpened() {
                 super.onAdOpened()
                 Utils.showToastDebug(activity, "Admob AdapBanner: ${adsChild.adsId}")
-                callback?.onAdClick()
             }
 
             override fun onAdClosed() {
