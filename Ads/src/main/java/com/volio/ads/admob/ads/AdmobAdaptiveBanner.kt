@@ -129,107 +129,112 @@ class AdmobAdaptiveBanner : AdmobAds() {
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
     ) {
-        callback = adCallback
-        val id: String = if (Constant.isDebug) {
-            if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
-                Constant.ID_ADMOB_BANNER_COLLAPSIVE_TEST
-            } else {
-                Constant.ID_ADMOB_BANNER_TEST
-            }
-        } else {
-            adsChild.adsId
-        }
-        stateLoadAd = StateLoadAd.LOADING
-        isLoadSuccess = false
-        adView = AdView(activity)
-        adView?.setBackgroundColor(Color.WHITE)
-        adView?.adUnitId = id
-
-
-        val adSize = if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_INLINE) {
-            AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(activity, layout?.width ?: 1)
-        } else {
-            getAdsize(activity)
-        }
-
-        adSize?.let {
-            adView?.setAdSize(it)
-        }
-
-        layout?.let { viewG ->
-            val lp = viewG.layoutParams
-            lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
-            lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
-            viewG.layoutParams = lp
-        }
-
-        if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
-            Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
-            val extras = Bundle()
-            extras.putString("collapsible", "bottom")
-            adView?.loadAd(
-                AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
-            )
-        } else {
-            adView?.loadAd(
-                AdRequest.Builder().build()
-            )
-        }
-
-
-        adView?.adListener = object : AdListener() {
-
-            override fun onAdClicked() {
-                super.onAdClicked()
-                callback?.onAdClick()
-            }
-
-            override fun onAdOpened() {
-                super.onAdOpened()
-                Utils.showToastDebug(activity, "Admob AdapBanner: ${adsChild.adsId}")
-            }
-
-            override fun onAdClosed() {
-                super.onAdClosed()
-                callback?.onAdClose(AdDef.NETWORK.GOOGLE)
-            }
-
-
-            override fun onAdImpression() {
-                super.onAdImpression()
-                callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-                Log.e("TAG", "onAdImpression: ")
-            }
-
-            override fun onAdFailedToLoad(p0: LoadAdError) {
-                super.onAdFailedToLoad(p0)
-                Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
-                callback?.onAdFailToLoad(p0?.message)
-                stateLoadAd = StateLoadAd.FAILED
-                callbackPreload?.onLoadFail()
-            }
-
-            override fun onAdLoaded() {
-                super.onAdLoaded()
-                adView?.onPaidEventListener = OnPaidEventListener {
-                    kotlin.runCatching {
-                        val params = Bundle()
-                        params.putString("revenue_micros", it.valueMicros.toString())
-                        params.putString("precision_type", it.precisionType.toString())
-                        params.putString("ad_unit_id", adView?.adUnitId)
-                        val adapterResponseInfo = adView?.responseInfo?.loadedAdapterResponseInfo
-                        adapterResponseInfo?.let { it ->
-                            params.putString("ad_source_id", it.adSourceId)
-                            params.putString("ad_source_name", it.adSourceName)
-                        }
-                        callback?.onPaidEvent(params)
-                    }
+        layout?.post {
+            callback = adCallback
+            val id: String = if (Constant.isDebug) {
+                if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
+                    Constant.ID_ADMOB_BANNER_COLLAPSIVE_TEST
+                } else {
+                    Constant.ID_ADMOB_BANNER_TEST
                 }
-                stateLoadAd = StateLoadAd.SUCCESS
-                isLoadSuccess = true
-                callbackPreload?.onLoadDone()
-                loadSuccess()
-                timeLoader = Date().time
+            } else {
+                adsChild.adsId
+            }
+            stateLoadAd = StateLoadAd.LOADING
+            isLoadSuccess = false
+            adView = AdView(activity)
+            adView?.setBackgroundColor(Color.WHITE)
+            adView?.adUnitId = id
+
+
+            val adSize = if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_INLINE) {
+                AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(activity, 320)
+            } else {
+                getAdsize(activity)
+            }
+
+            adSize?.let {
+                Log.e("TAGEG", "load: ${it.width}")
+                Log.e("TAGEG", "load: ${it.height}")
+                Log.e("TAGEG", "layout?.width : ${layout.width ?: 1}")
+                adView?.setAdSize(it)
+            }
+
+            layout?.let { viewG ->
+                val lp = viewG.layoutParams
+                lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
+                lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
+                viewG.layoutParams = lp
+            }
+
+            if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE) {
+                Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
+                val extras = Bundle()
+                extras.putString("collapsible", "bottom")
+                adView?.loadAd(
+                    AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
+                )
+            } else {
+                adView?.loadAd(
+                    AdRequest.Builder().build()
+                )
+            }
+
+
+            adView?.adListener = object : AdListener() {
+
+                override fun onAdClicked() {
+                    super.onAdClicked()
+                    callback?.onAdClick()
+                }
+
+                override fun onAdOpened() {
+                    super.onAdOpened()
+                    Utils.showToastDebug(activity, "Admob AdapBanner: ${adsChild.adsId}")
+                }
+
+                override fun onAdClosed() {
+                    super.onAdClosed()
+                    callback?.onAdClose(AdDef.NETWORK.GOOGLE)
+                }
+
+
+                override fun onAdImpression() {
+                    super.onAdImpression()
+                    callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
+                    Log.e("TAG", "onAdImpression: ")
+                }
+
+                override fun onAdFailedToLoad(p0: LoadAdError) {
+                    super.onAdFailedToLoad(p0)
+                    Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
+                    callback?.onAdFailToLoad(p0?.message)
+                    stateLoadAd = StateLoadAd.FAILED
+                    callbackPreload?.onLoadFail()
+                }
+
+                override fun onAdLoaded() {
+                    super.onAdLoaded()
+                    adView?.onPaidEventListener = OnPaidEventListener {
+                        kotlin.runCatching {
+                            val params = Bundle()
+                            params.putString("revenue_micros", it.valueMicros.toString())
+                            params.putString("precision_type", it.precisionType.toString())
+                            params.putString("ad_unit_id", adView?.adUnitId)
+                            val adapterResponseInfo = adView?.responseInfo?.loadedAdapterResponseInfo
+                            adapterResponseInfo?.let { it ->
+                                params.putString("ad_source_id", it.adSourceId)
+                                params.putString("ad_source_name", it.adSourceName)
+                            }
+                            callback?.onPaidEvent(params)
+                        }
+                    }
+                    stateLoadAd = StateLoadAd.SUCCESS
+                    isLoadSuccess = true
+                    callbackPreload?.onLoadDone()
+                    loadSuccess()
+                    timeLoader = Date().time
+                }
             }
         }
 
