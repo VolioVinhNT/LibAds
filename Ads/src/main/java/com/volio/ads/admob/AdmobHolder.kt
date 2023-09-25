@@ -124,6 +124,11 @@ class AdmobHolder {
             AdDef.ADS_TYPE.BANNER_COLLAPSIBLE -> {
                 ads = AdmobAdaptiveBanner()
             }
+            AdDef.ADS_TYPE.BANNER_INLINE -> {
+                ads = AdmobAdaptiveBanner()
+            }
+
+
             AdDef.ADS_TYPE.REWARD_VIDEO -> {
                 ads = AdmobReward()
             }

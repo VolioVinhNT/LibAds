@@ -146,7 +146,12 @@ class AdmobAdaptiveBanner : AdmobAds() {
         adView?.adUnitId = id
 
 
-        val adSize = getAdsize(activity)
+        val adSize = if (adsChild.adsType == AdDef.ADS_TYPE.BANNER_INLINE) {
+            AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(activity, layout?.width ?: 1)
+        } else {
+            getAdsize(activity)
+        }
+
         adSize?.let {
             adView?.setAdSize(it)
         }
