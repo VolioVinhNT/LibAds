@@ -126,6 +126,7 @@ class AdsController private constructor(
     }
 
     init {
+        var idCheck = ""
         connectionLiveData.observe({ lifecycleActivity }, {
             isConnection = it
             Log.d(TAG, "isConnect: $isConnection")
@@ -156,6 +157,16 @@ class AdsController private constructor(
                 }
                 listItem.add(adsChild)
                 Log.d(TAG, ": ${adsChild.toString()}")
+                if (Constant.isDebug) {
+                    val adsChildId = adsChild.adsId.trim().substringBefore("/")
+                    if (idCheck.isEmpty()) {
+                        idCheck = adsChildId
+                    } else {
+                        if (idCheck != adsChildId) {
+                            throw java.lang.Exception("Kiểm tra spaceName: ${adsChild.spaceName}  | id: ${adsChild.adsId}")
+                        }
+                    }
+                }
             }
         }
 
