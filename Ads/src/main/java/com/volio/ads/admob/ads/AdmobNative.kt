@@ -301,6 +301,9 @@ class AdmobNative : AdmobAds() {
 
         if (layout != null) {
             if (layoutAds != null) {
+
+
+
                 val unifiedNativeAdView = NativeAdView(activity)
                 unifiedNativeAdView.layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
@@ -309,11 +312,30 @@ class AdmobNative : AdmobAds() {
                 layoutAds.parent?.let {
                     (it as ViewGroup).removeView(layoutAds)
                 }
+
                 unifiedNativeAdView.addView(layoutAds)
                 currentUnifiedNativeAd?.let {
                     populateUnifiedNativeAdView(it, unifiedNativeAdView)
+
+
+
                     layout.removeAllViews()
                     layout.addView(unifiedNativeAdView)
+
+                    try {
+                        if (it.responseInfo?.adapterResponses?.find { it.adapterClassName == "com.google.ads.mediation.facebook.FacebookMediationAdapter" } != null){
+                            layoutAds.isSaveEnabled = false
+                            layoutAds.isSaveFromParentEnabled = false
+
+                            unifiedNativeAdView.isSaveEnabled = false
+                            unifiedNativeAdView.isSaveFromParentEnabled = false
+
+                            layout.isSaveEnabled = false
+                            layout.isSaveFromParentEnabled = false
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
 
                 }
             } else {
