@@ -21,6 +21,7 @@ class AdDef {
             var BANNER_INLINE = "banner_inline"
             var REWARD_VIDEO = "reward_video"
             var OPEN_APP =  "open_app"
+            var OPEN_APP_RESUME =  "open_app_resume"
             var REWARD_INTERSTITIAL = "reward_interstitial"
         }
     }

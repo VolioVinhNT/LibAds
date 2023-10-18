@@ -19,7 +19,7 @@ abstract class AdmobAds {
     abstract fun destroy()
     abstract fun loadAndShow(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String? ,
         layout: ViewGroup? ,
         layoutAds: View? ,
@@ -27,10 +27,10 @@ abstract class AdmobAds {
         timeMillisecond: Long?,
         adCallback: AdCallback?
     )
-    abstract fun preload(activity: Activity, adsChild: AdsChild)
+    abstract fun preload(activity: Activity, idAds: String)
     abstract fun show(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String? ,
         layout: ViewGroup? ,
         layoutAds: View? ,

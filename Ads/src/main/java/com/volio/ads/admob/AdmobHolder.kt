@@ -8,19 +8,27 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
-import com.volio.ads.StateADCallback
-import com.volio.ads.admob.ads.*
+import com.volio.ads.admob.ads.AdmobAdaptiveBanner
+import com.volio.ads.admob.ads.AdmobAds
+import com.volio.ads.admob.ads.AdmobBanner
+import com.volio.ads.admob.ads.AdmobCollapsibleBanner
+import com.volio.ads.admob.ads.AdmobInterstitial
+import com.volio.ads.admob.ads.AdmobNative
+import com.volio.ads.admob.ads.AdmobOpenAds
+import com.volio.ads.admob.ads.AdmobOpenAdsResume
+import com.volio.ads.admob.ads.AdmobReward
+import com.volio.ads.admob.ads.AdmobRewardInterstitial
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.StateLoadAd
 import com.volio.ads.utils.Utils
-import java.util.*
 
-private const val TAG = "AdsController"
+private const val TAG = "AdmobHolder"
 
 class AdmobHolder {
     private var hashMap: HashMap<String, AdmobAds> = HashMap()
-    public fun loadAndShow(
+
+    fun loadAndShow(
         activity: Activity,
         isKeepAds: Boolean,
         adsChild: AdsChild,
@@ -29,136 +37,173 @@ class AdmobHolder {
         layoutAds: View?,
         lifecycle: Lifecycle?,
         timeMillisecond: Long?,
-        adCallback: AdCallback?, failCheck: () -> Boolean
+        adCallback: AdCallback?
     ) {
         loadAndShow(
             activity,
-            adsChild,
-            loadingText,
-            layout,
-            layoutAds,
-            lifecycle,
-            timeMillisecond, adCallback
-//            object : AdCallback {
-//
-//                override fun onAdImpression(adType: String) {
-//                    super.onAdImpression(adType)
-//                    adCallback?.onAdImpression(adType)
-//                }
-//                override fun onAdShow(network: String, adtype: String) {
-//                    Log.d(TAG, "onAdShow: ")
-//                    if (!isKeepAds) {
-//                        remove(adsChild)
-//                    }
-//                    adCallback?.onAdShow(network, adtype)
-//                }
-//
-//                override fun onAdClose(adType: String) {
-//                    Log.d(TAG, "onAdClose: ")
-//                    adCallback?.onAdClose(adType)
-//                }
-//
-//                override fun onAdFailToLoad(messageError: String?) {
-//                    Log.d(TAG, "onAdFailToLoad: " + messageError)
-//                    Utils.showToastDebug(
-//                        activity,
-//                        "Admob ${adsChild.adsType} id: ${adsChild.adsId}"
-//                    )
-//
-//                    if (!isKeepAds) {
-//                        remove(adsChild)
-//                    }
-//                    if (failCheck()) {
-//                        adCallback?.onAdFailToLoad(messageError)
-//                    }
-//                }
-//
-//                override fun onAdOff() {
-//                    Log.d(TAG, "onAdOff: ")
-//                    adCallback?.onAdOff()
-//                }
-//
-//                override fun onAdClick() {
-//                    adCallback?.onAdClick()
-//                }
-//
-//                override fun onRewardShow(network: String, adtype: String) {
-//                    adCallback?.onRewardShow(network, adtype)
-//                }
-//
-//                override fun onPaidEvent(params: Bundle) {
-//                    adCallback?.onPaidEvent(params)
-//                }
-//
-//            }
-
-        )
-    }
-
-    private fun loadAndShow(
-        activity: Activity,
-        adsChild: AdsChild,
-        loadingText: String?,
-        layout: ViewGroup?,
-        layoutAds: View?,
-        lifecycle: Lifecycle?,
-        timeMillisecond: Long?,
-        adCallback: AdCallback?
-    ) {
-        var ads: AdmobAds? = null
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
-            AdDef.ADS_TYPE.NATIVE -> {
-                ads = AdmobNative()
-            }
-            AdDef.ADS_TYPE.INTERSTITIAL -> {
-                Log.d("AdmobInterstitial", "loadAndShow: zzz")
-                ads = AdmobInterstitial()
-            }
-            AdDef.ADS_TYPE.BANNER -> {
-                ads = AdmobBanner()
-            }
-            AdDef.ADS_TYPE.BANNER_ADAPTIVE -> {
-                ads = AdmobAdaptiveBanner()
-            }
-            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE -> {
-                ads = AdmobAdaptiveBanner()
-            }
-            AdDef.ADS_TYPE.BANNER_INLINE -> {
-                ads = AdmobAdaptiveBanner()
-            }
-
-
-            AdDef.ADS_TYPE.REWARD_VIDEO -> {
-                ads = AdmobReward()
-            }
-            AdDef.ADS_TYPE.OPEN_APP -> {
-                ads = AdmobOpenAds()
-            }
-            AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
-                ads = AdmobRewardInterstitial()
-            }
-            else -> {
-                Utils.showToastDebug(
-                    activity,
-                    "not support adType ${adsChild.adsType} check file json"
-                )
-                adCallback?.onAdFailToLoad("")
-            }
-        }
-        Log.d(TAG, "loadAndShow: ${adCallback == null}")
-
-        ads?.loadAndShow(
-            activity,
+            isKeepAds,
             adsChild,
             loadingText,
             layout,
             layoutAds,
             lifecycle,
             timeMillisecond,
-            adCallback
+            adCallback,
+            0
         )
-        if (ads != null) hashMap[key] = ads
+
+    }
+
+    private fun loadAndShow(
+        activity: Activity,
+        isKeepAds: Boolean,
+        adsChild: AdsChild,
+        loadingText: String?,
+        layout: ViewGroup?,
+        layoutAds: View?,
+        lifecycle: Lifecycle?,
+        timeMillisecond: Long?,
+        adCallback: AdCallback?,
+        index: Int
+    ) {
+        val time = System.currentTimeMillis()
+        var ads: AdmobAds? = null
+        val adId = adsChild.adsIds.sortedBy { it.priority }[index]
+        adsChild.adsIds.sortedBy { it.priority }.forEach {
+            Log.d(TAG, "loadAndShow: ${it.toString()}")
+
+        }
+        when (adsChild.adsType.lowercase()) {
+            AdDef.ADS_TYPE.NATIVE -> {
+                ads = AdmobNative()
+            }
+
+            AdDef.ADS_TYPE.INTERSTITIAL -> {
+                ads = AdmobInterstitial()
+            }
+
+            AdDef.ADS_TYPE.BANNER -> {
+                ads = AdmobBanner()
+            }
+
+            AdDef.ADS_TYPE.BANNER_ADAPTIVE -> {
+                ads = AdmobAdaptiveBanner()
+            }
+
+            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE -> {
+                ads = AdmobCollapsibleBanner()
+            }
+
+            AdDef.ADS_TYPE.REWARD_VIDEO -> {
+                ads = AdmobReward()
+            }
+
+            AdDef.ADS_TYPE.OPEN_APP -> {
+                ads = AdmobOpenAds()
+            }
+
+            AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
+                ads = AdmobRewardInterstitial()
+            }
+            AdDef.ADS_TYPE.OPEN_APP_RESUME -> {
+                ads = AdmobOpenAdsResume()
+            }
+            else -> {
+                Utils.showToastDebug(
+                    activity,
+                    "not support adType ${adsChild.adsType} check file json"
+                )
+
+            }
+        }
+        ads?.loadAndShow(
+            activity,
+            adId.id,
+            loadingText,
+            layout,
+            layoutAds,
+            lifecycle,
+            timeMillisecond,
+            object : AdCallback {
+                override fun onAdShow(network: String, adtype: String) {
+                    adCallback?.onAdShow(network, adtype)
+                }
+
+                override fun onAdClose(adType: String) {
+                    adCallback?.onAdClose(adType)
+                }
+
+                override fun onAdFailToLoad(messageError: String?) {
+                    if (index < adsChild.adsIds.size - 1) {
+                        if (timeMillisecond != null) {
+                            val newTimeout = timeMillisecond - (System.currentTimeMillis() - time)
+                            if (newTimeout > 3000) {
+                                loadAndShow(
+                                    activity,
+                                    isKeepAds,
+                                    adsChild,
+                                    loadingText,
+                                    layout,
+                                    layoutAds,
+                                    lifecycle,
+                                    newTimeout,
+                                    adCallback,
+                                    index + 1
+                                )
+                            } else {
+                                adCallback?.onAdFailToLoad("TimeOut")
+                            }
+                        } else {
+                            loadAndShow(
+                                activity,
+                                isKeepAds,
+                                adsChild,
+                                loadingText,
+                                layout,
+                                layoutAds,
+                                lifecycle,
+                                null,
+                                adCallback,
+                                index + 1
+                            )
+                        }
+                    } else {
+                        adCallback?.onAdFailToLoad(messageError)
+                    }
+                }
+
+                override fun onAdFailToShow(messageError: String?) {
+                    adCallback?.onAdFailToLoad(messageError)
+                }
+
+                override fun onAdOff() {
+                    adCallback?.onAdOff()
+                }
+
+                override fun onAdClick() {
+                    adCallback?.onAdClick()
+                }
+
+                override fun onPaidEvent(params: Bundle) {
+                    adCallback?.onPaidEvent(params)
+                }
+
+                override fun onRewardShow(network: String, adtype: String) {
+                    adCallback?.onRewardShow(network, adtype)
+                }
+
+                override fun onAdImpression(adType: String) {
+                    adCallback?.onAdImpression(adType)
+                }
+
+            }
+        )
+        if (isKeepAds) {
+            val key = (adsChild.adsType + adsChild.spaceName + adId.priority)
+            if (ads != null) {
+                hashMap[key] = ads
+            }
+        }
 
     }
 
@@ -167,30 +212,56 @@ class AdmobHolder {
         adsChild: AdsChild,
         preloadCallback: PreloadCallback? = null
     ) {
+        if (adsChild.adsIds.isNotEmpty()) {
+            preload(activity, adsChild, 0, preloadCallback)
+        }
+
+    }
+
+    private fun preload(
+        activity: Activity,
+        adsChild: AdsChild,
+        index: Int,
+        preloadCallback: PreloadCallback? = null
+    ) {
         var ads: AdmobAds? = null
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
+        val adId = adsChild.adsIds.sortedBy { it.priority }[index]
+        val key = (adsChild.adsType + adsChild.spaceName + adId.priority)
+        when (adsChild.adsType.lowercase()) {
             AdDef.ADS_TYPE.NATIVE -> {
                 ads = AdmobNative()
             }
+
             AdDef.ADS_TYPE.INTERSTITIAL -> {
                 ads = AdmobInterstitial()
             }
+
             AdDef.ADS_TYPE.BANNER -> {
                 ads = AdmobBanner()
             }
+
             AdDef.ADS_TYPE.BANNER_ADAPTIVE -> {
                 ads = AdmobAdaptiveBanner()
             }
+            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE -> {
+                ads = AdmobCollapsibleBanner()
+            }
+
             AdDef.ADS_TYPE.REWARD_VIDEO -> {
                 ads = AdmobReward()
             }
+
             AdDef.ADS_TYPE.OPEN_APP -> {
                 ads = AdmobOpenAds()
             }
+
             AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
                 ads = AdmobRewardInterstitial()
             }
+            AdDef.ADS_TYPE.OPEN_APP_RESUME -> {
+                ads = AdmobOpenAdsResume()
+            }
+
             else -> {
                 Utils.showToastDebug(
                     activity,
@@ -199,75 +270,22 @@ class AdmobHolder {
 
             }
         }
-        ads?.setPreloadCallback(preloadCallback)
-        ads?.preload(activity, adsChild)
+        ads?.setPreloadCallback(object : PreloadCallback {
+            override fun onLoadDone() {
+                preloadCallback?.onLoadDone()
+
+            }
+
+            override fun onLoadFail() {
+                if (index < adsChild.adsIds.size - 1) {
+                    preload(activity, adsChild, index + 1, preloadCallback)
+                } else {
+                    preloadCallback?.onLoadFail()
+                }
+            }
+        })
+        ads?.preload(activity, adId.id)
         if (ads != null) hashMap[key] = ads
-    }
-
-    public fun checkStateAD(
-        activity: Activity,
-        adsChild: AdsChild,
-        stateADCallback: StateADCallback? = null
-    ) {
-//        var ads: AdmobAds? = null
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        val ads: AdmobAds? = hashMap[key]
-
-        if (ads != null && ads is AdmobInterstitial) {
-            try {
-                ads.setStateAdCallback(stateADCallback)
-            } catch (e: Exception) {
-            }
-        } else if (ads != null && ads is AdmobReward) {
-            try {
-                ads.setStateAdCallback(stateADCallback)
-            } catch (e: Exception) {
-            }
-        } else {
-            stateADCallback?.onState(StateLoadAd.NONE)
-        }
-
-
-//        when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
-//            AdDef.ADS_TYPE.NATIVE -> {
-//                ads = AdmobNative()
-//            }
-//            AdDef.ADS_TYPE.INTERSTITIAL -> {
-//                ads = AdmobInterstitial()
-//                try {
-//                    (ads as AdmobInterstitial).setStateAdCallback(stateADCallback)
-//                } catch (e: Exception) {
-//                }
-//            }
-//            AdDef.ADS_TYPE.BANNER -> {
-//                ads = AdmobBanner()
-//            }
-//            AdDef.ADS_TYPE.BANNER_ADAPTIVE -> {
-//                ads = AdmobAdaptiveBanner()
-//            }
-//            AdDef.ADS_TYPE.REWARD_VIDEO -> {
-//                ads = AdmobReward()
-//            }
-//            AdDef.ADS_TYPE.OPEN_APP -> {
-//                ads = AdmobOpenAds()
-//            }
-//            AdDef.ADS_TYPE.REWARD_INTERSTITIAL ->{
-//                ads = AdmobRewardInterstitial()
-////                try {
-////                    (ads as AdmobRewardInterstitial).setPreloadCallback(preloadCallback)
-////                } catch (e: Exception) {
-////                }
-//            }
-//            else -> {
-//                Utils.showToastDebug(
-//                    activity,
-//                    "not support adType ${adsChild.adsType} check file json"
-//                )
-//
-//            }
-//        }
-////        ads?.preload(activity, adsChild)
-//        if (ads != null) hashMap[key] = ads
     }
 
 
@@ -277,35 +295,73 @@ class AdmobHolder {
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
-        timeDelayShowAd: Int = 0,
         lifecycle: Lifecycle? = null,
         adCallback: AdCallback?
     ): Boolean {
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        val ads: AdmobAds? = hashMap[key]
-        if (ads != null && !ads.isDestroy() && ads.isLoaded() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
-            val checkShow = when (adsChild.adsType.toLowerCase(Locale.getDefault())) {
-                AdDef.ADS_TYPE.NATIVE,
-                AdDef.ADS_TYPE.BANNER,
-                AdDef.ADS_TYPE.BANNER_ADAPTIVE,
-                AdDef.ADS_TYPE.OPEN_APP,
-                AdDef.ADS_TYPE.REWARD_VIDEO,
-                AdDef.ADS_TYPE.REWARD_INTERSTITIAL,
-                AdDef.ADS_TYPE.INTERSTITIAL -> {
-                    ads.show(activity, adsChild, loadingText, layout, layoutAds, lifecycle,adCallback)
+        adsChild.adsIds.sortedBy { it.priority }.forEach {
+            val key = (adsChild.adsType + adsChild.spaceName + it.priority)
+            val ads: AdmobAds? = hashMap[key]
+            if (ads != null && !ads.isDestroy() && ads.isLoaded() &&
+                ads.wasLoadTimeLessThanNHoursAgo(1)
+            ) {
+                val checkShow = when (adsChild.adsType.lowercase()) {
+                    AdDef.ADS_TYPE.NATIVE,
+                    AdDef.ADS_TYPE.BANNER,
+                    AdDef.ADS_TYPE.BANNER_ADAPTIVE,
+                    AdDef.ADS_TYPE.BANNER_COLLAPSIBLE,
+                    AdDef.ADS_TYPE.BANNER_INLINE -> {
+                        ads.show(
+                            activity,
+                            it.id,
+                            loadingText,
+                            layout,
+                            layoutAds,
+                            lifecycle,
+                            adCallback
+                        )
+                        return true
+                    }
+
+                    AdDef.ADS_TYPE.OPEN_APP,
+                    AdDef.ADS_TYPE.REWARD_VIDEO,
+                    AdDef.ADS_TYPE.REWARD_INTERSTITIAL,
+                    AdDef.ADS_TYPE.INTERSTITIAL,
+                    AdDef.ADS_TYPE.OPEN_APP_RESUME -> {
+                        val check = ads.show(
+                            activity,
+                            it.id,
+                            loadingText,
+                            layout,
+                            layoutAds,
+                            lifecycle,
+                            adCallback
+                        )
+                        if (check) {
+                            hashMap.remove(key)
+                        }
+                        check
+                    }
+
+                    else -> {
+                        Utils.showToastDebug(
+                            activity,
+                            "not support adType ${adsChild.adsType} check file json"
+                        )
+                        Log.d(TAG, "show not support adType: ${adsChild.adsType}")
+                        false
+                    }
                 }
-                else -> {
-                    Utils.showToastDebug(
-                        activity,
-                        "not support adType ${adsChild.adsType} check file json"
-                    )
-                    false
+                if (checkShow) {
+                    return true
                 }
             }
-//            if(checkShow) hashMap.remove(key)
-            return checkShow
         }
+
         return false
+    }
+
+    private fun showAds() {
+
     }
 
     fun showLoadedAd(
@@ -318,45 +374,61 @@ class AdmobHolder {
         timeMillisecond: Long?,
         adCallback: AdCallback?
     ) {
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        val ads: AdmobAds? = hashMap[key]
-        Log.d(
-            TAG,
-            "showLoadedAd: ${ads != null} ${ads?.isDestroy()} ${ads?.wasLoadTimeLessThanNHoursAgo(1)}"
-        )
-        if (ads != null && !ads.isDestroy() && ads.wasLoadTimeLessThanNHoursAgo(1)) {
-            if (ads.getStateLoadAd() == StateLoadAd.SUCCESS) {
-                ads.show(activity, adsChild, loadingText, layout, layoutAds,lifecycle, adCallback)
-            } else {
-                Log.d(TAG, "showLoadedAd: 2")
-                if (ads.getStateLoadAd() == StateLoadAd.LOADING) {
-                    ads.setPreloadCallback(object : PreloadCallback {
-                        override fun onLoadDone() {
-                            ads.show(activity, adsChild, loadingText, layout, layoutAds,lifecycle ,adCallback)
-                        }
-
-                        override fun onLoadFail() {
-                            adCallback?.onAdFailToLoad("")
-                        }
-                    })
-                } else {
-                    loadAndShow(
+        val list = adsChild.adsIds.sortedBy { it.priority }
+        var adsSuccess: AdmobAds? = null
+        var adsLoading: AdmobAds? = null
+        var idAdsSuccess = ""
+        var idAdsLoading = ""
+        list.forEach {
+            val key = (adsChild.adsType + adsChild.spaceName + it.priority)
+            val ads = hashMap[key]
+            if (adsSuccess == null && ads?.getStateLoadAd() == StateLoadAd.SUCCESS) {
+                adsSuccess = ads
+                idAdsSuccess = it.id
+            }
+            if (adsLoading == null && ads?.getStateLoadAd() == StateLoadAd.LOADING) {
+                adsLoading = ads
+                idAdsLoading = it.id
+            }
+        }
+        if (adsSuccess != null &&
+            adsSuccess?.isDestroy() != true &&
+            adsSuccess?.wasLoadTimeLessThanNHoursAgo(1) == true
+        ) {
+            adsSuccess?.show(
+                activity,
+                idAdsSuccess,
+                loadingText,
+                layout,
+                layoutAds,
+                lifecycle,
+                adCallback
+            )
+        } else if (adsLoading != null &&
+            adsLoading?.isDestroy() != true &&
+            adsLoading?.wasLoadTimeLessThanNHoursAgo(1) == true
+        ) {
+            adsLoading?.setPreloadCallback(object : PreloadCallback {
+                override fun onLoadDone() {
+                    adsLoading?.show(
                         activity,
-                        adsChild,
+                        idAdsLoading,
                         loadingText,
                         layout,
                         layoutAds,
                         lifecycle,
-                        timeMillisecond,
                         adCallback
                     )
                 }
-            }
-        } else {
-            Log.d(TAG, "showLoadedAd: 3")
 
+                override fun onLoadFail() {
+                    adCallback?.onAdFailToLoad("")
+                }
+            })
+        } else {
             loadAndShow(
                 activity,
+                true,
                 adsChild,
                 loadingText,
                 layout,
@@ -369,23 +441,40 @@ class AdmobHolder {
     }
 
     public fun destroy(adsChild: AdsChild) {
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        hashMap[key]?.destroy()
-        Log.d(TAG, "destroy: ${hashMap[key] == null}")
-
-        hashMap.remove(key)
+        adsChild.adsIds.sortedBy { it.priority }.forEach {
+            val key = (adsChild.adsType + adsChild.spaceName + it.priority)
+            hashMap[key]?.destroy()
+            hashMap.remove(key)
+        }
     }
 
     public fun remove(adsChild: AdsChild) {
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        hashMap.remove(key)
+        adsChild.adsIds.sortedBy { it.priority }.forEach {
+            val key = (adsChild.adsType + adsChild.spaceName + it.priority)
+            hashMap.remove(key)
+        }
     }
 
     fun getStatusPreload(adsChild: AdsChild): StateLoadAd {
-        val key = (adsChild.adsType + adsChild.spaceName).toLowerCase(Locale.getDefault())
-        hashMap[key]?.let {
-            return it.getStateLoadAd()
+        var stateLoadAd: StateLoadAd = StateLoadAd.NULL
+        adsChild.adsIds.sortedBy { it.priority }.forEach {
+            val key = (adsChild.adsType + adsChild.spaceName + it.priority)
+            val ads = hashMap[key]
+            if (ads != null) {
+                Log.d(TAG, "getStatusPreload0: ${ads.getStateLoadAd()}")
+                when (ads.getStateLoadAd()) {
+                    StateLoadAd.LOADING, StateLoadAd.HAS_BEEN_OPENED, StateLoadAd.SUCCESS -> {
+                        return ads.getStateLoadAd()
+                    }
+
+                    else -> {
+                        stateLoadAd = ads.getStateLoadAd()
+                    }
+                }
+            }
+
         }
-        return StateLoadAd.NULL
+        Log.d(TAG, "getStatusPreload1: $stateLoadAd")
+        return stateLoadAd
     }
 }

@@ -13,13 +13,10 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 import com.volio.ads.AdCallback
 import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
 import com.volio.ads.StateADCallback
-import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
 import java.util.*
 
@@ -58,7 +55,7 @@ class AdmobInterstitial : AdmobAds() {
 
     override fun loadAndShow(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         textLoading: String?,
         layout: ViewGroup?,
         layoutAds: View?,
@@ -71,7 +68,7 @@ class AdmobInterstitial : AdmobAds() {
         preload = false
         load(
             activity,
-            adsChild,
+            idAds,
             textLoading,
             lifecycle,
             timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
@@ -80,15 +77,15 @@ class AdmobInterstitial : AdmobAds() {
         AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
     }
 
-    override fun preload(activity: Activity, adsChild: AdsChild) {
+    override fun preload(activity: Activity, idAds: String) {
         preload = true
         currentActivity = activity
-        load(activity, adsChild, null, null, Constant.TIME_OUT_DEFAULT, null)
+        load(activity, idAds, null, null, Constant.TIME_OUT_DEFAULT, null)
     }
 
     override fun show(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
@@ -98,10 +95,10 @@ class AdmobInterstitial : AdmobAds() {
         callback = adCallback
         currentActivity = activity
         if (lifecycle != null) {
-            lifecycle?.addObserver(object : LifecycleEventObserver {
+            lifecycle.addObserver(object : LifecycleEventObserver {
                 override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
                     if (event == Lifecycle.Event.ON_RESUME) {
-                        lifecycle?.removeObserver(this)
+                        lifecycle.removeObserver(this)
                         AdDialog.getInstance().showLoadingWithMessage(activity, loadingText)
                         if (loaded && mInterstitialAd != null) {
                             mInterstitialAd?.show(activity)
@@ -135,20 +132,20 @@ class AdmobInterstitial : AdmobAds() {
 
     private fun load(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         textLoading: String?,
         lifecycle: Lifecycle?,
         timeOut: Long,
         adCallback: AdCallback?
     ) {
+        Log.d(TAG, "load: inter")
         isloading = true
         stateLoadAd = StateLoadAd.LOADING
         if (System.currentTimeMillis() - timeClick < 500) return
         textLoading?.let {
             AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
         }
-        Log.d(TAG, "load: " + textLoading)
-        Utils.showToastDebug(activity, "Admob Interstitial id: ${adsChild.adsId}")
+        Utils.showToastDebug(activity, "Admob Interstitial id: $idAds")
 
         if (!preload) {
             lifecycle?.addObserver(lifecycleObserver)
@@ -159,7 +156,7 @@ class AdmobInterstitial : AdmobAds() {
         this.callback = adCallback
         this.lifecycle = lifecycle
         timeClick = System.currentTimeMillis()
-        val id = if (Constant.isDebug) Constant.ID_ADMOB_INTERSTITIAL_TEST else adsChild.adsId
+        val id = if (Constant.isDebug) Constant.ID_ADMOB_INTERSTITIAL_TEST else idAds
         val interstitialAdLoadCallback = object : InterstitialAdLoadCallback() {
             override fun onAdLoaded(p0: InterstitialAd) {
                 stateLoadAd = StateLoadAd.SUCCESS
@@ -218,7 +215,7 @@ class AdmobInterstitial : AdmobAds() {
                         stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
                         AdDialog.getInstance().hideLoading()
                         Utils.showToastDebug(
-                            activity, "Admob Interstitial id: ${adsChild.adsId}"
+                            activity, "Admob Interstitial id: $idAds"
                         )
                         callback?.onAdShow(
                             AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.INTERSTITIAL
@@ -227,8 +224,8 @@ class AdmobInterstitial : AdmobAds() {
 
                     override fun onAdClicked() {
                         super.onAdClicked()
-                        if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
-                            AdsController.mTopActivity?.finish()
+                        if (AdsController.activity != null && AdsController.activity is AdActivity) {
+                            AdsController.activity?.finish()
                         }
                         callback?.onAdClick()
                     }

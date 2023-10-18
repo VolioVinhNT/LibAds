@@ -17,13 +17,10 @@ import com.google.android.gms.ads.nativead.NativeAd
 
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.google.android.gms.ads.nativead.NativeAdView
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.R
-import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.Constant
 import com.volio.ads.utils.StateLoadAd
@@ -33,7 +30,6 @@ import java.util.*
 class AdmobNative : AdmobAds() {
     var currentUnifiedNativeAd: NativeAd? = null
     private var activity: Activity? = null
-    private var adsChild: AdsChild? = null
     private var adCallbackMain: AdCallback? = null
     private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
@@ -164,23 +160,13 @@ class AdmobNative : AdmobAds() {
         }
 
         adView.setNativeAd(nativeAd)
-//        val vc = nativeAd.videoController
-//
-//        if (vc.hasVideoContent()) {
-//            vc.videoLifecycleCallbacks = object : VideoLifecycleCallbacks() {
-//                override fun onVideoEnd() {
-//                    super.onVideoEnd()
-//                }
-//            }
-//        } else {
-//        }
 
     }
 
 
     override fun loadAndShow(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
@@ -188,38 +174,37 @@ class AdmobNative : AdmobAds() {
         timeMillisecond: Long?,
         adCallback: AdCallback?
     ) {
-        load(activity, adsChild, adCallback, loadSuccess = {
-            show(activity, adsChild, loadingText, layout, layoutAds, lifecycle, adCallback)
+        load(activity, idAds, adCallback, loadSuccess = {
+            show(activity, idAds, loadingText, layout, layoutAds, lifecycle, adCallback)
         })
     }
 
-    override fun preload(activity: Activity, adsChild: AdsChild) {
-        load(activity, adsChild, null, loadSuccess = {
+    override fun preload(activity: Activity, idAds: String) {
+        load(activity, idAds, null, loadSuccess = {
 
         })
     }
 
     private fun load(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
     ) {
         adCallbackMain = adCallback
         stateLoadAd = StateLoadAd.LOADING
-        this.adsChild = adsChild
         this.activity = activity
-        val idAds = if (Constant.isDebug) Constant.ID_ADMOB_NATIVE_TEST else adsChild.adsId
-        val builder = AdLoader.Builder(activity.applicationContext, idAds)
+        val id = if (Constant.isDebug) Constant.ID_ADMOB_NATIVE_TEST else idAds
+        val builder = AdLoader.Builder(activity.applicationContext, id)
         builder.forNativeAd { unifiedNativeAd ->
             Log.d(TAG, "load: ")
             adCallbackMain?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.NATIVE)
-            unifiedNativeAd?.setOnPaidEventListener {
+            unifiedNativeAd.setOnPaidEventListener {
                 kotlin.runCatching {
                     val params = Bundle()
                     params.putString("revenue_micros", it.valueMicros.toString())
                     params.putString("precision_type", it.precisionType.toString())
-                    params.putString("ad_unit_id", idAds)
+                    params.putString("ad_unit_id", id)
                     val adapterResponseInfo =
                         unifiedNativeAd?.responseInfo?.loadedAdapterResponseInfo
                     adapterResponseInfo?.let { it ->
@@ -278,7 +263,7 @@ class AdmobNative : AdmobAds() {
             }
 
             override fun onAdOpened() {
-                Utils.showToastDebug(activity, "id native: ${adsChild.adsId}")
+                Utils.showToastDebug(activity, "id native: ${idAds}")
                 adCallbackMain?.onAdClick()
                 super.onAdOpened()
             }
@@ -289,7 +274,7 @@ class AdmobNative : AdmobAds() {
     private val TAG = "AdmobNative"
     override fun show(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,

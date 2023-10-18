@@ -15,10 +15,10 @@ object Utils {
         }
     }
 
-    fun getStringAssetFile(path: String, activity: Activity): String? {
+    fun getStringAssetFile(path: String, context: Context): String? {
         var json: String? = null
         try {
-            val inputStream: InputStream = activity.assets.open(path)
+            val inputStream: InputStream = context.assets.open(path)
             json = inputStream.bufferedReader().use { it.readText() }
         } catch (ex: Exception) {
             ex.printStackTrace()

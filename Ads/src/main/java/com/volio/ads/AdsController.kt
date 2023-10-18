@@ -3,17 +3,18 @@ package com.volio.ads
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
+import com.adcolony.sdk.AdColonyAdViewActivity
+import com.adcolony.sdk.AdColonyInterstitialActivity
+import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.MobileAds
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
-import com.volio.ads.fan.AudienceNetworkInitializeHelper
-import com.volio.ads.fan.FanHolderHolder
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
@@ -23,20 +24,22 @@ import java.util.*
 private const val TAG = "AdsController"
 
 class AdsController private constructor(
-    var activity: Activity,
-    var listAppId: ArrayList<String>,
-    var packetName: String,
-    var listPathJson: ArrayList<String>,
-    var lifecycleActivity: Lifecycle
+    application: Application,
+    private var appId: String,
+    private var packetName: String,
+    private var pathJson: String
 ) {
     private var gson = Gson()
-    private val hashMapAds: HashMap<String, ArrayList<AdsChild>> = hashMapOf()
+    private val hashMapAds: HashMap<String, AdsChild> = hashMapOf()
     private val admobHolder = AdmobHolder()
-    private val fanHolder = FanHolderHolder()
-    private var connectionLiveData: ConnectionLiveData = ConnectionLiveData(activity)
-    private var isConnection: Boolean = true
+    private var adsOpenResume: AdsChild? = null
+    private var lastTimeClickAds = 0L
+    private var isShowOpenAdsResumeNextTime = true
+
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
+    var isAutoShowAdsResume: Boolean = true
+    var adCallbackAll: AdCallback? = null
 
     companion object {
 
@@ -44,33 +47,52 @@ class AdsController private constructor(
         private lateinit var adsController: AdsController
 
         @SuppressLint("StaticFieldLeak")
-        var mTopActivity: Activity? = null
+        var activity: Activity? = null
+
+        @SuppressLint("StaticFieldLeak")
+        var adActivity: Activity? = null
 
         fun init(
-            activity: Activity,
+            application: Application,
             isDebug: Boolean,
-            listAppId: ArrayList<String>,
+            appId: String,
             packetName: String,
-            listPathJson: ArrayList<String>,
-            lifecycle: Lifecycle,
-            isUseVer22: Boolean
+            pathJson: String
         ) {
-            Constant.isDebug = isDebug
-            MobileAds.initialize(activity)
-            adsController = AdsController(activity, listAppId, packetName, listPathJson, lifecycle)
+            fun checkAdActivity(activity: Activity): Boolean {
+                return activity is AdActivity ||
+                        activity is com.vungle.warren.AdActivity ||
+                        activity is AdColonyInterstitialActivity ||
+                        activity is AdColonyAdViewActivity
+            }
 
-            activity.application.registerActivityLifecycleCallbacks(object :
+            fun setActivity(activity: Activity) {
+                if (checkAdActivity(activity)) {
+                    adActivity = activity
+                } else if (activity is AppCompatActivity) {
+                    this@Companion.activity = activity
+                }
+            }
+
+            Constant.isDebug = isDebug
+            MobileAds.initialize(application)
+            adsController = AdsController(application, appId, packetName, pathJson)
+
+            application.registerActivityLifecycleCallbacks(object :
                 Application.ActivityLifecycleCallbacks {
                 override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-
+                    setActivity(activity)
                 }
 
                 override fun onActivityStarted(activity: Activity) {
-
+                    setActivity(activity)
+                    if (!checkAdActivity(activity)) {
+                        adsController.showAdsResume()
+                    }
                 }
 
                 override fun onActivityResumed(activity: Activity) {
-                    mTopActivity = activity
+                    setActivity(activity)
                 }
 
                 override fun onActivityPaused(activity: Activity) {
@@ -86,7 +108,9 @@ class AdsController private constructor(
                 }
 
                 override fun onActivityDestroyed(activity: Activity) {
-                    mTopActivity = null
+                    if (checkAdActivity(activity)) {
+                        adActivity = null
+                    }
                 }
             })
         }
@@ -101,20 +125,22 @@ class AdsController private constructor(
         fun checkInit() = ::adsController.isInitialized
     }
 
-    public fun setDebugMode(isDebug: Boolean) {
+
+    fun setDebugMode(isDebug: Boolean) {
         Constant.isDebug = isDebug
     }
+    fun setShowOpenAdsNextSession(isShow:Boolean){
+        isShowOpenAdsResumeNextTime = isShow
+    }
 
-    public fun getDebugMode() = Constant.isDebug
+    fun getDebugMode() = Constant.isDebug
     private fun checkAppIdPacket(ads: Ads): Boolean {
         var checkAppId = false
         var checkPacket = false
-        for (id in listAppId) {
-            if (ads.appId == id) {
-                checkAppId = true
-                break
-            }
+        if (ads.appId == appId) {
+            checkAppId = true
         }
+
         if (!checkAppId) showToastDebug(activity, "wrong appId network ${ads.network}")
 
         if (ads.packetName != packetName) {
@@ -126,111 +152,161 @@ class AdsController private constructor(
     }
 
     init {
-        var idCheck = ""
-        connectionLiveData.observe({ lifecycleActivity }, {
-            isConnection = it
-            Log.d(TAG, "isConnect: $isConnection")
-        })
-        AudienceNetworkInitializeHelper.initialize(activity)
-        val listAds = ArrayList<Ads>()
-        for (item in listPathJson) {
-            try {
-                val data = Utils.getStringAssetFile(item, activity)
-                Log.d(TAG, ": $data")
-                val ads = gson.fromJson<Ads>(data, Ads::class.java)
-
-                listAds.add(ads)
-            } catch (e: Exception) {
-                showToastDebug(activity, "no load data json ads file")
-            }
-        }
-        for (ads in listAds) {
-            for (adsChild in ads.listAdsChild) {
-                if (!checkAppIdPacket(ads)) continue
-                adsChild.network = ads.network
-                adsChild.adsId = adsChild.adsId.trim()
-                if (adsChild.priority == -1) adsChild.priority = ads.priority
-                var listItem = hashMapAds[adsChild.spaceName.toLowerCase(Locale.getDefault())]
-                if (listItem == null) {
-                    listItem = ArrayList()
-                    hashMapAds[adsChild.spaceName.toLowerCase(Locale.getDefault())] = listItem
+        AudienceNetworkInitializeHelper.initialize(application)
+        try {
+            val data = Utils.getStringAssetFile(pathJson, application)
+            Log.d(TAG, ": $data")
+            val ads = gson.fromJson(data, Ads::class.java)
+            if (checkAppIdPacket(ads)) {
+                ads.listAdsChild.forEach {
+                    if (it.adsType.lowercase() == AdDef.ADS_TYPE.OPEN_APP_RESUME) {
+                        adsOpenResume = it
+                    }
+                    hashMapAds[it.spaceName] = it
                 }
-                listItem.add(adsChild)
-                Log.d(TAG, ": ${adsChild.toString()}")
-                if (Constant.isDebug) {
-                    val adsChildId = adsChild.adsId.trim().substringBefore("/")
-                    if (idCheck.isEmpty()) {
-                        idCheck = adsChildId
-                    } else {
-                        if (idCheck != adsChildId) {
-                            throw java.lang.Exception("Kiểm tra spaceName: ${adsChild.spaceName}  | id: ${adsChild.adsId}")
+            }
+        } catch (e: Exception) {
+            showToastDebug(activity, "no load data json ads file")
+        }
+
+
+    }
+
+    private fun showAdsResume() {
+        if (isAutoShowAdsResume && !isPremium) {
+            if (isShowOpenAdsResumeNextTime) {
+                activity?.let {
+                    adsOpenResume?.let { adsChild ->
+                        val checkShow = admobHolder.show(
+                            it,
+                            adsChild,
+                            null,
+                            null,
+                            null,
+                            null,
+                            getAdCallback(adsChild, object : AdCallback {
+                                override fun onAdShow(network: String, adtype: String) {}
+                                override fun onAdClose(adType: String) {
+                                    preloadAdsResume()
+                                }
+
+                                override fun onAdFailToLoad(messageError: String?) {}
+                                override fun onAdOff() {}
+
+                            })
+                        )
+                        if (checkShow) {
+                            isShowOpenAdsResumeNextTime = false
+                        } else {
+                            preloadAdsResume()
                         }
                     }
                 }
             }
+            if (System.currentTimeMillis() - lastTimeClickAds > 1000) {
+                isShowOpenAdsResumeNextTime = true
+            }
         }
 
     }
 
-
-    public fun preload(spaceName: String, preloadCallback: PreloadCallback? = null) {
-        if (isPremium) return
-        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        if (listItem != null && listItem.size > 0) {
-            for (item in listItem) {
-                when (item.network.toLowerCase(Locale.getDefault())) {
-                    AdDef.NETWORK.GOOGLE -> {
-                        admobHolder.preload(activity, item, preloadCallback)
-                    }
-                    AdDef.NETWORK.FACEBOOK -> {
-                        fanHolder.preload(activity, item)
-                    }
-                    else -> {
-                        showToastDebug(
-                            activity, "not support network ${item.network} check file json"
-                        )
+    fun preloadAdsResume() {
+        if (!isPremium) {
+            activity?.let {
+                adsOpenResume?.let { adsChild ->
+                    val status = admobHolder.getStatusPreload(adsChild)
+                    if (status != StateLoadAd.LOADING && status != StateLoadAd.SUCCESS) {
+                        admobHolder.preload(it, adsChild)
                     }
                 }
             }
-        } else {
-            showToastDebug(activity, "no data check spaceName and file json")
         }
     }
 
 
-    public fun checkAD(spaceName: String): StateLoadAd {
-        if (isPremium) {
-            return StateLoadAd.NONE
-        }
-        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        if (listItem != null && listItem.size > 0) {
-            var s = StateLoadAd.NONE
-            for (item in listItem) {
-                when (item.network.toLowerCase(Locale.getDefault())) {
-                    AdDef.NETWORK.GOOGLE -> {
-                        admobHolder.checkStateAD(activity, item, object : StateADCallback {
-                            override fun onState(state: StateLoadAd) {
-                                s = state
-                            }
-                        })
-                    }
-//                    AdDef.NETWORK.FACEBOOK ->{
-//                        fanHolder.preload(activity,item)
-//                    }
-                    else -> {
-                        showToastDebug(
-                            activity, "not support network ${item.network} check file json"
-                        )
-                    }
+    fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
+        when (adsChild.adsType.lowercase()) {
+            AdDef.ADS_TYPE.INTERSTITIAL,
+            AdDef.ADS_TYPE.REWARD_VIDEO,
 
+            AdDef.ADS_TYPE.OPEN_APP,
+
+            AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun getAdCallback(adsChild: AdsChild, adCallback: AdCallback?): AdCallback {
+        return object : AdCallback {
+            override fun onAdShow(network: String, adtype: String) {
+                adCallback?.onAdShow(network, adtype)
+                adCallbackAll?.onAdShow(network, adtype)
+            }
+
+            override fun onAdClose(adType: String) {
+                adCallback?.onAdClose(adType)
+                adCallbackAll?.onAdClose(adType)
+                if (checkAdsNotShowOpenResume(adsChild) && System.currentTimeMillis() - lastTimeClickAds > 1000) {
+                    isShowOpenAdsResumeNextTime = true
                 }
             }
-            return s
-        } else {
-            showToastDebug(activity, "no data check spaceName and file json")
-            return StateLoadAd.NONE
+
+            override fun onAdFailToLoad(messageError: String?) {
+                adCallback?.onAdFailToLoad(messageError)
+                adCallbackAll?.onAdFailToLoad(messageError)
+                isShowOpenAdsResumeNextTime = true
+
+            }
+
+            override fun onAdFailToShow(messageError: String?) {
+                adCallback?.onAdFailToLoad(messageError)
+                adCallbackAll?.onAdFailToLoad(messageError)
+                isShowOpenAdsResumeNextTime = true
+
+            }
+
+            override fun onAdOff() {
+                adCallback?.onAdOff()
+                adCallbackAll?.onAdOff()
+            }
+
+            override fun onAdClick() {
+                adCallback?.onAdClick()
+                adCallbackAll?.onAdClick()
+                isShowOpenAdsResumeNextTime = false
+                lastTimeClickAds = System.currentTimeMillis()
+            }
+
+            override fun onPaidEvent(params: Bundle) {
+                adCallback?.onPaidEvent(params)
+                adCallbackAll?.onPaidEvent(params)
+            }
+
+            override fun onRewardShow(network: String, adtype: String) {
+                adCallback?.onRewardShow(network, adtype)
+                adCallbackAll?.onRewardShow(network, adtype)
+            }
+
+            override fun onAdImpression(adType: String) {
+                adCallback?.onAdImpression(adType)
+                adCallbackAll?.onAdImpression(adType)
+            }
         }
     }
+
+    fun preload(spaceName: String, preloadCallback: PreloadCallback? = null) {
+        if (!isPremium) {
+            activity?.let {
+                hashMapAds[spaceName]?.let { ads ->
+                    admobHolder.preload(it, ads, preloadCallback)
+                }
+            }
+        }
+
+    }
+
 
     fun showLoadedAd(
         spaceName: String,
@@ -241,98 +317,59 @@ class AdsController private constructor(
         timeMillisecond: Long = Constant.TIME_OUT_DEFAULT,
         adCallback: AdCallback? = null
     ) {
-        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        if (listItem != null) {
-            for (item in listItem) {
-                if (item.network.toLowerCase(Locale.getDefault()) == AdDef.NETWORK.GOOGLE) {
+        if (!isPremium) {
+            activity?.let {
+                hashMapAds[spaceName]?.let { ads ->
+                    if (checkAdsNotShowOpenResume(ads)) {
+                        isShowOpenAdsResumeNextTime = false
+                    }
                     admobHolder.showLoadedAd(
-                        activity,
-                        item,
+                        it,
+                        ads,
                         loadingText,
                         layout,
                         layoutAds,
                         lifecycle,
                         timeMillisecond,
-                        adCallback
+                        getAdCallback(ads, adCallback)
                     )
-                    break
                 }
             }
         }
     }
 
 
-    public fun show(
+    fun show(
         spaceName: String,
-        reloadLoadSpaceName: String? = null,
         textLoading: String? = null,
         layout: ViewGroup? = null,
         layoutAds: View? = null,
         lifecycle: Lifecycle? = null,
         timeMillisecond: Long = Constant.TIME_OUT_DEFAULT,
-        timeDelayShowAd: Int = 0,
         adCallback: AdCallback? = null
     ) {
-        if (isPremium) {
-            layout?.visibility = View.GONE
-            adCallback?.onAdShow("", "")
-            return
-        }
-//        if (!isConnection) {
-//            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
-//            return
-//        }
-        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        if (listItem != null && listItem.size > 0) {
-            listItem.sortWith(compareBy { it.priority })
-            var checkShow = false
-            for (item in listItem) {
-                when (item.network.toLowerCase(Locale.getDefault())) {
-                    AdDef.NETWORK.GOOGLE -> {
-                        checkShow = admobHolder.show(
-                            activity,
-                            item,
-                            textLoading,
-                            layout,
-                            layoutAds,
-                            timeDelayShowAd,
-                            lifecycle,
-                            adCallback
-                        )
+        if (!isPremium) {
+            activity?.let {
+                hashMapAds[spaceName]?.let { ads ->
+                    if (checkAdsNotShowOpenResume(ads)) {
+                        isShowOpenAdsResumeNextTime = false
                     }
-                    AdDef.NETWORK.FACEBOOK -> {
-                        checkShow = fanHolder.show(
-                            activity, item, textLoading, layout, layoutAds, adCallback
-                        )
-                    }
-                }
-                if (checkShow) break
-            }
-            if (!checkShow) {
-                if (reloadLoadSpaceName != null) {
-                    loadAndShow(
-                        reloadLoadSpaceName,
-                        false,
+                    admobHolder.show(
+                        it,
+                        ads,
                         textLoading,
                         layout,
                         layoutAds,
                         lifecycle,
-                        timeMillisecond,
-                        adCallback
+                        getAdCallback(ads, adCallback)
                     )
-                } else {
-                    adCallback?.onAdFailToShow("app in background long time")
-                    destroy(spaceName)
                 }
-            } 
-        } else {
-            showToastDebug(activity, "no data check spaceName and file json")
-            adCallback?.onAdFailToLoad("")
-
+            }
         }
+
     }
 
-    public fun loadAndShow(
+    fun loadAndShow(
         spaceName: String,
         isKeepAds: Boolean = false,
         loadingText: String? = null,
@@ -342,199 +379,41 @@ class AdsController private constructor(
         timeMillisecond: Long? = null,
         adCallback: AdCallback? = null
     ) {
-        if (isPremium) {
-            layout?.visibility = View.GONE
-            adCallback?.onAdShow("", "")
-            return
-        }
-//        if (!isConnection) {
-//            adCallback?.onAdFailToLoad(Constant.ERROR_NO_INTERNET)
-//            return
-//        }
-        val contextUse = this.activity
-        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        if (listItem == null || listItem.size == 0) {
-            showToastDebug(contextUse, "no data check spaceName or file json")
-            adCallback?.onAdFailToLoad("")
-        } else {
-            val adsChild = getChildPriority(listItem, -1)
-            Log.d(TAG, "loadAndShow: ${adsChild?.toString()}")
-            if (adsChild != null) {
-                loadAdsPriority(
-                    contextUse,
-                    isKeepAds,
-                    adsChild,
-                    loadingText,
-                    layout,
-                    layoutAds,
-                    lifecycle,
-                    timeMillisecond,
-                    listItem,
-                    adCallback
-                )
-            } else {
-                showToastDebug(contextUse, "no data check priority file json")
-                adCallback?.onAdFailToLoad("")
-            }
-        }
-    }
-
-    private fun loadAdsPriority(
-        context: Context,
-        isKeepAds: Boolean,
-        adsChild: AdsChild,
-        loadingText: String?,
-        layout: ViewGroup?,
-        layoutAds: View?,
-        lifecycle: Lifecycle?,
-        timeMillisecond: Long?,
-        listItem: ArrayList<AdsChild>,
-        adCallback: AdCallback?
-    ) {
-        Log.d(TAG, "loadAdsPriority: $adsChild")
-        when (adsChild.network.toLowerCase(Locale.getDefault())) {
-            AdDef.NETWORK.GOOGLE -> {
-                Log.d(TAG, "loadAdsPriority: 1")
-                admobHolder.loadAndShow(activity,
-                    isKeepAds,
-                    adsChild,
-                    loadingText,
-                    layout,
-                    layoutAds,
-                    lifecycle,
-                    timeMillisecond,
-                    adCallback,
-                    failCheck = {
-                        val item = getChildPriority(listItem, adsChild.priority)
-                        return@loadAndShow if (item == null) {
-                            true
-                        } else {
-                            loadAdsPriority(
-                                context,
-                                isKeepAds,
-                                item,
-                                loadingText,
-                                layout,
-                                layoutAds,
-                                lifecycle,
-                                timeMillisecond,
-                                listItem,
-                                adCallback
-                            )
-                            false
-                        }
-                    })
-
-            }
-            AdDef.NETWORK.FACEBOOK -> {
-                Log.d(TAG, "loadAdsPriority: 2")
-                fanHolder.loadAndShow(activity,
-                    isKeepAds,
-                    adsChild,
-                    loadingText,
-                    layout,
-                    layoutAds,
-                    lifecycle,
-                    timeMillisecond,
-                    adCallback,
-                    failCheck = {
-                        Log.d(TAG, "loadAdsPriority3: ${adsChild.priority}")
-                        val item = getChildPriority(listItem, adsChild.priority)
-                        Log.d(TAG, "loadAdsPriority4: ${item?.priority}")
-
-                        return@loadAndShow if (item == null) {
-                            true
-                        } else {
-                            loadAdsPriority(
-                                context,
-                                isKeepAds,
-                                item,
-                                loadingText,
-                                layout,
-                                layoutAds,
-                                lifecycle,
-                                timeMillisecond,
-                                listItem,
-                                adCallback
-                            )
-                            false
-                        }
-                    })
-
-            }
-            else -> {
-                showToastDebug(context, "not support network ${adsChild.network} check file json")
-                adCallback?.onAdFailToLoad("")
-            }
-        }
-    }
-
-
-    private fun getChildPriority(listItem: ArrayList<AdsChild>, priority: Int): AdsChild? {
-        var value = Int.MAX_VALUE
-        var adsChild: AdsChild? = null
-        for (item in listItem) {
-            if (item.priority > priority) {
-                if (item.priority < value) {
-                    value = item.priority
-                    adsChild = item
+        if (!isPremium) {
+            activity?.let {
+                hashMapAds[spaceName]?.let { ads ->
+                    if (checkAdsNotShowOpenResume(ads)) {
+                        isShowOpenAdsResumeNextTime = false
+                    }
+                    admobHolder.loadAndShow(
+                        it,
+                        isKeepAds,
+                        ads,
+                        loadingText,
+                        layout,
+                        layoutAds,
+                        lifecycle,
+                        timeMillisecond,
+                        getAdCallback(ads, adCallback)
+                    )
                 }
             }
         }
-        return adsChild
     }
 
-    public fun allowShowAds(allow: Boolean, spaceName: String, network: String) {
-        if (allow) return
-        val list = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        Log.d(TAG, "allowShowAds: 1")
-        list?.let {
-            Log.d(TAG, "allowShowAds: 2")
-            for (item in it) {
-                if (item.network == network.toLowerCase(Locale.getDefault())) {
-                    it.remove(item)
-                    break
-                }
-            }
-            hashMapAds[spaceName] = it
-        }
-    }
 
     fun getStatusPreload(spaceName: String): StateLoadAd {
-//        if (!isConnection) return StateLoadAd.NO_INTERNET
-        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        if (listItem != null) {
-            for (item in listItem) {
-                if (item.network.toLowerCase(Locale.getDefault()) == AdDef.NETWORK.GOOGLE) {
-                    return admobHolder.getStatusPreload(item)
-                }
-            }
+        val item = hashMapAds[spaceName]
+        if (item != null) {
+            return admobHolder.getStatusPreload(item)
         }
         return StateLoadAd.NONE
     }
 
-    public fun setPriority(spaceName: String, network: String) {
-        val list = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        list?.let {
-            var min = 0
-            for (item in list) {
-                if (item.network == network.toLowerCase(Locale.getDefault())) {
-                    item.priority = 0
-                } else {
-                    min += 1
-                    item.priority = min
-                }
-            }
-        }
-    }
 
     fun destroy(spaceName: String) {
-        val listItem = hashMapAds[spaceName.toLowerCase(Locale.getDefault())]
-        listItem?.let {
-            for (item in it) {
-                admobHolder.destroy(item)
-            }
-        }
+        val adsChild = hashMapAds[spaceName]
+        adsChild?.let { admobHolder.destroy(it) }
     }
 
 }

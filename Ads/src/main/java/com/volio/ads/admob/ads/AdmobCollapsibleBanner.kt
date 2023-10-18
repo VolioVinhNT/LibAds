@@ -8,17 +8,23 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
-import com.google.android.gms.ads.*
+import com.google.ads.mediation.admob.AdMobAdapter
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.OnPaidEventListener
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.Constant
 import com.volio.ads.utils.StateLoadAd
 import com.volio.ads.utils.Utils
-import java.util.*
+import java.util.Date
 
 
-class AdmobAdaptiveBanner : AdmobAds() {
+class AdmobCollapsibleBanner : AdmobAds() {
     private var isLoadSuccess = false
     private var adView: AdView? = null
     private var callback: AdCallback? = null
@@ -60,7 +66,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                     override fun onAdOpened() {
                         super.onAdOpened()
-                        Utils.showToastDebug(activity, "Admob AdapBanner: ${idAds}")
+                        Utils.showToastDebug(activity, "Admob CollapsibleBanner: $idAds")
                     }
 
                     override fun onAdClosed() {
@@ -70,15 +76,14 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                     override fun onAdFailedToLoad(p0: LoadAdError) {
                         super.onAdFailedToLoad(p0)
-                        Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
-                        callback?.onAdFailToLoad(p0?.message)
+                        Utils.showToastDebug(activity, "Admob CollapsibleBanner: ${p0.message}")
+                        callback?.onAdFailToLoad(p0.message)
                     }
 
                     override fun onAdImpression() {
                         super.onAdImpression()
                         Log.e("TAG", "onAdImpression: ")
-                        callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-//                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
+                        callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_COLLAPSIBLE)
                     }
 
                     override fun onAdLoaded() {
@@ -97,6 +102,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
                 }
                 layout.addView(adView)
             } catch (e: Exception) {
+                e.printStackTrace()
             }
 
             return true
@@ -126,7 +132,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
         layout?.post {
             callback = adCallback
             val id: String = if (Constant.isDebug) {
-                Constant.ID_ADMOB_BANNER_TEST
+                Constant.ID_ADMOB_BANNER_COLLAPSIVE_TEST
             } else {
                 idAds
             }
@@ -136,12 +142,9 @@ class AdmobAdaptiveBanner : AdmobAds() {
             adView?.setBackgroundColor(Color.WHITE)
             adView?.adUnitId = id
 
-            val adSize = getAdsize(activity)
 
+            val adSize = getAdsize(activity)
             adSize?.let {
-                Log.e("TAGEG", "load: ${it.width}")
-                Log.e("TAGEG", "load: ${it.height}")
-                Log.e("TAGEG", "layout?.width : ${layout.width ?: 1}")
                 adView?.setAdSize(it)
             }
 
@@ -152,9 +155,12 @@ class AdmobAdaptiveBanner : AdmobAds() {
                 viewG.layoutParams = lp
             }
 
-
+            Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
+            val extras = Bundle()
+            extras.putString("collapsible", "bottom")
             adView?.loadAd(
-                AdRequest.Builder().build()
+                AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+                    .build()
             )
 
 
@@ -168,7 +174,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
 
                 override fun onAdOpened() {
                     super.onAdOpened()
-                    Utils.showToastDebug(activity, "Admob AdapBanner: ${idAds}")
+                    Utils.showToastDebug(activity, "Admob AdapBanner: ${id}")
                 }
 
                 override fun onAdClosed() {

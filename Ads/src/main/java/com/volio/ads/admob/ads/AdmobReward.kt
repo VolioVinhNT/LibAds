@@ -17,7 +17,6 @@ import com.volio.ads.AdCallback
 import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
 import com.volio.ads.StateADCallback
-import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
 import java.util.*
 
@@ -35,7 +34,6 @@ class AdmobReward : AdmobAds() {
     private var callback: AdCallback? = null
     private val TAG = "AdmobReward"
     private var currentActivity: Activity? = null
-    private var adsChild:AdsChild? = null
     private var lifecycle:Lifecycle? = null
     private var stateLoadAd = StateLoadAd.NONE
     private var callbackPreload: PreloadCallback? = null
@@ -52,7 +50,7 @@ class AdmobReward : AdmobAds() {
 
     override fun loadAndShow(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         textLoading: String?,
         layout: ViewGroup?,
         layoutAds: View?,
@@ -63,17 +61,17 @@ class AdmobReward : AdmobAds() {
         callback = adCallback
         preload = false
         this.currentActivity = activity
-        load(activity, adsChild, textLoading, lifecycle, timeMillisecond?:Constant.TIME_OUT_DEFAULT, adCallback)
+        load(activity, idAds, textLoading, lifecycle, timeMillisecond?:Constant.TIME_OUT_DEFAULT, adCallback)
     }
 
-    override fun preload(activity: Activity, adsChild: AdsChild) {
+    override fun preload(activity: Activity, idAds: String) {
         preload = true
-        load(activity, adsChild, null, null, Constant.TIME_OUT_DEFAULT, null)
+        load(activity, idAds, null, null, Constant.TIME_OUT_DEFAULT, null)
     }
 
     override fun show(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
@@ -104,7 +102,7 @@ class AdmobReward : AdmobAds() {
     }
     private fun load(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         textLoading: String?,
         lifecycle: Lifecycle?,
         timeOut: Long,
@@ -112,7 +110,6 @@ class AdmobReward : AdmobAds() {
     ) {
         stateLoadAd = StateLoadAd.LOADING
         this.lifecycle = lifecycle
-        this.adsChild = adsChild
         if (System.currentTimeMillis() - timeClick < 500) return
         textLoading?.let {
             AdDialog.getInstance().showLoadingWithMessage(activity, textLoading)
@@ -127,9 +124,9 @@ class AdmobReward : AdmobAds() {
         timeClick = System.currentTimeMillis();
         Utils.showToastDebug(
             activity,
-            "Admob ReWard id: ${adsChild.adsId}"
+            "Admob ReWard id: $idAds"
         )
-        val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_TEST else adsChild.adsId
+        val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_TEST else idAds
         val rewardedAdLoadCallback = object : RewardedAdLoadCallback() {
             override fun onAdLoaded(p0: RewardedAd) {
                 Log.d(TAG, "onAdLoaded: ")
@@ -141,7 +138,7 @@ class AdmobReward : AdmobAds() {
                         params.putString("revenue_micros", it.valueMicros.toString())
                         params.putString("precision_type", it.precisionType.toString())
                         params.putString("ad_unit_id", p0.adUnitId)
-                        val adapterResponseInfo = p0?.responseInfo?.loadedAdapterResponseInfo
+                        val adapterResponseInfo = p0.responseInfo.loadedAdapterResponseInfo
                         adapterResponseInfo?.let { it ->
                             params.putString("ad_source_id", it.adSourceId)
                             params.putString("ad_source_name", it.adSourceName)
@@ -197,8 +194,8 @@ class AdmobReward : AdmobAds() {
 
                         override fun onAdClicked() {
                             super.onAdClicked()
-                            if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
-                                AdsController.mTopActivity?.finish()
+                            if (AdsController.adActivity != null && AdsController.adActivity is AdActivity) {
+                                AdsController.adActivity?.finish()
                             }
                             callback?.onAdClick()
                         }
@@ -240,13 +237,6 @@ class AdmobReward : AdmobAds() {
 //        Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
     }
 
-//        override fun onRewardedAdClosed() {
-//            super.onRewardedAdClosed()
-//            callback?.onAdClose(AdDef.ADS_TYPE.REWARD_VIDEO)
-//            Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
-//
-//
-//        }
 
     private val lifecycleObserver = object :LifecycleEventObserver {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {

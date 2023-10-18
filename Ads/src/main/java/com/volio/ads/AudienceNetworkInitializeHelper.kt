@@ -18,7 +18,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package com.volio.ads.fan
+package com.volio.ads
 
 import android.content.Context
 import android.util.Log

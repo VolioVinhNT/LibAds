@@ -13,12 +13,9 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
-import com.google.firebase.analytics.ktx.analytics
-import com.google.firebase.ktx.Firebase
 import com.volio.ads.AdCallback
 import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
-import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.*
 import java.util.*
 
@@ -31,7 +28,6 @@ class AdmobOpenAds : AdmobAds() {
     private var loadFailed = false
     private var loaded: Boolean = false
     private var preload: Boolean = false
-    private var adsChild: AdsChild? = null
 
 
     private var eventLifecycle: Lifecycle.Event = Lifecycle.Event.ON_RESUME
@@ -45,7 +41,7 @@ class AdmobOpenAds : AdmobAds() {
     val TAG = "AdmobOpenAds"
     override fun loadAndShow(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
@@ -58,7 +54,7 @@ class AdmobOpenAds : AdmobAds() {
         preload = false
         load(
             activity,
-            adsChild,
+            idAds,
             loadingText,
             lifecycle,
             timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
@@ -66,14 +62,14 @@ class AdmobOpenAds : AdmobAds() {
         )
     }
 
-    override fun preload(activity: Activity, adsChild: AdsChild) {
+    override fun preload(activity: Activity, idAds: String) {
         preload = true
-        load(activity, adsChild)
+        load(activity, idAds)
     }
 
     override fun show(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         loadingText: String?,
         layout: ViewGroup?,
         layoutAds: View?,
@@ -101,18 +97,17 @@ class AdmobOpenAds : AdmobAds() {
 
     private fun load(
         activity: Activity,
-        adsChild: AdsChild,
+        idAds: String,
         textLoading: String? = null,
         lifecycle: Lifecycle? = null,
         timeOut: Long = Constant.TIME_OUT_DEFAULT,
         adCallback: AdCallback? = null
     ) {
         this.lifecycle = lifecycle
-        this.adsChild = adsChild
         this.callback = adCallback
         stateLoadAd = StateLoadAd.LOADING
         timeClick = System.currentTimeMillis();
-        val id = if (Constant.isDebug) Constant.ID_ADMOB_OPEN_APP_TEST else adsChild.adsId
+        val id = if (Constant.isDebug) Constant.ID_ADMOB_OPEN_APP_TEST else idAds
         if (!preload) {
             lifecycle?.addObserver(lifecycleObserver)
             handler.removeCallbacks(timeOutCallBack)
@@ -172,8 +167,8 @@ class AdmobOpenAds : AdmobAds() {
                         override fun onAdClicked() {
                             super.onAdClicked()
                             callback?.onAdClick()
-                            if (AdsController.mTopActivity != null && AdsController.mTopActivity is AdActivity) {
-                                AdsController.mTopActivity?.finish()
+                            if (AdsController.adActivity != null && AdsController.adActivity is AdActivity) {
+                                AdsController.adActivity?.finish()
                             }
                         }
 
@@ -184,7 +179,7 @@ class AdmobOpenAds : AdmobAds() {
                             AdDialog.getInstance().hideLoading()
                             Utils.showToastDebug(
                                 activity,
-                                "Admob OpenAds id: ${adsChild.adsId}"
+                                "Admob OpenAds id: ${idAds}"
                             )
                             stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
                             callback?.onAdShow(
