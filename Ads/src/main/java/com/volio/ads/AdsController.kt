@@ -213,6 +213,7 @@ class AdsController private constructor(
     fun preloadAdsResume() {
         if (!isPremium) {
             activity?.let {
+                isAutoShowAdsResume = true
                 adsOpenResume?.let { adsChild ->
                     val status = admobHolder.getStatusPreload(adsChild)
                     if (status != StateLoadAd.LOADING && status != StateLoadAd.SUCCESS) {

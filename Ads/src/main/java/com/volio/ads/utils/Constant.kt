@@ -1,18 +1,11 @@
 package com.volio.ads.utils
 
 object Constant {
-    val isUseVer22 = true
-    var isShowDetailAlbum = false
-    var isShowDetailMedia = false
-    var isShowRate = 1
+
     var isDebug:Boolean = false
-    var SHOW_CENTER_HELP = false
-    var SHOW_REPORT_ERROR = false
     var isShowToastDebug = false
 
-    val KeyCustomImpression = "ad_impression_custom"
 
-    var isTrackAdmobRevenue = false
 
 
 

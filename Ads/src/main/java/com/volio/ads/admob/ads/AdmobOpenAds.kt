@@ -215,6 +215,10 @@ class AdmobOpenAds : AdmobAds() {
                 }
                 stateLoadAd = StateLoadAd.FAILED
                 callbackPreload?.onLoadFail()
+                Utils.showToastDebug(
+                    activity,
+                    "Admob OpenAds Fail id: ${idAds}"
+                )
             }
         }
         val request: AdRequest = AdRequest.Builder()
@@ -226,6 +230,7 @@ class AdmobOpenAds : AdmobAds() {
         )
 
     }
+
 
     private val lifecycleObserver = object : LifecycleEventObserver {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
