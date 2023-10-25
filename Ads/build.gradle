@@ -71,11 +71,9 @@ dependencies {
     implementation 'com.google.ads.mediation:mintegral:16.4.71.0'
     implementation 'com.google.ads.mediation:tapjoy:13.1.2.0'
 
-//    implementation files('libs/pangle-5.0.1.1.0.aar')
-
-
-//    def lifecycle_version = "2.2.0"
-//    implementation "androidx.lifecycle:lifecycle-extensions:$lifecycle_version"
-//    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
-//    annotationProcessor "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
+    implementation 'com.appsflyer:af-android-sdk:6.12.1'
+    implementation "com.android.installreferrer:installreferrer:2.2"
+    implementation 'com.appsflyer:adrevenue:6.9.0'
+    implementation 'com.appsflyer:purchase-connector:1.0.0'
+    api 'com.facebook.android:facebook-android-sdk:latest.release'
 }

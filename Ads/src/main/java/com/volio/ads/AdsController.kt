@@ -11,6 +11,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import com.adcolony.sdk.AdColonyAdViewActivity
 import com.adcolony.sdk.AdColonyInterstitialActivity
+import com.appsflyer.AppsFlyerConversionListener
+import com.appsflyer.AppsFlyerLib
+import com.appsflyer.adrevenue.AppsFlyerAdRevenue
+import com.appsflyer.api.PurchaseClient
+import com.appsflyer.api.Store
 import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.MobileAds
 import com.google.gson.Gson
@@ -27,7 +32,8 @@ class AdsController private constructor(
     application: Application,
     private var appId: String,
     private var packetName: String,
-    private var pathJson: String
+    private var pathJson: String,
+    private var isUseAppflyer :Boolean= true
 ) {
     private var gson = Gson()
     private val hashMapAds: HashMap<String, AdsChild> = hashMapOf()
@@ -40,6 +46,7 @@ class AdsController private constructor(
     var isTrackAdRevenue = true
     var isAutoShowAdsResume: Boolean = true
     var adCallbackAll: AdCallback? = null
+
 
     companion object {
 
@@ -57,7 +64,8 @@ class AdsController private constructor(
             isDebug: Boolean,
             appId: String,
             packetName: String,
-            pathJson: String
+            pathJson: String,
+            isUseAppFlyer: Boolean = true
         ) {
             fun checkAdActivity(activity: Activity): Boolean {
                 return activity is AdActivity ||
@@ -76,7 +84,7 @@ class AdsController private constructor(
 
             Constant.isDebug = isDebug
             MobileAds.initialize(application)
-            adsController = AdsController(application, appId, packetName, pathJson)
+            adsController = AdsController(application, appId, packetName, pathJson,isUseAppFlyer)
 
             application.registerActivityLifecycleCallbacks(object :
                 Application.ActivityLifecycleCallbacks {
@@ -129,8 +137,42 @@ class AdsController private constructor(
     fun setDebugMode(isDebug: Boolean) {
         Constant.isDebug = isDebug
     }
-    fun setShowOpenAdsNextSession(isShow:Boolean){
+
+    fun setShowOpenAdsNextSession(isShow: Boolean) {
         isShowOpenAdsResumeNextTime = isShow
+    }
+
+    private fun initAppFlyer(application: Application) {
+        val afRevenueBuilder = AppsFlyerAdRevenue.Builder(application)
+        AppsFlyerAdRevenue.initialize(afRevenueBuilder.build())
+        AppsFlyerLib.getInstance().init("4Ti9yuyaVb6BJMoy25gWUP", object :
+            AppsFlyerConversionListener {
+            override fun onConversionDataSuccess(p0: MutableMap<String, Any>?) {
+            }
+
+            override fun onConversionDataFail(p0: String?) {
+            }
+
+            override fun onAppOpenAttribution(p0: MutableMap<String, String>?) {
+            }
+
+            override fun onAttributionFailure(p0: String?) {
+            }
+        }, application)
+        AppsFlyerLib.getInstance().setCollectAndroidID(true)
+        AppsFlyerLib.getInstance().setCollectIMEI(true)
+        AppsFlyerLib.getInstance().setCollectOaid(true)
+
+//        AppsFlyerLib.getInstance().setDebugLog(true)
+        AppsFlyerLib.getInstance().start(application)
+        // init
+        val builder = PurchaseClient.Builder(application, Store.GOOGLE)
+        // Make sure to keep this instance
+        val afPurchaseClient = builder.build()
+        // start
+        afPurchaseClient.startObservingTransactions()
+        builder.logSubscriptions(true)
+        builder.autoLogInApps(true)
     }
 
     fun getDebugMode() = Constant.isDebug
@@ -153,6 +195,10 @@ class AdsController private constructor(
 
     init {
         AudienceNetworkInitializeHelper.initialize(application)
+        if (isUseAppflyer) {
+            initAppFlyer(application)
+        }
+
         try {
             val data = Utils.getStringAssetFile(pathJson, application)
             Log.d(TAG, ": $data")
@@ -283,6 +329,9 @@ class AdsController private constructor(
             override fun onPaidEvent(params: Bundle) {
                 adCallback?.onPaidEvent(params)
                 adCallbackAll?.onPaidEvent(params)
+                if (isUseAppflyer) {
+                    AppFlyerUtils.logAdRevenue(params)
+                }
             }
 
             override fun onRewardShow(network: String, adtype: String) {
