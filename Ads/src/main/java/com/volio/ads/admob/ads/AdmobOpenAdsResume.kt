@@ -42,10 +42,10 @@ class AdmobOpenAdsResume : AdmobAds() {
     private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
     private var dialog: Dialog? = null
-    val TAG = "AdmobOpenAds"
-    fun showDialogLoading(activity: Activity) {
+    val TAG = "AdmobOpenAdsResume"
+    private fun showDialogLoading(activity: Activity) {
         dialog?.dismiss()
-        dialog = Dialog(activity, android.R.style.Theme_Light)
+        dialog = Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog?.setCancelable(false)
         dialog?.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog?.setContentView(R.layout.dialog_text_loading)
@@ -68,7 +68,6 @@ class AdmobOpenAdsResume : AdmobAds() {
         load(
             activity,
             idAds,
-            loadingText,
             lifecycle,
             timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
             adCallback
@@ -113,7 +112,6 @@ class AdmobOpenAdsResume : AdmobAds() {
     private fun load(
         activity: Activity,
         idAds: String,
-        textLoading: String? = null,
         lifecycle: Lifecycle? = null,
         timeOut: Long = Constant.TIME_OUT_DEFAULT,
         adCallback: AdCallback? = null
@@ -129,10 +127,10 @@ class AdmobOpenAdsResume : AdmobAds() {
             handler.removeCallbacks(timeOutCallBack)
             handler.postDelayed(timeOutCallBack, timeOut)
         }
+        Log.d(TAG, "load: ")
         resetValue()
         val openAdLoadCallback = object : AppOpenAdLoadCallback() {
             override fun onAdLoaded(p0: AppOpenAd) {
-                Log.d(TAG, "onAdLoaded: ")
                 appOpenAd = p0
                 appOpenAd?.onPaidEventListener = OnPaidEventListener {
                     kotlin.runCatching {
@@ -140,7 +138,7 @@ class AdmobOpenAdsResume : AdmobAds() {
                         params.putString("revenue_micros", it.valueMicros.toString())
                         params.putString("precision_type", it.precisionType.toString())
                         params.putString("ad_unit_id", p0.adUnitId)
-                        val adapterResponseInfo = p0?.responseInfo?.loadedAdapterResponseInfo
+                        val adapterResponseInfo = p0.responseInfo.loadedAdapterResponseInfo
                         adapterResponseInfo?.let { it ->
                             params.putString("ad_source_id", it.adSourceId)
                             params.putString("ad_source_name", it.adSourceName)
@@ -173,7 +171,6 @@ class AdmobOpenAdsResume : AdmobAds() {
                             loadFailed = true
                             error = adError.message
                             if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
-                                AdDialog.getInstance().hideLoading()
                                 callback?.onAdFailToLoad(adError.message)
                                 lifecycle?.removeObserver(lifecycleObserver)
                                 dialog?.dismiss()
@@ -192,10 +189,9 @@ class AdmobOpenAdsResume : AdmobAds() {
                             super.onAdShowedFullScreenContent()
                             Log.d(TAG, "onAdShowedFullScreenContent: ")
                             appOpenAd = null
-                            AdDialog.getInstance().hideLoading()
                             Utils.showToastDebug(
                                 activity,
-                                "Admob OpenAds id: ${idAds}"
+                                "Admob OpenAds id: $idAds"
                             )
                             stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
                             callback?.onAdShow(
@@ -205,9 +201,6 @@ class AdmobOpenAdsResume : AdmobAds() {
                         }
                     }
                 if (!isTimeOut && eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
-                    Handler(Looper.getMainLooper()).postDelayed(Runnable {
-                        AdDialog.getInstance().hideLoading()
-                    }, 500)
                     currentActivity?.let { appOpenAd?.show(it) }
                     lifecycle?.removeObserver(lifecycleObserver)
                 }
@@ -223,7 +216,6 @@ class AdmobOpenAdsResume : AdmobAds() {
                 loadFailed = true
                 error = p0.message
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
-                    AdDialog.getInstance().hideLoading()
                     lifecycle?.removeObserver(lifecycleObserver)
                     if (!isTimeOut) {
                         callback?.onAdFailToLoad(p0.message)
@@ -237,10 +229,7 @@ class AdmobOpenAdsResume : AdmobAds() {
         val request: AdRequest = AdRequest.Builder()
 //            .setHttpTimeoutMillis(timeOut.toInt())
             .build()
-        AppOpenAd.load(
-            activity, id, request,
-            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, openAdLoadCallback
-        )
+        AppOpenAd.load(activity, id, request, openAdLoadCallback)
 
     }
 
@@ -248,14 +237,11 @@ class AdmobOpenAdsResume : AdmobAds() {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
             eventLifecycle = event
             if (event == Lifecycle.Event.ON_RESUME) {
-                AdDialog.getInstance().hideLoading()
                 if (isTimeOut) {
-                    AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad("TimeOut")
                     lifecycle?.removeObserver(this)
                     dialog?.dismiss()
                 } else if (loadFailed || loaded) {
-                    AdDialog.getInstance().hideLoading()
                     if (loaded) {
                         currentActivity?.let { appOpenAd?.show(it) }
                     } else {

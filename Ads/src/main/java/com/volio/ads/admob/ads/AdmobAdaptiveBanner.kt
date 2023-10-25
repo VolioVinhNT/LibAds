@@ -145,7 +145,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
                 adView?.setAdSize(it)
             }
 
-            layout?.let { viewG ->
+            layout.let { viewG ->
                 val lp = viewG.layoutParams
                 lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
                 lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0

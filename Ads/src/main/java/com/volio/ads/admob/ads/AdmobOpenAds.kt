@@ -10,14 +10,23 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import com.google.android.gms.ads.*
+import com.google.android.gms.ads.AdActivity
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.OnPaidEventListener
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
 import com.volio.ads.AdCallback
 import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
-import com.volio.ads.utils.*
-import java.util.*
+import com.volio.ads.utils.AdDef
+import com.volio.ads.utils.AdDialog
+import com.volio.ads.utils.Constant
+import com.volio.ads.utils.StateLoadAd
+import com.volio.ads.utils.Utils
+import java.util.Date
 
 class AdmobOpenAds : AdmobAds() {
     private var timeClick = 0L
@@ -55,7 +64,6 @@ class AdmobOpenAds : AdmobAds() {
         load(
             activity,
             idAds,
-            loadingText,
             lifecycle,
             timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
             adCallback
@@ -98,7 +106,6 @@ class AdmobOpenAds : AdmobAds() {
     private fun load(
         activity: Activity,
         idAds: String,
-        textLoading: String? = null,
         lifecycle: Lifecycle? = null,
         timeOut: Long = Constant.TIME_OUT_DEFAULT,
         adCallback: AdCallback? = null
@@ -209,7 +216,7 @@ class AdmobOpenAds : AdmobAds() {
                 if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
                     AdDialog.getInstance().hideLoading()
                     lifecycle?.removeObserver(lifecycleObserver)
-                    if (!isTimeOut){
+                    if (!isTimeOut) {
                         callback?.onAdFailToLoad(p0.message)
                     }
                 }
@@ -224,10 +231,7 @@ class AdmobOpenAds : AdmobAds() {
         val request: AdRequest = AdRequest.Builder()
 //            .setHttpTimeoutMillis(timeOut.toInt())
             .build()
-        AppOpenAd.load(
-            activity, id, request,
-            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, openAdLoadCallback
-        )
+        AppOpenAd.load(activity, id, request, openAdLoadCallback)
 
     }
 
