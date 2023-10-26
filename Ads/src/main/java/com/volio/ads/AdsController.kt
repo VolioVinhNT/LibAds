@@ -41,6 +41,7 @@ class AdsController private constructor(
     private var adsOpenResume: AdsChild? = null
     private var lastTimeClickAds = 0L
     private var isShowOpenAdsResumeNextTime = true
+    private var isShowAdsFullScreen = false
 
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
@@ -219,10 +220,11 @@ class AdsController private constructor(
     }
 
     private fun showAdsResume() {
-        if (isAutoShowAdsResume && !isPremium) {
+        if (isAutoShowAdsResume && !isPremium && !isShowAdsFullScreen) {
             if (isShowOpenAdsResumeNextTime) {
                 activity?.let {
                     adsOpenResume?.let { adsChild ->
+                        isShowAdsFullScreen = true
                         val checkShow = admobHolder.show(
                             it,
                             adsChild,
@@ -271,7 +273,7 @@ class AdsController private constructor(
     }
 
 
-    fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
+    private fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
         when (adsChild.adsType.lowercase()) {
             AdDef.ADS_TYPE.INTERSTITIAL,
             AdDef.ADS_TYPE.REWARD_VIDEO,
@@ -295,23 +297,19 @@ class AdsController private constructor(
             override fun onAdClose(adType: String) {
                 adCallback?.onAdClose(adType)
                 adCallbackAll?.onAdClose(adType)
-                if (checkAdsNotShowOpenResume(adsChild) && System.currentTimeMillis() - lastTimeClickAds > 1000) {
-                    isShowOpenAdsResumeNextTime = true
-                }
+                isShowAdsFullScreen = false
             }
 
             override fun onAdFailToLoad(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
                 adCallbackAll?.onAdFailToLoad(messageError)
-                isShowOpenAdsResumeNextTime = true
-
+                isShowAdsFullScreen = false
             }
 
             override fun onAdFailToShow(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
                 adCallbackAll?.onAdFailToLoad(messageError)
-                isShowOpenAdsResumeNextTime = true
-
+                isShowAdsFullScreen = false
             }
 
             override fun onAdOff() {
@@ -371,7 +369,7 @@ class AdsController private constructor(
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
                     if (checkAdsNotShowOpenResume(ads)) {
-                        isShowOpenAdsResumeNextTime = false
+                        isShowAdsFullScreen = true
                     }
                     admobHolder.showLoadedAd(
                         it,
@@ -402,7 +400,7 @@ class AdsController private constructor(
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
                     if (checkAdsNotShowOpenResume(ads)) {
-                        isShowOpenAdsResumeNextTime = false
+                        isShowAdsFullScreen = true
                     }
                     admobHolder.show(
                         it,
@@ -433,7 +431,7 @@ class AdsController private constructor(
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
                     if (checkAdsNotShowOpenResume(ads)) {
-                        isShowOpenAdsResumeNextTime = false
+                        isShowAdsFullScreen = true
                     }
                     admobHolder.loadAndShow(
                         it,
