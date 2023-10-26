@@ -45,7 +45,7 @@ class AdsController private constructor(
 
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
-    var isAutoShowAdsResume: Boolean = true
+    var isAutoShowAdsResume: Boolean = false
     var adCallbackAll: AdCallback? = null
 
 
