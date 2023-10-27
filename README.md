@@ -271,7 +271,7 @@ Các id buộc phải trùng id dưới bảng :
 |ad_sponsored_label| Là Textview có text sponsored|
 
 
-Mẫu json:
+Mẫu json (priority thấp hơn sẽ được ưu tiên hiển thị trước vd: 1 sẽ hiển thị trước 2) :
 ```json
 
 {
