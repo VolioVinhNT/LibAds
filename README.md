@@ -272,6 +272,8 @@ Các id buộc phải trùng id dưới bảng :
 
 
 Mẫu json:
+```json
+
 {
   "network": "google",
   "appId": "abce",
@@ -293,5 +295,5 @@ Mẫu json:
     }
   ]
 }
-
+```
 
