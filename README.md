@@ -27,13 +27,13 @@
 Phải gọi init đầu tiên trước khi gọi những hàm khác
 
 ```java
-AdsController.init(
-            activity: Activity,
-            isDebug:Boolean,
-            listAppId: ArrayList<String>,
-            packetName: String,
-            listPathJson: ArrayList<String>, lifecycle: Lifecycle
-        )
+ AdsController.init(
+                application = this,
+                isDebug = BuildConfig.DEBUG,
+                appId = getString(R.string.admob_app_id),
+                packetName = BuildConfig.APPLICATION_ID,
+                pathJson = "admod_id.json"
+            )
  ```
  
 |Parameters| Giá trị|
@@ -115,6 +115,10 @@ AdsController.show(
           layout: ViewGroup,
           adCallback: AdCallback
       )
+  ```
+ - Quảng cáo OpenAdsResume (adsType: open_app_resume) gọi:
+  ```java 
+    AdsController.getInstance().preloadAdsResume() // ở màn Home
   ```
   - Quảng cáo Native gọi:
    ```java 
@@ -265,4 +269,29 @@ Các id buộc phải trùng id dưới bảng :
 |ad_call_to_action|Button/Texview quảng cáo|
 |ad_choices_container| Là ViewGroup dùng hiển thì biết tược quảng cáo (tam giác,chấm than)|
 |ad_sponsored_label| Là Textview có text sponsored|
+
+
+Mẫu json:
+{
+  "network": "google",
+  "appId": "abce",
+  "packetName": "com.acbc",
+  "listAds": [
+    {
+      "spaceName": "Admob_AppOpen_Splash_130723",
+      "adsType": "open_app",
+      "adsIds": [
+        {
+          "priority": 1,
+          "id": "ca-app-pub-abc"
+        },
+        {
+          "priority": 2,
+          "id": "ca-app-pub-abc"
+        }
+      ]
+    }
+  ]
+}
+
 
