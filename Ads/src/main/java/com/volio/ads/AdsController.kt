@@ -42,12 +42,12 @@ class AdsController private constructor(
     private var lastTimeClickAds = 0L
     private var isShowOpenAdsResumeNextTime = true
     private var isShowAdsFullScreen = false
+    private var isAutoShowAdsResume: Boolean = false
+    private var lastTimeShowOpenAds:Long = 0L
 
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
-    var isAutoShowAdsResume: Boolean = false
-    var adCallbackAll: AdCallback? = null
-
+    var adCallbackAll: AdCallbackAll? = null
 
     companion object {
 
@@ -96,6 +96,7 @@ class AdsController private constructor(
                 override fun onActivityStarted(activity: Activity) {
                     setActivity(activity)
                     if (!checkAdActivity(activity)) {
+                        Log.d(TAG, "onActivityStarted: ${activity::class.java.name}")
                         adsController.showAdsResume()
                     }
                 }
@@ -222,35 +223,41 @@ class AdsController private constructor(
     private fun showAdsResume() {
         if (isAutoShowAdsResume && !isPremium && !isShowAdsFullScreen) {
             if (isShowOpenAdsResumeNextTime) {
-                activity?.let {
-                    adsOpenResume?.let { adsChild ->
-                        isShowAdsFullScreen = true
-                        val checkShow = admobHolder.show(
-                            it,
-                            adsChild,
-                            null,
-                            null,
-                            null,
-                            null,
-                            getAdCallback(adsChild, object : AdCallback {
-                                override fun onAdShow(network: String, adtype: String) {}
-                                override fun onAdClose(adType: String) {
-                                    preloadAdsResume()
-                                }
+                if (System.currentTimeMillis()-lastTimeShowOpenAds > 5000) {
+                    activity?.let {
+                        adsOpenResume?.let { adsChild ->
+                            isShowAdsFullScreen = true
+                            val checkShow = admobHolder.show(
+                                it,
+                                adsChild,
+                                null,
+                                null,
+                                null,
+                                null,
+                                getAdCallback(adsChild, object : AdCallback {
+                                    override fun onAdShow(network: String, adtype: String) {}
+                                    override fun onAdClose(adType: String) {
+                                        preloadAdsResume()
+                                    }
 
-                                override fun onAdFailToLoad(messageError: String?) {}
-                                override fun onAdOff() {}
+                                    override fun onAdFailToLoad(messageError: String?) {}
+                                    override fun onAdOff() {}
 
-                            })
-                        )
-                        if (checkShow) {
-                            isShowOpenAdsResumeNextTime = false
-                        } else {
-                            preloadAdsResume()
+                                })
+                            )
+                            if (checkShow) {
+                                lastTimeShowOpenAds = System.currentTimeMillis()
+                                isShowOpenAdsResumeNextTime = false
+                            } else {
+                                preloadAdsResume()
+                            }
                         }
                     }
                 }
+            }else{
+                lastTimeShowOpenAds = System.currentTimeMillis()
             }
+
             if (System.currentTimeMillis() - lastTimeClickAds > 1000) {
                 isShowOpenAdsResumeNextTime = true
             }
@@ -273,6 +280,8 @@ class AdsController private constructor(
     }
 
 
+
+
     private fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
         when (adsChild.adsType.lowercase()) {
             AdDef.ADS_TYPE.INTERSTITIAL,
@@ -291,42 +300,41 @@ class AdsController private constructor(
         return object : AdCallback {
             override fun onAdShow(network: String, adtype: String) {
                 adCallback?.onAdShow(network, adtype)
-                adCallbackAll?.onAdShow(network, adtype)
+                adCallbackAll?.onAdShow(adsChild)
             }
 
             override fun onAdClose(adType: String) {
                 adCallback?.onAdClose(adType)
-                adCallbackAll?.onAdClose(adType)
+                adCallbackAll?.onAdClose(adsChild)
                 isShowAdsFullScreen = false
             }
 
             override fun onAdFailToLoad(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
-                adCallbackAll?.onAdFailToLoad(messageError)
-                isShowAdsFullScreen = false
+                adCallbackAll?.onAdFailToLoad(adsChild,messageError)
             }
 
             override fun onAdFailToShow(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
-                adCallbackAll?.onAdFailToLoad(messageError)
+                adCallbackAll?.onAdFailToLoad(adsChild,messageError)
                 isShowAdsFullScreen = false
             }
 
             override fun onAdOff() {
                 adCallback?.onAdOff()
-                adCallbackAll?.onAdOff()
+                adCallbackAll?.onAdOff(adsChild)
             }
 
             override fun onAdClick() {
                 adCallback?.onAdClick()
-                adCallbackAll?.onAdClick()
+                adCallbackAll?.onAdClick(adsChild)
                 isShowOpenAdsResumeNextTime = false
                 lastTimeClickAds = System.currentTimeMillis()
             }
 
             override fun onPaidEvent(params: Bundle) {
                 adCallback?.onPaidEvent(params)
-                adCallbackAll?.onPaidEvent(params)
+                adCallbackAll?.onPaidEvent(adsChild,params)
                 if (isUseAppflyer) {
                     AppFlyerUtils.logAdRevenue(params)
                 }
@@ -334,12 +342,12 @@ class AdsController private constructor(
 
             override fun onRewardShow(network: String, adtype: String) {
                 adCallback?.onRewardShow(network, adtype)
-                adCallbackAll?.onRewardShow(network, adtype)
+                adCallbackAll?.onRewardShow(adsChild)
             }
 
             override fun onAdImpression(adType: String) {
                 adCallback?.onAdImpression(adType)
-                adCallbackAll?.onAdImpression(adType)
+                adCallbackAll?.onAdImpression(adsChild)
             }
         }
     }

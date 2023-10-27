@@ -44,12 +44,20 @@ class AdmobOpenAdsResume : AdmobAds() {
     private var dialog: Dialog? = null
     val TAG = "AdmobOpenAdsResume"
     private fun showDialogLoading(activity: Activity) {
-        dialog?.dismiss()
+        dismissDialog()
         dialog = Dialog(activity, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog?.setCancelable(false)
         dialog?.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog?.setContentView(R.layout.dialog_text_loading)
         dialog?.show()
+    }
+    private fun dismissDialog(){
+        kotlin.runCatching {
+            if (dialog?.isShowing==true){
+                dialog?.dismiss()
+            }
+        }.onFailure { it.printStackTrace() }
+        
     }
 
     override fun loadAndShow(
@@ -104,7 +112,7 @@ class AdmobOpenAdsResume : AdmobAds() {
             if (eventLifecycle == Lifecycle.Event.ON_RESUME) {
                 callback?.onAdFailToLoad("TimeOut")
                 lifecycle?.removeObserver(lifecycleObserver)
-                dialog?.dismiss()
+                dismissDialog()
             }
         }
     }
@@ -159,7 +167,7 @@ class AdmobOpenAdsResume : AdmobAds() {
                             Log.d(TAG, "onAdDismissedFullScreenContent: ")
                             callback?.onAdClose(AdDef.ADS_TYPE.OPEN_APP)
                             appOpenAd = null
-                            dialog?.dismiss()
+                            dismissDialog()
 
                             //// perform your code that you wants to do after ad dismissed or closed
                         }
@@ -173,7 +181,7 @@ class AdmobOpenAdsResume : AdmobAds() {
                             if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
                                 callback?.onAdFailToLoad(adError.message)
                                 lifecycle?.removeObserver(lifecycleObserver)
-                                dialog?.dismiss()
+                                dismissDialog()
                             }
                         }
 
@@ -219,7 +227,7 @@ class AdmobOpenAdsResume : AdmobAds() {
                     lifecycle?.removeObserver(lifecycleObserver)
                     if (!isTimeOut) {
                         callback?.onAdFailToLoad(p0.message)
-                        dialog?.dismiss()
+                        dismissDialog()
                     }
                 }
                 stateLoadAd = StateLoadAd.FAILED
@@ -240,13 +248,13 @@ class AdmobOpenAdsResume : AdmobAds() {
                 if (isTimeOut) {
                     callback?.onAdFailToLoad("TimeOut")
                     lifecycle?.removeObserver(this)
-                    dialog?.dismiss()
+                    dismissDialog()
                 } else if (loadFailed || loaded) {
                     if (loaded) {
                         currentActivity?.let { appOpenAd?.show(it) }
                     } else {
                         callback?.onAdFailToLoad(error)
-                        dialog?.dismiss()
+                        dismissDialog()
                     }
                     lifecycle?.removeObserver(this)
                 }
