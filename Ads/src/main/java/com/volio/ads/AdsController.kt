@@ -5,8 +5,12 @@ import android.app.Activity
 import android.app.Application
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import com.adcolony.sdk.AdColonyAdViewActivity
@@ -22,7 +26,9 @@ import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
+import com.volio.ads.model.AdsId
 import com.volio.ads.utils.*
+import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
 import com.volio.ads.utils.Utils.showToastDebug
 import java.util.*
 
@@ -33,7 +39,7 @@ class AdsController private constructor(
     private var appId: String,
     private var packetName: String,
     private var pathJson: String,
-    private var isUseAppflyer :Boolean= true
+    private var isUseAppflyer: Boolean = true
 ) {
     private var gson = Gson()
     private val hashMapAds: HashMap<String, AdsChild> = hashMapOf()
@@ -43,7 +49,7 @@ class AdsController private constructor(
     private var isShowOpenAdsResumeNextTime = true
     private var isShowAdsFullScreen = false
     private var isAutoShowAdsResume: Boolean = false
-    private var lastTimeShowOpenAds:Long = 0L
+    private var lastTimeShowOpenAds: Long = 0L
 
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
@@ -69,10 +75,7 @@ class AdsController private constructor(
             isUseAppFlyer: Boolean = true
         ) {
             fun checkAdActivity(activity: Activity): Boolean {
-                return activity is AdActivity ||
-                        activity is com.vungle.warren.AdActivity ||
-                        activity is AdColonyInterstitialActivity ||
-                        activity is AdColonyAdViewActivity
+                return activity is AdActivity || activity is com.vungle.warren.AdActivity || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
             }
 
             fun setActivity(activity: Activity) {
@@ -85,7 +88,7 @@ class AdsController private constructor(
 
             Constant.isDebug = isDebug
             MobileAds.initialize(application)
-            adsController = AdsController(application, appId, packetName, pathJson,isUseAppFlyer)
+            adsController = AdsController(application, appId, packetName, pathJson, isUseAppFlyer)
 
             application.registerActivityLifecycleCallbacks(object :
                 Application.ActivityLifecycleCallbacks {
@@ -147,20 +150,20 @@ class AdsController private constructor(
     private fun initAppFlyer(application: Application) {
         val afRevenueBuilder = AppsFlyerAdRevenue.Builder(application)
         AppsFlyerAdRevenue.initialize(afRevenueBuilder.build())
-        AppsFlyerLib.getInstance().init("4Ti9yuyaVb6BJMoy25gWUP", object :
-            AppsFlyerConversionListener {
-            override fun onConversionDataSuccess(p0: MutableMap<String, Any>?) {
-            }
+        AppsFlyerLib.getInstance()
+            .init("4Ti9yuyaVb6BJMoy25gWUP", object : AppsFlyerConversionListener {
+                override fun onConversionDataSuccess(p0: MutableMap<String, Any>?) {
+                }
 
-            override fun onConversionDataFail(p0: String?) {
-            }
+                override fun onConversionDataFail(p0: String?) {
+                }
 
-            override fun onAppOpenAttribution(p0: MutableMap<String, String>?) {
-            }
+                override fun onAppOpenAttribution(p0: MutableMap<String, String>?) {
+                }
 
-            override fun onAttributionFailure(p0: String?) {
-            }
-        }, application)
+                override fun onAttributionFailure(p0: String?) {
+                }
+            }, application)
         AppsFlyerLib.getInstance().setCollectAndroidID(true)
         AppsFlyerLib.getInstance().setCollectIMEI(true)
         AppsFlyerLib.getInstance().setCollectOaid(true)
@@ -223,7 +226,7 @@ class AdsController private constructor(
     private fun showAdsResume() {
         if (isAutoShowAdsResume && !isPremium && !isShowAdsFullScreen) {
             if (isShowOpenAdsResumeNextTime) {
-                if (System.currentTimeMillis()-lastTimeShowOpenAds > 5000) {
+                if (System.currentTimeMillis() - lastTimeShowOpenAds > 5000) {
                     activity?.let {
                         adsOpenResume?.let { adsChild ->
                             isShowAdsFullScreen = true
@@ -254,7 +257,7 @@ class AdsController private constructor(
                         }
                     }
                 }
-            }else{
+            } else {
                 lastTimeShowOpenAds = System.currentTimeMillis()
             }
 
@@ -280,12 +283,9 @@ class AdsController private constructor(
     }
 
 
-
-
     private fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
         when (adsChild.adsType.lowercase()) {
-            AdDef.ADS_TYPE.INTERSTITIAL,
-            AdDef.ADS_TYPE.REWARD_VIDEO,
+            AdDef.ADS_TYPE.INTERSTITIAL, AdDef.ADS_TYPE.REWARD_VIDEO,
 
             AdDef.ADS_TYPE.OPEN_APP,
 
@@ -311,13 +311,15 @@ class AdsController private constructor(
 
             override fun onAdFailToLoad(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
-                adCallbackAll?.onAdFailToLoad(adsChild,messageError)
+                adCallbackAll?.onAdFailToLoad(adsChild, messageError)
+                showToastDebug("Fail to load ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds)
             }
 
             override fun onAdFailToShow(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
-                adCallbackAll?.onAdFailToLoad(adsChild,messageError)
+                adCallbackAll?.onAdFailToLoad(adsChild, messageError)
                 isShowAdsFullScreen = false
+                showToastDebug("Fail to show ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds)
             }
 
             override fun onAdOff() {
@@ -330,11 +332,12 @@ class AdsController private constructor(
                 adCallbackAll?.onAdClick(adsChild)
                 isShowOpenAdsResumeNextTime = false
                 lastTimeClickAds = System.currentTimeMillis()
+                showToastDebug("Click ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds)
             }
 
             override fun onPaidEvent(params: Bundle) {
                 adCallback?.onPaidEvent(params)
-                adCallbackAll?.onPaidEvent(adsChild,params)
+                adCallbackAll?.onPaidEvent(adsChild, params)
                 if (isUseAppflyer) {
                     AppFlyerUtils.logAdRevenue(params)
                 }
@@ -356,6 +359,9 @@ class AdsController private constructor(
         if (!isPremium) {
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
+                    if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+                        showToastDebug("Pre load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+                    }
                     admobHolder.preload(it, ads, preloadCallback)
                 }
             }
@@ -441,6 +447,10 @@ class AdsController private constructor(
                     if (checkAdsNotShowOpenResume(ads)) {
                         isShowAdsFullScreen = true
                     }
+                    if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+                        showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+                    }
+
                     admobHolder.loadAndShow(
                         it,
                         isKeepAds,
@@ -453,6 +463,52 @@ class AdsController private constructor(
                         getAdCallback(ads, adCallback)
                     )
                 }
+            }
+        }
+    }
+
+
+    private fun showToastDebug(title: String, list: List<AdsId>) {
+        if (Constant.isDebug || Constant.isShowToastDebug) {
+            try {
+                val popupView: View =
+                    LayoutInflater.from(activity).inflate(R.layout.pop_up_toast, null)
+                val tvTitle = popupView.findViewById<TextView>(R.id.tvTitle)
+                val tv1 = popupView.findViewById<TextView>(R.id.tv1)
+                val tv2 = popupView.findViewById<TextView>(R.id.tv2)
+                val tv3 = popupView.findViewById<TextView>(R.id.tv3)
+                tvTitle.text = title
+                val listSort = list.sortedBy { it.priority }
+
+                when (list.size) {
+                    1 -> {
+                        tv1.visibility = View.VISIBLE
+                        tv1.text = listSort.first().id
+                    }
+                    2 -> {
+                        tv1.visibility = View.VISIBLE
+                        tv3.visibility = View.VISIBLE
+                        tv1.text = listSort[0].id
+                        tv3.text = listSort[1].id
+                    }
+                    else -> {
+                        tv1.visibility = View.VISIBLE
+                        tv2.visibility = View.VISIBLE
+                        tv3.visibility = View.VISIBLE
+                        tv1.text = listSort[0].id
+                        tv2.text = listSort[1].id
+                        tv3.text = listSort[2].id
+                    }
+                }
+
+                Toast(activity).apply {
+                    view = popupView
+                    duration = Toast.LENGTH_LONG
+                    setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 120)
+                    show()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }

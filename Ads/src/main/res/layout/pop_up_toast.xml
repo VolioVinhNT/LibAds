@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_12sdp"
+        android:background="#fff"
+        android:elevation="@dimen/_4sdp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/_12sdp"
+            android:text="Load Native Splash"
+            android:layout_marginBottom="@dimen/_8sdp"
+            android:textColor="#3C3C3C" />
+
+        <TextView
+            android:id="@+id/tv1"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/_12sdp"
+            android:gravity="center"
+            android:lines="2"
+            android:text="1: ca-app-pub-8541569573502186/6394700189"
+            android:textColor="#009E06" />
+
+        <TextView
+            android:id="@+id/tv2"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/_12sdp"
+            android:gravity="center"
+            android:lines="2"
+            android:text="1: ca-app-pub-8541569573502186/6394700189"
+            android:textColor="#0072CD" />
+
+
+        <TextView
+            android:id="@+id/tv3"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/_12sdp"
+            android:gravity="center"
+            android:lines="2"
+            android:text="1: ca-app-pub-8541569573502186/6394700189"
+            android:textColor="#DC382D" />
+    </LinearLayout>
+</LinearLayout>

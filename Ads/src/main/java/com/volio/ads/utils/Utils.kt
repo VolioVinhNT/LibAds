@@ -8,11 +8,11 @@ import java.io.InputStream
 
 object Utils {
     fun showToastDebug(context: Context?, text: String) {
-        if (context != null) {
-            if (Constant.isShowToastDebug || Constant.isDebug) {
-                Toast.makeText(context, text, Toast.LENGTH_LONG).show()
-            }
-        }
+//        if (context != null) {
+//            if (Constant.isShowToastDebug || Constant.isDebug) {
+//                Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+//            }
+//        }
     }
 
     fun getStringAssetFile(path: String, context: Context): String? {
