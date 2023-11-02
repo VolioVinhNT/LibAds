@@ -8,6 +8,8 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -101,6 +103,20 @@ class AdmobCollapsibleBanner : AdmobAds() {
                     (adView!!.parent as ViewGroup).removeView(adView) // <- fix
                 }
                 layout.addView(adView)
+                lifecycle?.addObserver(object : LifecycleEventObserver {
+                    override fun onStateChanged(
+                        source: LifecycleOwner, event: Lifecycle.Event
+                    ) {
+                        if (event == Lifecycle.Event.ON_DESTROY) {
+                            adView?.destroy()
+                            layout.removeAllViews()
+                            if (adView!!.parent != null) {
+                                (adView!!.parent as ViewGroup).removeView(adView)
+                            }
+                            adView = null
+                        }
+                    }
+                })
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -159,8 +175,7 @@ class AdmobCollapsibleBanner : AdmobAds() {
             val extras = Bundle()
             extras.putString("collapsible", "bottom")
             adView?.loadAd(
-                AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
-                    .build()
+                AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
             )
 
 
@@ -233,8 +248,7 @@ class AdmobCollapsibleBanner : AdmobAds() {
         val density = outMetrics.density
         val adWidth = (widthPixels / density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-            activity,
-            adWidth
+            activity, adWidth
         )
     }
 
