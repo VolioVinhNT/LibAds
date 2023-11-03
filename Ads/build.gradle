@@ -58,21 +58,12 @@ dependencies {
         exclude group: 'com.google.zxing'
     }
 
-
-
-//    compile ("com.facebook.android:facebook-android-sdk:[4,5)"){
-//        exclude group: 'com.google.zxing'
-//    }
-
-
-
     // Material dialog
     def material_dialog_version = "3.3.0"
     implementation "com.afollestad.material-dialogs:core:$material_dialog_version"
     implementation "com.afollestad.material-dialogs:lifecycle:$material_dialog_version"
-//    implementation 'com.adjust.sdk:adjust-android:4.30.1'
 
-    implementation 'com.github.voliovietnam:LibSdp:1.0.0'
+//    implementation 'com.github.voliovietnam:LibSdp:1.0.0'
 
     // mediation
     implementation 'com.google.ads.mediation:facebook:6.15.0.0'
