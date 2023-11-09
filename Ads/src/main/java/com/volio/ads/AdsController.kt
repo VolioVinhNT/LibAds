@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import com.adcolony.sdk.AdColonyAdViewActivity
@@ -81,7 +82,7 @@ class AdsController private constructor(
             fun setActivity(activity: Activity) {
                 if (checkAdActivity(activity)) {
                     adActivity = activity
-                } else if (activity is AppCompatActivity) {
+                } else if (activity is AppCompatActivity || activity is ComponentActivity) {
                     this@Companion.activity = activity
                 }
             }
@@ -98,10 +99,10 @@ class AdsController private constructor(
 
                 override fun onActivityStarted(activity: Activity) {
                     setActivity(activity)
-                    if (!checkAdActivity(activity)) {
-                        Log.d(TAG, "onActivityStarted: ${activity::class.java.name}")
+                    if (activity is AppCompatActivity || activity is ComponentActivity) {
                         adsController.showAdsResume()
                     }
+
                 }
 
                 override fun onActivityResumed(activity: Activity) {
@@ -252,6 +253,7 @@ class AdsController private constructor(
                                 lastTimeShowOpenAds = System.currentTimeMillis()
                                 isShowOpenAdsResumeNextTime = false
                             } else {
+                                isShowAdsFullScreen = false
                                 preloadAdsResume()
                             }
                         }
@@ -312,14 +314,20 @@ class AdsController private constructor(
             override fun onAdFailToLoad(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
                 adCallbackAll?.onAdFailToLoad(adsChild, messageError)
-                showToastDebug("Fail to load ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds)
+                showToastDebug(
+                    "Fail to load ${adsChild.adsType} ${adsChild.spaceName}",
+                    adsChild.adsIds
+                )
             }
 
             override fun onAdFailToShow(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
                 adCallbackAll?.onAdFailToLoad(adsChild, messageError)
                 isShowAdsFullScreen = false
-                showToastDebug("Fail to show ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds)
+                showToastDebug(
+                    "Fail to show ${adsChild.adsType} ${adsChild.spaceName}",
+                    adsChild.adsIds
+                )
             }
 
             override fun onAdOff() {
@@ -395,6 +403,8 @@ class AdsController private constructor(
                         timeMillisecond,
                         getAdCallback(ads, adCallback)
                     )
+                } ?: kotlin.run {
+                    showToastDebug("Không tìm thấy space: $spaceName", listOf())
                 }
             }
         }
@@ -416,7 +426,7 @@ class AdsController private constructor(
                     if (checkAdsNotShowOpenResume(ads)) {
                         isShowAdsFullScreen = true
                     }
-                    admobHolder.show(
+                    val status = admobHolder.show(
                         it,
                         ads,
                         textLoading,
@@ -425,6 +435,7 @@ class AdsController private constructor(
                         lifecycle,
                         getAdCallback(ads, adCallback)
                     )
+                    if (!status) isShowAdsFullScreen = false
                 }
             }
         }
@@ -491,13 +502,16 @@ class AdsController private constructor(
                         tv1.text = listSort[0].id
                         tv3.text = listSort[1].id
                     }
-                    else -> {
+                    3 -> {
                         tv1.visibility = View.VISIBLE
                         tv2.visibility = View.VISIBLE
                         tv3.visibility = View.VISIBLE
                         tv1.text = listSort[0].id
                         tv2.text = listSort[1].id
                         tv3.text = listSort[2].id
+                    }
+                    else -> {
+
                     }
                 }
 

@@ -57,7 +57,7 @@ class AdmobOpenAdsResume : AdmobAds() {
                 dialog?.dismiss()
             }
         }.onFailure { it.printStackTrace() }
-        
+
     }
 
     override fun loadAndShow(
@@ -174,15 +174,14 @@ class AdmobOpenAdsResume : AdmobAds() {
 
                         override fun onAdFailedToShowFullScreenContent(adError: AdError) {
                             super.onAdFailedToShowFullScreenContent(adError)
-                            Log.d(TAG, "onAdFailedToShowFullScreenContent: ")
                             appOpenAd = null
                             loadFailed = true
                             error = adError.message
-                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
-                                callback?.onAdFailToLoad(adError.message)
-                                lifecycle?.removeObserver(lifecycleObserver)
-                                dismissDialog()
-                            }
+                            callback?.onAdFailToShow(adError.message)
+                            lifecycle?.removeObserver(lifecycleObserver)
+                            dismissDialog()
+                            Log.d(TAG, "onAdFailedToShowFullScreenContent: ${adError.message}")
+
                         }
 
                         override fun onAdClicked() {
@@ -255,6 +254,7 @@ class AdmobOpenAdsResume : AdmobAds() {
                     } else {
                         callback?.onAdFailToLoad(error)
                         dismissDialog()
+                        Log.d(TAG, "dismissDialog: ")
                     }
                     lifecycle?.removeObserver(this)
                 }
