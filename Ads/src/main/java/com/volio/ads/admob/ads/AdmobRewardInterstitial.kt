@@ -239,7 +239,7 @@ class AdmobRewardInterstitial : AdmobAds() {
         stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
         callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.REWARD_VIDEO)
         if (AdsController.adActivity != null && AdsController.adActivity is AdActivity) {
-            AdsController.adActivity?.finish()
+//            AdsController.adActivity?.finish()
         }
         //Utils.showToastDebug(currentActivity, "Admob ReWard Interstitial id: ${adsChild?.adsId}")
     }
