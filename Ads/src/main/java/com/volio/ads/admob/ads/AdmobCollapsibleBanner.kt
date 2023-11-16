@@ -64,11 +64,14 @@ class AdmobCollapsibleBanner : AdmobAds() {
                     override fun onAdClicked() {
                         super.onAdClicked()
                         callback?.onAdClick()
+                        Utils.showToastDebug(activity, "Admob CollapsibleBanner: $idAds")
                     }
+
+
 
                     override fun onAdOpened() {
                         super.onAdOpened()
-                        Utils.showToastDebug(activity, "Admob CollapsibleBanner: $idAds")
+
                     }
 
                     override fun onAdClosed() {

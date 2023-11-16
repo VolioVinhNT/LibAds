@@ -259,12 +259,11 @@ class AdmobNative : AdmobAds() {
 //                super.onAdClicked()
 //                Utils.showToastDebug(activity,"id native: ${adsChild.adsId}")
 //                adCallbackMain?.onAdClick()
-
+                Utils.showToastDebug(activity, "id native: ${idAds}")
+                adCallbackMain?.onAdClick()
             }
 
             override fun onAdOpened() {
-                Utils.showToastDebug(activity, "id native: ${idAds}")
-                adCallbackMain?.onAdClick()
                 super.onAdOpened()
             }
         }).build()

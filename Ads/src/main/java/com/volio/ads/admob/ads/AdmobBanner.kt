@@ -124,10 +124,16 @@ class AdmobBanner : AdmobAds() {
                 Log.e("TAG", "onAdImpression: " )
             }
 
-            override fun onAdOpened() {
-                super.onAdOpened()
+            override fun onAdClicked() {
+                super.onAdClicked()
                 Utils.showToastDebug(activity, "Admob Banner id: ${idAds}")
                 callback?.onAdClick()
+            }
+
+            override fun onAdOpened() {
+                super.onAdOpened()
+//                Utils.showToastDebug(activity, "Admob Banner id: ${idAds}")
+//                callback?.onAdClick()
 
             }
 
