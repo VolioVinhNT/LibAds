@@ -152,7 +152,7 @@ class AdsController private constructor(
         val afRevenueBuilder = AppsFlyerAdRevenue.Builder(application)
         AppsFlyerAdRevenue.initialize(afRevenueBuilder.build())
         AppsFlyerLib.getInstance()
-            .init("4Ti9yuyaVb6BJMoy25gWUP", object : AppsFlyerConversionListener {
+            .init(AppFlyerUtils.keyAppFlyer, object : AppsFlyerConversionListener {
                 override fun onConversionDataSuccess(p0: MutableMap<String, Any>?) {
                 }
 

@@ -14,6 +14,7 @@ import kotlin.collections.HashMap
 object AppFlyerUtils {
 
 
+    var keyAppFlyer = "4Ti9yuyaVb6BJMoy25gWUP"
 
     fun logAdRevenue(bundle: Bundle) {
         if (!AdsController.checkInit()) return
