@@ -30,13 +30,16 @@ import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
 import com.volio.ads.utils.*
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
+import com.volio.ads.utils.Constant.ERROR_AD_OFF
 import com.volio.ads.utils.Utils.showToastDebug
+import java.io.File
+import java.io.FileReader
 import java.util.*
 
 private const val TAG = "AdsController"
 
 class AdsController private constructor(
-    application: Application,
+    private val application: Application,
     private var appId: String,
     private var packetName: String,
     private var pathJson: String,
@@ -204,11 +207,24 @@ class AdsController private constructor(
         if (isUseAppflyer) {
             initAppFlyer(application)
         }
+        readDataJson()
+    }
 
+    private fun readDataJson() {
         try {
             val data = Utils.getStringAssetFile(pathJson, application)
-            Log.d(TAG, ": $data")
-            val ads = gson.fromJson(data, Ads::class.java)
+            val ads = if (getJsonCache().exists()) {
+                try {
+                    val fileReader = FileReader(getJsonCache())
+                    val json = gson.fromJson(fileReader, Ads::class.java)
+                    fileReader.close()
+                    json
+                } catch (e: Exception) {
+                    gson.fromJson(data, Ads::class.java)
+                }
+            } else {
+                gson.fromJson(data, Ads::class.java)
+            }
             if (checkAppIdPacket(ads)) {
                 ads.listAdsChild.forEach {
                     if (it.adsType.lowercase() == AdDef.ADS_TYPE.OPEN_APP_RESUME) {
@@ -220,8 +236,34 @@ class AdsController private constructor(
         } catch (e: Exception) {
             showToastDebug(activity, "no load data json ads file")
         }
+    }
 
+    private fun getJsonCache(): File {
+        return File(application.filesDir, "ads_cache.json")
+    }
 
+    fun setAdData(adJson: String) {
+        kotlin.runCatching {
+            if (adJson.isNotEmpty()) {
+                getJsonCache().writeText(adJson)
+            }
+        }.onFailure {
+            it.printStackTrace()
+        }
+        kotlin.runCatching {
+            val ads = gson.fromJson(adJson, Ads::class.java)
+            if (checkAppIdPacket(ads)) {
+                hashMapAds.clear()
+                ads.listAdsChild.forEach {
+                    if (it.adsType.lowercase() == AdDef.ADS_TYPE.OPEN_APP_RESUME) {
+                        adsOpenResume = it
+                    }
+                    hashMapAds[it.spaceName] = it
+                }
+            }
+        }.onFailure {
+            it.printStackTrace()
+        }
     }
 
     private fun showAdsResume() {
@@ -275,6 +317,10 @@ class AdsController private constructor(
             activity?.let {
                 isAutoShowAdsResume = true
                 adsOpenResume?.let { adsChild ->
+                    if (!adsChild.status) {
+                        return
+                    }
+
                     val status = admobHolder.getStatusPreload(adsChild)
                     if (status != StateLoadAd.LOADING && status != StateLoadAd.SUCCESS) {
                         admobHolder.preload(it, adsChild)
@@ -315,8 +361,7 @@ class AdsController private constructor(
                 adCallback?.onAdFailToLoad(messageError)
                 adCallbackAll?.onAdFailToLoad(adsChild, messageError)
                 showToastDebug(
-                    "Fail to load ${adsChild.adsType} ${adsChild.spaceName}",
-                    adsChild.adsIds
+                    "Fail to load ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds
                 )
             }
 
@@ -325,8 +370,7 @@ class AdsController private constructor(
                 adCallbackAll?.onAdFailToLoad(adsChild, messageError)
                 isShowAdsFullScreen = false
                 showToastDebug(
-                    "Fail to show ${adsChild.adsType} ${adsChild.spaceName}",
-                    adsChild.adsIds
+                    "Fail to show ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds
                 )
             }
 
@@ -367,6 +411,10 @@ class AdsController private constructor(
         if (!isPremium) {
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
+                    if (!ads.status) {
+                        preloadCallback?.onLoadFail()
+                        return
+                    }
                     if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
                         showToastDebug("Pre load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
                     }
@@ -390,6 +438,10 @@ class AdsController private constructor(
         if (!isPremium) {
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
+                    if (!ads.status) {
+                        adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+                        return
+                    }
                     if (checkAdsNotShowOpenResume(ads)) {
                         isShowAdsFullScreen = true
                     }
@@ -423,6 +475,11 @@ class AdsController private constructor(
         if (!isPremium) {
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
+                    if (!ads.status) {
+                        adCallback?.onAdOff()
+                        return
+                    }
+
                     if (checkAdsNotShowOpenResume(ads)) {
                         isShowAdsFullScreen = true
                     }
@@ -455,6 +512,11 @@ class AdsController private constructor(
         if (!isPremium) {
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
+                    if (!ads.status) {
+                        adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+                        return
+                    }
+
                     if (checkAdsNotShowOpenResume(ads)) {
                         isShowAdsFullScreen = true
                     }

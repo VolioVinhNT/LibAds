@@ -23,4 +23,6 @@ object Constant {
     const val TIME_OUT_DEFAULT = 8000L
     const val ERROR_NO_INTERNET = "error_no_internet"
 
+    const val ERROR_AD_OFF = "ERROR_AD_OFF"
+
 }
