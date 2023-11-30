@@ -476,7 +476,7 @@ class AdsController private constructor(
             activity?.let {
                 hashMapAds[spaceName]?.let { ads ->
                     if (!ads.status) {
-                        adCallback?.onAdOff()
+                        adCallback?.onAdFailToLoad(Constant.ERROR_AD_OFF)
                         return
                     }
 
