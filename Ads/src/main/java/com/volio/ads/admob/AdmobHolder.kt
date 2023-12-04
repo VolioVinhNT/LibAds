@@ -391,10 +391,10 @@ class AdmobHolder {
                 idAdsLoading = it.id
             }
         }
-        if (adsSuccess != null &&
-            adsSuccess?.isDestroy() != true &&
-            adsSuccess?.wasLoadTimeLessThanNHoursAgo(1) == true
-        ) {
+
+        Log.e(TAG, "showLoadedAd waiting: ${adsLoading != null} ${adsLoading?.isDestroy() != true} ${adsLoading?.wasLoadTimeLessThanNHoursAgo(1) == true}", )
+        Log.e(TAG, "showLoadedAd sucess: ${adsSuccess != null} ", )
+        if (adsSuccess != null) {
             adsSuccess?.show(
                 activity,
                 idAdsSuccess,
@@ -404,10 +404,10 @@ class AdmobHolder {
                 lifecycle,
                 adCallback
             )
-        } else if (adsLoading != null &&
-            adsLoading?.isDestroy() != true &&
-            adsLoading?.wasLoadTimeLessThanNHoursAgo(1) == true
-        ) {
+
+            Log.e(TAG, "showLoadedAd: success", )
+        } else if (adsLoading != null) {
+            Log.e(TAG, "showLoadedAd: wait loading..", )
             adsLoading?.setPreloadCallback(object : PreloadCallback {
                 override fun onLoadDone() {
                     adsLoading?.show(
@@ -419,13 +419,16 @@ class AdmobHolder {
                         lifecycle,
                         adCallback
                     )
+                    Log.e(TAG, "showLoadedAd: wait suceess", )
                 }
 
                 override fun onLoadFail() {
                     adCallback?.onAdFailToLoad("")
+                    Log.e(TAG, "showLoadedAd: wait failed", )
                 }
             })
         } else {
+            Log.e(TAG, "showLoadedAd: load and show", )
             loadAndShow(
                 activity,
                 true,
