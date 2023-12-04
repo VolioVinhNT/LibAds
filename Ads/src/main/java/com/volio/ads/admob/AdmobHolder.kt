@@ -405,9 +405,9 @@ class AdmobHolder {
                 adCallback
             )
 
-            Log.e(TAG, "showLoadedAd: success", )
+            Log.e(TAG, "showLoadedAd: success ${idAdsSuccess}", )
         } else if (adsLoading != null) {
-            Log.e(TAG, "showLoadedAd: wait loading..", )
+            Log.e(TAG, "showLoadedAd: wait loading.. ${idAdsLoading}", )
             adsLoading?.setPreloadCallback(object : PreloadCallback {
                 override fun onLoadDone() {
                     adsLoading?.show(
@@ -428,7 +428,7 @@ class AdmobHolder {
                 }
             })
         } else {
-            Log.e(TAG, "showLoadedAd: load and show", )
+            Log.e(TAG, "showLoadedAd: load and show ${adsChild.adsIds}", )
             loadAndShow(
                 activity,
                 true,
