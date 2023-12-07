@@ -32,6 +32,7 @@ import com.volio.ads.model.AdsId
 import com.volio.ads.utils.*
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
+import com.volio.ads.utils.Constant.isDebug
 import com.volio.ads.utils.Utils.showToastDebug
 import java.io.File
 import java.io.FileReader
@@ -153,9 +154,12 @@ class AdsController private constructor(
     }
 
     fun setTestDevice(idDevice:String){
-        val testDeviceIds = listOf(idDevice)
-        val configuration = RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
-        MobileAds.setRequestConfiguration(configuration)
+        if(BuildConfig.DEBUG && isDebug) {
+            val testDeviceIds = listOf(idDevice)
+            val configuration =
+                RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
+            MobileAds.setRequestConfiguration(configuration)
+        }
     }
 
     private fun initAppFlyer(application: Application) {
