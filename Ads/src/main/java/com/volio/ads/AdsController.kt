@@ -23,6 +23,7 @@ import com.appsflyer.api.PurchaseClient
 import com.appsflyer.api.Store
 import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.model.Ads
@@ -151,6 +152,12 @@ class AdsController private constructor(
         isShowOpenAdsResumeNextTime = isShow
     }
 
+    fun setTestDevice(idDevice:String){
+        val testDeviceIds = listOf(idDevice)
+        val configuration = RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
+        MobileAds.setRequestConfiguration(configuration)
+    }
+
     private fun initAppFlyer(application: Application) {
         val afRevenueBuilder = AppsFlyerAdRevenue.Builder(application)
         AppsFlyerAdRevenue.initialize(afRevenueBuilder.build())
@@ -264,6 +271,9 @@ class AdsController private constructor(
         }.onFailure {
             it.printStackTrace()
         }
+    }
+    fun isAllowedShow(spaceName: String):Boolean{
+        return !isPremium && hashMapAds[spaceName]?.status == true
     }
 
     private fun showAdsResume() {
