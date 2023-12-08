@@ -207,6 +207,10 @@ class AdmobHolder {
 
     }
 
+    fun clearAllAd(){
+        hashMap.clear()
+    }
+
     public fun preload(
         activity: Activity,
         adsChild: AdsChild,
@@ -354,6 +358,9 @@ class AdmobHolder {
                 if (checkShow) {
                     return true
                 }
+            } else {
+                adCallback?.onAdFailToLoad("more than one hour")
+                destroy(adsChild)
             }
         }
 

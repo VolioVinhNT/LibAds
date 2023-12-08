@@ -153,8 +153,8 @@ class AdsController private constructor(
         isShowOpenAdsResumeNextTime = isShow
     }
 
-    fun setTestDevice(idDevice:String){
-        if(BuildConfig.DEBUG && isDebug) {
+    fun setTestDevice(idDevice: String) {
+        if (BuildConfig.DEBUG && isDebug) {
             val testDeviceIds = listOf(idDevice)
             val configuration =
                 RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
@@ -276,7 +276,8 @@ class AdsController private constructor(
             it.printStackTrace()
         }
     }
-    fun isAllowedShow(spaceName: String):Boolean{
+
+    fun isAllowedShow(spaceName: String): Boolean {
         return !isPremium && hashMapAds[spaceName]?.status == true
     }
 
@@ -324,6 +325,10 @@ class AdsController private constructor(
             }
         }
 
+    }
+
+    fun clearAllAd() {
+        admobHolder.clearAllAd()
     }
 
     fun preloadAdsResume() {
