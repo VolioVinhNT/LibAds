@@ -21,6 +21,8 @@ import com.appsflyer.AppsFlyerLib
 import com.appsflyer.adrevenue.AppsFlyerAdRevenue
 import com.appsflyer.api.PurchaseClient
 import com.appsflyer.api.Store
+import com.appsflyer.internal.models.InAppPurchaseValidationResult
+import com.appsflyer.internal.models.SubscriptionValidationResult
 import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
@@ -186,13 +188,102 @@ class AdsController private constructor(
 //        AppsFlyerLib.getInstance().setDebugLog(true)
         AppsFlyerLib.getInstance().start(application)
         // init
-        val builder = PurchaseClient.Builder(application, Store.GOOGLE)
-        // Make sure to keep this instance
-        val afPurchaseClient = builder.build()
-        // start
+//        val builder = PurchaseClient.Builder(application, Store.GOOGLE)
+//        // Make sure to keep this instance
+//        val afPurchaseClient = builder.build()
+//        // start
+//        afPurchaseClient.startObservingTransactions()
+//        builder.logSubscriptions(true)
+//        builder.autoLogInApps(true)
+
+        val afPurchaseClient = PurchaseClient.Builder(application, Store.GOOGLE)
+            // Enable Subscriptions auto logging
+            .logSubscriptions(true)
+            // Enable In Apps auto logging
+            .autoLogInApps(true)
+            // set production environment
+            .setSandbox(true)
+            // Subscription Purchase Event Data source listener. Invoked before sending data to AppsFlyer servers
+            // to let customer add extra parameters to the payload
+            .setSubscriptionPurchaseEventDataSource {
+                mapOf(
+                    "some key" to "some value",
+                    "another key" to it.size
+                )
+            }
+            // In Apps Purchase Event Data source listener. Invoked before sending data to AppsFlyer servers
+            // to let customer add extra parameters to the payload
+            .setInAppPurchaseEventDataSource {
+                mapOf(
+                    "some key" to "some value",
+                    "another key" to it.size
+                )
+            }
+            // Subscriptions Purchase Validation listener. Invoked after getting response from AppsFlyer servers
+            // to let customer know if purchase was validated successfully
+            .setSubscriptionValidationResultListener(object :
+                PurchaseClient.SubscriptionPurchaseValidationResultListener {
+                override fun onResponse(result: Map<String, SubscriptionValidationResult>?) {
+                    result?.forEach { (k: String, v: SubscriptionValidationResult?) ->
+                        if (v.success) {
+                            Log.d(
+                                "dsk8",
+                                "[PurchaseConnector]: Subscription with ID $k was validated successfully"
+                            )
+                            val subscriptionPurchase = v.subscriptionPurchase
+                            Log.d("dsk8", subscriptionPurchase.toString())
+                        } else {
+                            Log.d(
+                                "dsk8",
+                                "[PurchaseConnector]: Subscription with ID $k wasn't validated successfully"
+                            )
+                            val failureData = v.failureData
+                            Log.d("dsk8", failureData.toString())
+                        }
+                    }
+                }
+
+                override fun onFailure(result: String, error: Throwable?) {
+                    Log.d("dsk8", "[PurchaseConnector]: Validation fail: $result")
+                    error?.printStackTrace()
+                }
+            })
+            // In Apps Purchase Validation listener. Invoked after getting response from AppsFlyer servers
+            // to let customer know if purchase was validated successfully
+            .setInAppValidationResultListener(object :
+                PurchaseClient.InAppPurchaseValidationResultListener {
+                override fun onResponse(result: Map<String, InAppPurchaseValidationResult>?) {
+                    result?.forEach { (k: String, v: InAppPurchaseValidationResult?) ->
+                        if (v.success) {
+                            Log.d(
+                                "dsk8",
+                                "[PurchaseConnector]:  Product with Purchase Token$k was validated successfully"
+                            )
+                            val productPurchase = v.productPurchase
+                            Log.d("dsk8", productPurchase.toString())
+                        } else {
+                            Log.d(
+                                "dsk8",
+                                "[PurchaseConnector]:  Product with Purchase Token $k wasn't validated successfully"
+                            )
+                            val failureData = v.failureData
+                            Log.d(TAG, failureData.toString())
+                        }
+                    }
+                }
+
+                override fun onFailure(result: String, error: Throwable?) {
+                    Log.d("dsk8", "[PurchaseConnector]: Validation fail: $result")
+                    error?.printStackTrace()
+                }
+            })
+            // Build the client
+            .build()
+
+        // Start the SDK instance to observe transactions.
         afPurchaseClient.startObservingTransactions()
-        builder.logSubscriptions(true)
-        builder.autoLogInApps(true)
+
+
     }
 
     fun getDebugMode() = Constant.isDebug
