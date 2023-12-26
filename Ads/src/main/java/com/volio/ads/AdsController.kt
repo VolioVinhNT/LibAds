@@ -155,6 +155,11 @@ class AdsController private constructor(
         isShowOpenAdsResumeNextTime = isShow
     }
 
+    fun setEnableAppResume(isEnable: Boolean) {
+        isAutoShowAdsResume = isEnable
+    }
+
+
     fun setTestDevice(idDevice: String) {
         if (BuildConfig.DEBUG && isDebug) {
             val testDeviceIds = listOf(idDevice)
@@ -207,16 +212,14 @@ class AdsController private constructor(
             // to let customer add extra parameters to the payload
             .setSubscriptionPurchaseEventDataSource {
                 mapOf(
-                    "some key" to "some value",
-                    "another key" to it.size
+                    "some key" to "some value", "another key" to it.size
                 )
             }
             // In Apps Purchase Event Data source listener. Invoked before sending data to AppsFlyer servers
             // to let customer add extra parameters to the payload
             .setInAppPurchaseEventDataSource {
                 mapOf(
-                    "some key" to "some value",
-                    "another key" to it.size
+                    "some key" to "some value", "another key" to it.size
                 )
             }
             // Subscriptions Purchase Validation listener. Invoked after getting response from AppsFlyer servers
@@ -668,12 +671,14 @@ class AdsController private constructor(
                         tv1.visibility = View.VISIBLE
                         tv1.text = listSort.first().id
                     }
+
                     2 -> {
                         tv1.visibility = View.VISIBLE
                         tv3.visibility = View.VISIBLE
                         tv1.text = listSort[0].id
                         tv3.text = listSort[1].id
                     }
+
                     3 -> {
                         tv1.visibility = View.VISIBLE
                         tv2.visibility = View.VISIBLE
@@ -682,6 +687,7 @@ class AdsController private constructor(
                         tv2.text = listSort[1].id
                         tv3.text = listSort[2].id
                     }
+
                     else -> {
 
                     }
