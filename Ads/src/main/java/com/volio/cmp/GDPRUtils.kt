@@ -15,6 +15,12 @@ object GDPRUtils {
         return gdpr == 1
     }
 
+    fun isGDPR2(context: Context): Int {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        return prefs.getInt("IABTCF_gdprApplies", -1)
+    }
+
+
     fun canShowAds(applicationContext: Context): Boolean {
         val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
 

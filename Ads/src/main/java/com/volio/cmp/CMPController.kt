@@ -7,9 +7,10 @@ import androidx.lifecycle.Lifecycle
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
+import com.volio.ads.AdsController
 import java.util.ArrayList
 
-class CMPController  constructor(private var activity: Activity) {
+class CMPController constructor(private var activity: Activity) {
 
     fun isGDPR(): Boolean {
         return GDPRUtils.isGDPR(activity)
@@ -33,41 +34,52 @@ class CMPController  constructor(private var activity: Activity) {
     }
 
     fun showCMP(isTesting: Boolean, cmpCallback: CMPCallback) {
-        val debugSettings = ConsentDebugSettings.Builder(activity)
-            .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
-            .addTestDeviceHashedId(Utils.getDeviceID(activity)).build()
+        val codeGDPR = GDPRUtils.isGDPR2(activity)
+        if (codeGDPR == 0) {
+            cmpCallback.onShowAd()
+            AdsController.getInstance().cmpComplete()
+        } else {
+            val debugSettings = ConsentDebugSettings.Builder(activity)
+                .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+                .addTestDeviceHashedId(Utils.getDeviceID(activity)).build()
 
-        val params = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
-            .setConsentDebugSettings(if (isTesting) debugSettings else null).build()
+            val params = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
+                .setConsentDebugSettings(if (isTesting) debugSettings else null).build()
 
-        val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
-        consentInformation.requestConsentInfoUpdate(activity, params, {
-            val canRequestAds = GDPRUtils.canShowAds(activity)
-           val canrequest =  consentInformation.canRequestAds()
-            if (canRequestAds) {
-                GDPRUtils.isUserConsent = true
-                cmpCallback.onShowAd()
-            } else {
-                UserMessagingPlatform.loadConsentForm(activity, {
-                    it.show(activity) {
-                        val canRequestAds = GDPRUtils.canShowAds(activity)
-                        if (canRequestAds) {
-                            GDPRUtils.isUserConsent = true
-                            cmpCallback.onShowAd()
-//                            showAd()
-                        } else {
-                            GDPRUtils.isUserConsent = false
-                            cmpCallback.onChangeScreen()
-//                            changeScreen()
-                        }
-                    }
-                }, {
+            val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+            consentInformation.requestConsentInfoUpdate(activity, params, {
+                val canRequestAds = GDPRUtils.canShowAds(activity)
+                val canrequest = consentInformation.canRequestAds()
+                if (canRequestAds) {
+                    GDPRUtils.isUserConsent = true
                     cmpCallback.onShowAd()
-                })
-            }
-        }, { requestConsentError ->
-            cmpCallback.onChangeScreen()
-        })
+                    AdsController.getInstance().cmpComplete()
+                } else {
+                    UserMessagingPlatform.loadConsentForm(activity, {
+                        it.show(activity) {
+                            val canRequestAds = GDPRUtils.canShowAds(activity)
+                            if (canRequestAds) {
+                                GDPRUtils.isUserConsent = true
+                                cmpCallback.onShowAd()
+                                AdsController.getInstance().cmpComplete()
+//                            showAd()
+                            } else {
+                                GDPRUtils.isUserConsent = false
+                                cmpCallback.onChangeScreen()
+                                AdsController.getInstance().cmpComplete()
+//                            changeScreen()
+                            }
+                        }
+                    }, {
+                        cmpCallback.onShowAd()
+                        AdsController.getInstance().cmpComplete()
+                    })
+                }
+            }, { requestConsentError ->
+                cmpCallback.onChangeScreen()
+                AdsController.getInstance().cmpComplete()
+            })
+        }
     }
 
 

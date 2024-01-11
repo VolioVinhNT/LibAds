@@ -36,6 +36,8 @@ import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
 import com.volio.ads.utils.Constant.isDebug
 import com.volio.ads.utils.Utils.showToastDebug
+import com.volio.cmp.CMPCallback
+import com.volio.cmp.CMPController
 import java.io.File
 import java.io.FileReader
 import java.util.*
@@ -58,10 +60,13 @@ class AdsController private constructor(
     private var isShowAdsFullScreen = false
     private var isAutoShowAdsResume: Boolean = false
     private var lastTimeShowOpenAds: Long = 0L
+    private var isWaitCMP: Boolean = true
+    private var listRunnable: MutableList<Runnable> = mutableListOf()
 
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
     var adCallbackAll: AdCallbackAll? = null
+    private var isShowCMP = false
 
     companion object {
 
@@ -80,7 +85,8 @@ class AdsController private constructor(
             appId: String,
             packetName: String,
             pathJson: String,
-            isUseAppFlyer: Boolean = true
+            isUseAppFlyer: Boolean = true,
+            isAutoShowCMP:Boolean = true
         ) {
             fun checkAdActivity(activity: Activity): Boolean {
                 return activity is AdActivity || activity is com.vungle.warren.AdActivity || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
@@ -102,6 +108,19 @@ class AdsController private constructor(
                 Application.ActivityLifecycleCallbacks {
                 override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                     setActivity(activity)
+                    if (isAutoShowCMP && !adsController.isShowCMP) {
+                        adsController.isShowCMP = true
+                        CMPController(activity).showCMP(isDebug,
+                            object : CMPCallback {
+                                override fun onShowAd() {
+
+                                }
+
+                                override fun onChangeScreen() {
+
+                                }
+                            })
+                    }
                 }
 
                 override fun onActivityStarted(activity: Activity) {
@@ -109,6 +128,7 @@ class AdsController private constructor(
                     if (activity is AppCompatActivity || activity is ComponentActivity) {
                         adsController.showAdsResume()
                     }
+
 
                 }
 
@@ -134,6 +154,7 @@ class AdsController private constructor(
                     }
                 }
             })
+
         }
 
         fun getInstance(): AdsController {
@@ -428,16 +449,23 @@ class AdsController private constructor(
     fun preloadAdsResume() {
         if (!isPremium) {
             activity?.let {
-                isAutoShowAdsResume = true
-                adsOpenResume?.let { adsChild ->
-                    if (!adsChild.status) {
-                        return
-                    }
+                val runnable = Runnable {
+                    isAutoShowAdsResume = true
+                    adsOpenResume?.let { adsChild ->
+                        if (!adsChild.status) {
+                            return@Runnable
+                        }
 
-                    val status = admobHolder.getStatusPreload(adsChild)
-                    if (status != StateLoadAd.LOADING && status != StateLoadAd.SUCCESS) {
-                        admobHolder.preload(it, adsChild)
+                        val status = admobHolder.getStatusPreload(adsChild)
+                        if (status != StateLoadAd.LOADING && status != StateLoadAd.SUCCESS) {
+                            admobHolder.preload(it, adsChild)
+                        }
                     }
+                }
+                if (isWaitCMP) {
+                    listRunnable.add(runnable)
+                } else {
+                    runnable.run()
                 }
             }
         }
@@ -523,15 +551,22 @@ class AdsController private constructor(
     fun preload(spaceName: String, preloadCallback: PreloadCallback? = null) {
         if (!isPremium) {
             activity?.let {
-                hashMapAds[spaceName]?.let { ads ->
-                    if (!ads.status) {
-                        preloadCallback?.onLoadFail()
-                        return
+                val runnable = Runnable {
+                    hashMapAds[spaceName]?.let { ads ->
+                        if (!ads.status) {
+                            preloadCallback?.onLoadFail()
+                            return@Runnable
+                        }
+                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+                            showToastDebug("Pre load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+                        }
+                        admobHolder.preload(it, ads, preloadCallback)
                     }
-                    if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
-                        showToastDebug("Pre load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
-                    }
-                    admobHolder.preload(it, ads, preloadCallback)
+                }
+                if (isWaitCMP) {
+                    listRunnable.add(runnable)
+                } else {
+                    runnable.run()
                 }
             }
         }
@@ -550,26 +585,33 @@ class AdsController private constructor(
     ) {
         if (!isPremium) {
             activity?.let {
-                hashMapAds[spaceName]?.let { ads ->
-                    if (!ads.status) {
-                        adCallback?.onAdFailToLoad(ERROR_AD_OFF)
-                        return
+                val runnable = Runnable {
+                    hashMapAds[spaceName]?.let { ads ->
+                        if (!ads.status) {
+                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+                            return@Runnable
+                        }
+                        if (checkAdsNotShowOpenResume(ads)) {
+                            isShowAdsFullScreen = true
+                        }
+                        admobHolder.showLoadedAd(
+                            it,
+                            ads,
+                            loadingText,
+                            layout,
+                            layoutAds,
+                            lifecycle,
+                            timeMillisecond,
+                            getAdCallback(ads, adCallback)
+                        )
+                    } ?: kotlin.run {
+                        showToastDebug("Không tìm thấy space: $spaceName", listOf())
                     }
-                    if (checkAdsNotShowOpenResume(ads)) {
-                        isShowAdsFullScreen = true
-                    }
-                    admobHolder.showLoadedAd(
-                        it,
-                        ads,
-                        loadingText,
-                        layout,
-                        layoutAds,
-                        lifecycle,
-                        timeMillisecond,
-                        getAdCallback(ads, adCallback)
-                    )
-                } ?: kotlin.run {
-                    showToastDebug("Không tìm thấy space: $spaceName", listOf())
+                }
+                if (isWaitCMP) {
+                    listRunnable.add(runnable)
+                } else {
+                    runnable.run()
                 }
             }
         }
@@ -586,27 +628,34 @@ class AdsController private constructor(
         adCallback: AdCallback? = null
     ) {
         if (!isPremium) {
-            activity?.let {
-                hashMapAds[spaceName]?.let { ads ->
-                    if (!ads.status) {
-                        adCallback?.onAdFailToLoad(Constant.ERROR_AD_OFF)
-                        return
-                    }
+            val runnable = Runnable {
+                activity?.let {
+                    hashMapAds[spaceName]?.let { ads ->
+                        if (!ads.status) {
+                            adCallback?.onAdFailToLoad(Constant.ERROR_AD_OFF)
+                            return@Runnable
+                        }
 
-                    if (checkAdsNotShowOpenResume(ads)) {
-                        isShowAdsFullScreen = true
+                        if (checkAdsNotShowOpenResume(ads)) {
+                            isShowAdsFullScreen = true
+                        }
+                        val status = admobHolder.show(
+                            it,
+                            ads,
+                            textLoading,
+                            layout,
+                            layoutAds,
+                            lifecycle,
+                            getAdCallback(ads, adCallback)
+                        )
+                        if (!status) isShowAdsFullScreen = false
                     }
-                    val status = admobHolder.show(
-                        it,
-                        ads,
-                        textLoading,
-                        layout,
-                        layoutAds,
-                        lifecycle,
-                        getAdCallback(ads, adCallback)
-                    )
-                    if (!status) isShowAdsFullScreen = false
                 }
+            }
+            if (isWaitCMP) {
+                listRunnable.add(runnable)
+            } else {
+                runnable.run()
             }
         }
 
@@ -623,33 +672,42 @@ class AdsController private constructor(
         adCallback: AdCallback? = null
     ) {
         if (!isPremium) {
-            activity?.let {
-                hashMapAds[spaceName]?.let { ads ->
-                    if (!ads.status) {
-                        adCallback?.onAdFailToLoad(ERROR_AD_OFF)
-                        return
-                    }
+            val runnable = Runnable {
+                activity?.let {
+                    hashMapAds[spaceName]?.let { ads ->
+                        if (!ads.status) {
+                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+                            return@Runnable
+                        }
 
-                    if (checkAdsNotShowOpenResume(ads)) {
-                        isShowAdsFullScreen = true
-                    }
-                    if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
-                        showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
-                    }
+                        if (checkAdsNotShowOpenResume(ads)) {
+                            isShowAdsFullScreen = true
+                        }
+                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+                            showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+                        }
 
-                    admobHolder.loadAndShow(
-                        it,
-                        isKeepAds,
-                        ads,
-                        loadingText,
-                        layout,
-                        layoutAds,
-                        lifecycle,
-                        timeMillisecond,
-                        getAdCallback(ads, adCallback)
-                    )
+                        admobHolder.loadAndShow(
+                            it,
+                            isKeepAds,
+                            ads,
+                            loadingText,
+                            layout,
+                            layoutAds,
+                            lifecycle,
+                            timeMillisecond,
+                            getAdCallback(ads, adCallback)
+                        )
+                    }
                 }
             }
+            if (isWaitCMP) {
+                listRunnable.add(runnable)
+            } else {
+                runnable.run()
+            }
+        } else {
+            adCallback?.onAdFailToLoad("premium")
         }
     }
 
@@ -720,4 +778,11 @@ class AdsController private constructor(
         adsChild?.let { admobHolder.destroy(it) }
     }
 
+    fun cmpComplete(){
+        isWaitCMP = false
+        listRunnable.forEach {
+            it.run()
+        }
+        listRunnable.clear()
+    }
 }
