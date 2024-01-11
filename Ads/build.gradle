@@ -81,4 +81,7 @@ dependencies {
     api ('com.facebook.android:facebook-android-sdk:latest.release'){
         exclude group: 'com.google.zxing'
     }
+    implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+    implementation 'androidx.preference:preference:1.2.0'
+
 }
