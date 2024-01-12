@@ -1,4 +1,7 @@
 <resources>
     <string name="ad_attribution">Ad</string>
     <string name="ad_Loading">Loading Ads…</string>
+    <string name="loading_consent_form">Loading consent form</string>
+
+    <string name="please_wait_a_moment">Please wait a moment</string>
 </resources>

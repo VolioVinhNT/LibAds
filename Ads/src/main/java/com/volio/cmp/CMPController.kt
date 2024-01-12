@@ -14,27 +14,28 @@ class CMPController constructor(private var activity: Activity) {
         return GDPRUtils.isGDPR(activity)
     }
 
-
-
-
     fun showCMP(isTesting: Boolean) {
+        val dialog = DialogLoadingForm(activity)
+        dialog.show()
         val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
-
         if (consentInformation.isConsentFormAvailable) {
             UserMessagingPlatform.loadConsentForm(activity,
                 {
+                    dialog.dismiss()
                     it.show(activity) {
-                        val canRequestAds = GDPRUtils.canShowAds(activity)
                     }
                 }, {
+                    dialog.dismiss()
                 })
 
         } else {
             showCMP(isTesting, cmpCallback = object :CMPCallback{
                 override fun onShowAd() {
+                    dialog.dismiss()
                 }
 
                 override fun onChangeScreen() {
+                    dialog.dismiss()
                 }
             })
         }
