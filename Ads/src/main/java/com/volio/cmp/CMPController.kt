@@ -1,14 +1,12 @@
 package com.volio.cmp
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.util.Log
-import androidx.lifecycle.Lifecycle
 import com.google.android.ump.ConsentDebugSettings
+import com.google.android.ump.ConsentForm
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.volio.ads.AdsController
-import java.util.ArrayList
 
 class CMPController constructor(private var activity: Activity) {
 
@@ -17,20 +15,30 @@ class CMPController constructor(private var activity: Activity) {
     }
 
 
-    fun showCMP() {
-        UserMessagingPlatform.loadConsentForm(activity, {
-//            dialog.dismissDialog()
-            it.show(activity) {
-                val canRequestAds = GDPRUtils.canShowAds(activity)
-//                if (canRequestAds) {
-//                    AdsUtils.isNotConsent = false
-//                } else {
-//                    AdsUtils.isNotConsent = true
-//                }
-            }
-        }, {
-//            dialog.dismissDialog()
-        })
+
+
+    fun showCMP(isTesting: Boolean) {
+        val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+
+        if (consentInformation.isConsentFormAvailable) {
+            UserMessagingPlatform.loadConsentForm(activity,
+                {
+                    it.show(activity) {
+                        val canRequestAds = GDPRUtils.canShowAds(activity)
+                    }
+                }, {
+                })
+
+        } else {
+            showCMP(isTesting, cmpCallback = object :CMPCallback{
+                override fun onShowAd() {
+                }
+
+                override fun onChangeScreen() {
+                }
+            })
+        }
+
     }
 
     fun showCMP(isTesting: Boolean, cmpCallback: CMPCallback) {
