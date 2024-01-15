@@ -1,9 +1,7 @@
 package com.volio.cmp
 
 import android.app.Activity
-import android.util.Log
 import com.google.android.ump.ConsentDebugSettings
-import com.google.android.ump.ConsentForm
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.volio.ads.AdsController
@@ -14,8 +12,8 @@ class CMPController constructor(private var activity: Activity) {
         return GDPRUtils.isGDPR(activity)
     }
 
-    fun showCMP(isTesting: Boolean) {
-        val dialog = DialogLoadingForm(activity)
+    fun showCMP(isTesting: Boolean, titleDialog: String? = null, desDialog: String? = null) {
+        val dialog = DialogLoadingForm(activity, titleDialog, desDialog)
         dialog.show()
         val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
         if (consentInformation.isConsentFormAvailable) {
@@ -29,7 +27,7 @@ class CMPController constructor(private var activity: Activity) {
                 })
 
         } else {
-            showCMP(isTesting, cmpCallback = object :CMPCallback{
+            showCMP(isTesting, cmpCallback = object : CMPCallback {
                 override fun onShowAd() {
                     dialog.dismiss()
                 }

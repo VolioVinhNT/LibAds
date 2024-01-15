@@ -3,15 +3,16 @@ package com.volio.cmp
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.LinearInterpolator
 import android.view.animation.RotateAnimation
+import android.widget.TextView
 import com.volio.ads.R
 
-class DialogLoadingForm(context: Context) : Dialog(context) {
+class DialogLoadingForm(context: Context, val title: String? = null, val des: String? = null) :
+    Dialog(context) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,9 +20,14 @@ class DialogLoadingForm(context: Context) : Dialog(context) {
         setCancelable(false)
         setCanceledOnTouchOutside(false)
         val viewRotate = findViewById<View>(R.id.imvLoading)
+        title?.let {
+            findViewById<TextView?>(R.id.tvTitle)?.text = it
+        }
+        des?.let {
+            findViewById<TextView?>(R.id.tvContent)?.text = it
+        }
         viewRotate.animRotation()
     }
-
 
 
 //    override fun setContentView(layoutResID: Int) {
@@ -38,7 +44,6 @@ class DialogLoadingForm(context: Context) : Dialog(context) {
         )
         window?.setBackgroundDrawableResource(android.R.color.transparent)
     }
-
 
 
     fun View.animRotation() {
