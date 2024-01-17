@@ -1,6 +1,7 @@
 package com.volio.cmp
 
 import android.app.Activity
+import android.util.Log
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
@@ -55,13 +56,16 @@ class CMPController constructor(private var activity: Activity) {
 
             val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
             consentInformation.requestConsentInfoUpdate(activity, params, {
+                Log.d("dsk6", "a: ")
                 val canRequestAds = GDPRUtils.canShowAds(activity)
                 val canrequest = consentInformation.canRequestAds()
                 if (canRequestAds) {
+                    Log.d("dsk6", "c: ")
                     GDPRUtils.isUserConsent = true
                     cmpCallback.onShowAd()
                     AdsController.getInstance().cmpComplete()
                 } else {
+                    Log.d("dsk6", "d: ")
                     UserMessagingPlatform.loadConsentForm(activity, {
                         it.show(activity) {
                             val canRequestAds = GDPRUtils.canShowAds(activity)
@@ -78,11 +82,13 @@ class CMPController constructor(private var activity: Activity) {
                             }
                         }
                     }, {
+                        Log.d("dsk6", "e: ${it.message}")
                         cmpCallback.onShowAd()
                         AdsController.getInstance().cmpComplete()
                     })
                 }
             }, { requestConsentError ->
+                Log.d("dsk6", "b: ${requestConsentError.message}")
                 cmpCallback.onChangeScreen()
                 AdsController.getInstance().cmpComplete()
             })
