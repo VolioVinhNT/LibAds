@@ -778,6 +778,12 @@ class AdsController private constructor(
         adsChild?.let { admobHolder.destroy(it) }
     }
 
+    fun destroyAll(){
+        hashMapAds.values.forEach {
+            admobHolder.destroy(it)
+        }
+    }
+
     fun cmpComplete(){
         isWaitCMP = false
         listRunnable.forEach {
