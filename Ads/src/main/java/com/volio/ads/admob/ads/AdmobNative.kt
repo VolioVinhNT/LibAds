@@ -47,18 +47,6 @@ class AdmobNative : AdmobAds() {
                 )
             )
             adView.mediaView = mediaView
-        } else {
-            if (Constant.isDebug) {
-                val mediaView = MediaView(adView.context)
-                adView.addView(
-                    mediaView,
-                    ViewGroup.LayoutParams(
-                        0,
-                        0
-                    )
-                )
-                adView.mediaView = mediaView
-            }
         }
 
         val viewGroupIcon = adView.findViewById<View>(R.id.ad_app_icon)
