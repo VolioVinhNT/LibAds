@@ -26,7 +26,7 @@ import com.volio.ads.utils.Utils
 import java.util.Date
 
 
-class AdmobCollapsibleBanner : AdmobAds() {
+class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAds() {
     private var isLoadSuccess = false
     private var adView: AdView? = null
     private var callback: AdCallback? = null
@@ -176,7 +176,12 @@ class AdmobCollapsibleBanner : AdmobAds() {
 
             Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
             val extras = Bundle()
-            extras.putString("collapsible", "bottom")
+
+            if (isShowBottom){
+                extras.putString("collapsible", "bottom")
+            } else {
+                extras.putString("collapsible", "top")
+            }
             adView?.loadAd(
                 AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
             )

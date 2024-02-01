@@ -90,8 +90,8 @@ class AdmobHolder {
                 ads = AdmobAdaptiveBanner()
             }
 
-            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE -> {
-                ads = AdmobCollapsibleBanner()
+            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE, AdDef.ADS_TYPE.BANNER_COLLAPSIBLE_TOP-> {
+                ads = AdmobCollapsibleBanner(adsChild.adsType.lowercase() == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE)
             }
 
             AdDef.ADS_TYPE.REWARD_VIDEO -> {
@@ -247,8 +247,8 @@ class AdmobHolder {
             AdDef.ADS_TYPE.BANNER_ADAPTIVE -> {
                 ads = AdmobAdaptiveBanner()
             }
-            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE -> {
-                ads = AdmobCollapsibleBanner()
+            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE, AdDef.ADS_TYPE.BANNER_COLLAPSIBLE_TOP -> {
+                ads = AdmobCollapsibleBanner(adsChild.adsType.lowercase() == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE)
             }
 
             AdDef.ADS_TYPE.REWARD_VIDEO -> {
@@ -313,6 +313,7 @@ class AdmobHolder {
                     AdDef.ADS_TYPE.BANNER,
                     AdDef.ADS_TYPE.BANNER_ADAPTIVE,
                     AdDef.ADS_TYPE.BANNER_COLLAPSIBLE,
+                    AdDef.ADS_TYPE.BANNER_COLLAPSIBLE_TOP,
                     AdDef.ADS_TYPE.BANNER_INLINE -> {
                         ads.show(
                             activity,
