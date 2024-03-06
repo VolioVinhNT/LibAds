@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -495,7 +497,9 @@ class AdsController private constructor(
             override fun onAdClose(adType: String) {
                 adCallback?.onAdClose(adType)
                 adCallbackAll?.onAdClose(adsChild)
-                isShowAdsFullScreen = false
+                Handler(Looper.getMainLooper()).postDelayed({
+                    isShowAdsFullScreen = false
+                },1000)
             }
 
             override fun onAdFailToLoad(messageError: String?) {
