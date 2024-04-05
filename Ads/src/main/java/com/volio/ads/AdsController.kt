@@ -103,6 +103,7 @@ class AdsController private constructor(
             }
 
             Constant.isDebug = isDebug
+            Log.d("dsk3", "isDebug: $isDebug")
             MobileAds.initialize(application)
             adsController = AdsController(application, appId, packetName, pathJson, isUseAppFlyer)
 
