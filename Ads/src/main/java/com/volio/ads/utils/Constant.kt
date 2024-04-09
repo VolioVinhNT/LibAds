@@ -20,7 +20,4 @@ object Constant {
 
     const val ERROR_AD_OFF = "ERROR_AD_OFF"
 
-    const val LANGUAGE_CODE = "LANGUAGE_CODE"
-    const val FIRST_OPEN = "FIRST_OPEN"
-
 }
