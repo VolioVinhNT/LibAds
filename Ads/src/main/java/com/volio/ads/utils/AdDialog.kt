@@ -22,8 +22,6 @@ class AdDialog {
         }
 
     }
-
-
     fun showLoadingWithMessage(
         context: Context?,
         message: String?
