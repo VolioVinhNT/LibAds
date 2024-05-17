@@ -113,8 +113,8 @@ class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAd
                         if (event == Lifecycle.Event.ON_DESTROY) {
                             adView?.destroy()
                             layout.removeAllViews()
-                            if (adView!!.parent != null) {
-                                (adView!!.parent as ViewGroup).removeView(adView)
+                            if (adView?.parent != null) {
+                                (adView?.parent as ViewGroup?)?.removeView(adView)
                             }
                             adView = null
                         }
@@ -261,6 +261,10 @@ class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAd
     }
 
     override fun destroy() {
+        adView?.destroy()
+        if (adView?.parent != null) {
+            (adView?.parent as ViewGroup?)?.removeView(adView)
+        }
         adView = null
         isLoadSuccess = false
     }
