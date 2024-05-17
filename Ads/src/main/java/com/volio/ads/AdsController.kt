@@ -341,7 +341,8 @@ class AdsController private constructor(
 
     private fun readDataJson() {
         try {
-            val data = Utils.getStringAssetFile(pathJson, application)
+            val data = Utils.getStringAssetFile(
+                pathJson, application)
             val ads = if (getJsonCache().exists()) {
                 try {
                     val fileReader = FileReader(getJsonCache())

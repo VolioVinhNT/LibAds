@@ -5,11 +5,6 @@ object Constant {
     var isDebug:Boolean = false
     var isShowToastDebug = false
 
-
-
-
-
-
 //    const val ID_ADMOB_INTERSTITIAL_TEST = "ca-app-pub-3940256099942544/8691691433"
     const val ID_ADMOB_INTERSTITIAL_TEST = "ca-app-pub-3940256099942544/1033173712"
     const val ID_ADMOB_OPEN_APP_TEST = "ca-app-pub-3940256099942544/9257395921"
