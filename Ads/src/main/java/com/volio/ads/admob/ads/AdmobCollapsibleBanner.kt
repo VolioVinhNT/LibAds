@@ -68,7 +68,6 @@ class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAd
                     }
 
 
-
                     override fun onAdOpened() {
                         super.onAdOpened()
 
@@ -136,8 +135,8 @@ class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAd
     }
 
     override fun preload(activity: Activity, idAds: String) {
+        Log.d("HIUIUIUII", "banner: ")
         load(activity, idAds, null, null, loadSuccess = {
-
         })
     }
 
@@ -148,104 +147,104 @@ class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAd
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
     ) {
-        layout?.post {
-            callback = adCallback
-            val id: String = if (Constant.isDebug) {
-                Constant.ID_ADMOB_BANNER_COLLAPSIVE_TEST
-            } else {
-                idAds
-            }
-            stateLoadAd = StateLoadAd.LOADING
-            isLoadSuccess = false
-            adView = AdView(activity)
-            adView?.setBackgroundColor(Color.WHITE)
-            adView?.adUnitId = id
+        callback = adCallback
+        val id: String = if (Constant.isDebug) {
+            Constant.ID_ADMOB_BANNER_COLLAPSIVE_TEST
+        } else {
+            idAds
+        }
+        stateLoadAd = StateLoadAd.LOADING
+        isLoadSuccess = false
+        adView = AdView(activity)
+        adView?.setBackgroundColor(Color.WHITE)
+        adView?.adUnitId = id
 
 
-            val adSize = getAdsize(activity)
-            adSize?.let {
-                adView?.setAdSize(it)
-            }
+        val adSize = getAdsize(activity)
+        adSize?.let {
+            adView?.setAdSize(it)
+        }
+        Log.d("HIUIUIUII", "adSize: ")
 
-            layout?.let { viewG ->
-                val lp = viewG.layoutParams
-                lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
-                lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
-                viewG.layoutParams = lp
-            }
-
-            Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
-            val extras = Bundle()
-
-            if (isShowBottom){
-                extras.putString("collapsible", "bottom")
-            } else {
-                extras.putString("collapsible", "top")
-            }
-            adView?.loadAd(
-                AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
-            )
-
-
-
-            adView?.adListener = object : AdListener() {
-
-                override fun onAdClicked() {
-                    super.onAdClicked()
-                    callback?.onAdClick()
-                }
-
-                override fun onAdOpened() {
-                    super.onAdOpened()
-                    Utils.showToastDebug(activity, "Admob AdapBanner: ${id}")
-                }
-
-                override fun onAdClosed() {
-                    super.onAdClosed()
-                    callback?.onAdClose(AdDef.NETWORK.GOOGLE)
-                }
-
-
-                override fun onAdImpression() {
-                    super.onAdImpression()
-                    callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-                    Log.e("TAG", "onAdImpression: ")
-                }
-
-                override fun onAdFailedToLoad(p0: LoadAdError) {
-                    super.onAdFailedToLoad(p0)
-                    Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
-                    callback?.onAdFailToLoad(p0?.message)
-                    stateLoadAd = StateLoadAd.FAILED
-                    callbackPreload?.onLoadFail()
-                }
-
-                override fun onAdLoaded() {
-                    super.onAdLoaded()
-                    adView?.onPaidEventListener = OnPaidEventListener {
-                        kotlin.runCatching {
-                            val params = Bundle()
-                            params.putString("revenue_micros", it.valueMicros.toString())
-                            params.putString("precision_type", it.precisionType.toString())
-                            params.putString("ad_unit_id", adView?.adUnitId)
-                            val adapterResponseInfo =
-                                adView?.responseInfo?.loadedAdapterResponseInfo
-                            adapterResponseInfo?.let { it ->
-                                params.putString("ad_source_id", it.adSourceId)
-                                params.putString("ad_source_name", it.adSourceName)
-                            }
-                            callback?.onPaidEvent(params)
-                        }
-                    }
-                    stateLoadAd = StateLoadAd.SUCCESS
-                    isLoadSuccess = true
-                    callbackPreload?.onLoadDone()
-                    loadSuccess()
-                    timeLoader = Date().time
-                }
-            }
+        layout?.let { viewG ->
+            val lp = viewG.layoutParams
+            lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
+            lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
+            viewG.layoutParams = lp
         }
 
+        Log.d("dsk6", "BANNER_COLLAPSIBLE: ")
+        val extras = Bundle()
+
+        if (isShowBottom) {
+            extras.putString("collapsible", "bottom")
+        } else {
+            extras.putString("collapsible", "top")
+        }
+        adView?.loadAd(
+            AdRequest.Builder().addNetworkExtrasBundle(AdMobAdapter::class.java, extras).build()
+        )
+
+
+        Log.d("HIUIUIUII", "111111: ")
+        adView?.adListener = object : AdListener() {
+
+            override fun onAdClicked() {
+                super.onAdClicked()
+                callback?.onAdClick()
+            }
+
+            override fun onAdOpened() {
+                super.onAdOpened()
+                Utils.showToastDebug(activity, "Admob AdapBanner: ${id}")
+            }
+
+            override fun onAdClosed() {
+                super.onAdClosed()
+                callback?.onAdClose(AdDef.NETWORK.GOOGLE)
+            }
+
+
+            override fun onAdImpression() {
+                super.onAdImpression()
+                callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
+                Log.e("TAG", "onAdImpression: ")
+            }
+
+            override fun onAdFailedToLoad(p0: LoadAdError) {
+                super.onAdFailedToLoad(p0)
+                Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
+                callback?.onAdFailToLoad(p0?.message)
+                stateLoadAd = StateLoadAd.FAILED
+                callbackPreload?.onLoadFail()
+                Log.d("HIUIUIUII", "onLoadFail: ")
+            }
+
+            override fun onAdLoaded() {
+                super.onAdLoaded()
+                adView?.onPaidEventListener = OnPaidEventListener {
+                    kotlin.runCatching {
+                        val params = Bundle()
+                        params.putString("revenue_micros", it.valueMicros.toString())
+                        params.putString("precision_type", it.precisionType.toString())
+                        params.putString("ad_unit_id", adView?.adUnitId)
+                        val adapterResponseInfo =
+                            adView?.responseInfo?.loadedAdapterResponseInfo
+                        adapterResponseInfo?.let { it ->
+                            params.putString("ad_source_id", it.adSourceId)
+                            params.putString("ad_source_name", it.adSourceName)
+                        }
+                        callback?.onPaidEvent(params)
+                    }
+                }
+                stateLoadAd = StateLoadAd.SUCCESS
+                isLoadSuccess = true
+                callbackPreload?.onLoadDone()
+                loadSuccess()
+                timeLoader = Date().time
+                Log.d("HIUIUIUII", "onLoadDone: ")
+            }
+        }
     }
 
     private fun getAdsize(activity: Activity): AdSize? {
@@ -280,5 +279,7 @@ class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAd
     override fun getStateLoadAd(): StateLoadAd {
         return stateLoadAd
     }
+
+    override fun getAdsView(): AdView? = adView
 
 }
