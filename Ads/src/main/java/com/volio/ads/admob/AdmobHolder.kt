@@ -501,14 +501,14 @@ class AdmobHolder {
         return stateLoadAd
     }
 
-    fun getAdView(adsChild: AdsChild): AdView? {
+    fun getAdView(adsChild: AdsChild): AdmobAds? {
 
         adsChild.adsIds.sortedBy { it.priority }.forEach {
             val key = (adsChild.adsType + adsChild.spaceName + it.priority)
             val ads = hashMap[key]
             if (ads != null) {
                 if (ads is AdmobCollapsibleBanner) {
-                    return ads.getAdsView()
+                    return ads
                 }
             }
         }
