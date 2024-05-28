@@ -26,10 +26,12 @@ import com.appsflyer.api.Store
 import com.appsflyer.internal.models.InAppPurchaseValidationResult
 import com.appsflyer.internal.models.SubscriptionValidationResult
 import com.google.android.gms.ads.AdActivity
+import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
+import com.volio.ads.admob.ads.AdmobAds
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
@@ -88,7 +90,7 @@ class AdsController private constructor(
             packetName: String,
             pathJson: String,
             isUseAppFlyer: Boolean = true,
-            isAutoShowCMP:Boolean = true
+            isAutoShowCMP: Boolean = true
         ) {
             fun checkAdActivity(activity: Activity): Boolean {
                 return activity is AdActivity || activity is com.vungle.warren.AdActivity || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
@@ -341,7 +343,8 @@ class AdsController private constructor(
     private fun readDataJson() {
         try {
             val data = Utils.getStringAssetFile(
-                pathJson, application)
+                pathJson, application
+            )
             val ads = if (getJsonCache().exists()) {
                 try {
                     val fileReader = FileReader(getJsonCache())
@@ -500,7 +503,7 @@ class AdsController private constructor(
                 adCallbackAll?.onAdClose(adsChild)
                 Handler(Looper.getMainLooper()).postDelayed({
                     isShowAdsFullScreen = false
-                },1000)
+                }, 1000)
             }
 
             override fun onAdFailToLoad(messageError: String?) {
@@ -777,19 +780,27 @@ class AdsController private constructor(
         return StateLoadAd.NONE
     }
 
+    fun getAdView(spaceName: String): AdmobAds? {
+        val item = hashMapAds[spaceName]
+        if (item != null) {
+            return admobHolder.getAdView(item)
+        }
+        return null
+    }
+
 
     fun destroy(spaceName: String) {
         val adsChild = hashMapAds[spaceName]
         adsChild?.let { admobHolder.destroy(it) }
     }
 
-    fun destroyAll(){
+    fun destroyAll() {
         hashMapAds.values.forEach {
             admobHolder.destroy(it)
         }
     }
 
-    fun cmpComplete(){
+    fun cmpComplete() {
         isWaitCMP = false
         listRunnable.forEach {
             it.run()

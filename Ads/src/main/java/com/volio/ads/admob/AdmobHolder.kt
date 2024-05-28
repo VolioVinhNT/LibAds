@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
+import com.google.android.gms.ads.AdView
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.admob.ads.AdmobAdaptiveBanner
@@ -90,8 +91,9 @@ class AdmobHolder {
                 ads = AdmobAdaptiveBanner()
             }
 
-            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE, AdDef.ADS_TYPE.BANNER_COLLAPSIBLE_TOP-> {
-                ads = AdmobCollapsibleBanner(adsChild.adsType.lowercase() == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE)
+            AdDef.ADS_TYPE.BANNER_COLLAPSIBLE, AdDef.ADS_TYPE.BANNER_COLLAPSIBLE_TOP -> {
+                ads =
+                    AdmobCollapsibleBanner(adsChild.adsType.lowercase() == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE)
             }
 
             AdDef.ADS_TYPE.REWARD_VIDEO -> {
@@ -105,9 +107,11 @@ class AdmobHolder {
             AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
                 ads = AdmobRewardInterstitial()
             }
+
             AdDef.ADS_TYPE.OPEN_APP_RESUME -> {
                 ads = AdmobOpenAdsResume()
             }
+
             else -> {
                 Utils.showToastDebug(
                     activity,
@@ -207,7 +211,7 @@ class AdmobHolder {
 
     }
 
-    fun clearAllAd(){
+    fun clearAllAd() {
         hashMap.clear()
     }
 
@@ -247,8 +251,10 @@ class AdmobHolder {
             AdDef.ADS_TYPE.BANNER_ADAPTIVE -> {
                 ads = AdmobAdaptiveBanner()
             }
+
             AdDef.ADS_TYPE.BANNER_COLLAPSIBLE, AdDef.ADS_TYPE.BANNER_COLLAPSIBLE_TOP -> {
-                ads = AdmobCollapsibleBanner(adsChild.adsType.lowercase() == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE)
+                ads =
+                    AdmobCollapsibleBanner(adsChild.adsType.lowercase() == AdDef.ADS_TYPE.BANNER_COLLAPSIBLE)
             }
 
             AdDef.ADS_TYPE.REWARD_VIDEO -> {
@@ -262,6 +268,7 @@ class AdmobHolder {
             AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
                 ads = AdmobRewardInterstitial()
             }
+
             AdDef.ADS_TYPE.OPEN_APP_RESUME -> {
                 ads = AdmobOpenAdsResume()
             }
@@ -400,8 +407,13 @@ class AdmobHolder {
             }
         }
 
-        Log.e(TAG, "showLoadedAd waiting: ${adsLoading != null} ${adsLoading?.isDestroy() != true} ${adsLoading?.wasLoadTimeLessThanNHoursAgo(1) == true}", )
-        Log.e(TAG, "showLoadedAd sucess: ${adsSuccess != null} ", )
+        Log.e(
+            TAG,
+            "showLoadedAd waiting: ${adsLoading != null} ${adsLoading?.isDestroy() != true} ${
+                adsLoading?.wasLoadTimeLessThanNHoursAgo(1) == true
+            }",
+        )
+        Log.e(TAG, "showLoadedAd sucess: ${adsSuccess != null} ")
         if (adsSuccess != null) {
             adsSuccess?.show(
                 activity,
@@ -413,9 +425,9 @@ class AdmobHolder {
                 adCallback
             )
 
-            Log.e(TAG, "showLoadedAd: success ${idAdsSuccess}", )
+            Log.e(TAG, "showLoadedAd: success ${idAdsSuccess}")
         } else if (adsLoading != null) {
-            Log.e(TAG, "showLoadedAd: wait loading.. ${idAdsLoading}", )
+            Log.e(TAG, "showLoadedAd: wait loading.. ${idAdsLoading}")
             adsLoading?.setPreloadCallback(object : PreloadCallback {
                 override fun onLoadDone() {
                     adsLoading?.show(
@@ -427,16 +439,16 @@ class AdmobHolder {
                         lifecycle,
                         adCallback
                     )
-                    Log.e(TAG, "showLoadedAd: wait suceess", )
+                    Log.e(TAG, "showLoadedAd: wait suceess")
                 }
 
                 override fun onLoadFail() {
                     adCallback?.onAdFailToLoad("")
-                    Log.e(TAG, "showLoadedAd: wait failed", )
+                    Log.e(TAG, "showLoadedAd: wait failed")
                 }
             })
         } else {
-            Log.e(TAG, "showLoadedAd: load and show ${adsChild.adsIds}", )
+            Log.e(TAG, "showLoadedAd: load and show ${adsChild.adsIds}")
             loadAndShow(
                 activity,
                 true,
@@ -487,5 +499,19 @@ class AdmobHolder {
         }
         Log.d(TAG, "getStatusPreload1: $stateLoadAd")
         return stateLoadAd
+    }
+
+    fun getAdView(adsChild: AdsChild): AdmobAds? {
+
+        adsChild.adsIds.sortedBy { it.priority }.forEach {
+            val key = (adsChild.adsType + adsChild.spaceName + it.priority)
+            val ads = hashMap[key]
+            if (ads != null) {
+                if (ads is AdmobCollapsibleBanner) {
+                    return ads
+                }
+            }
+        }
+        return null
     }
 }
