@@ -104,6 +104,7 @@ class AdmobCollapsibleBanner(private val isShowBottom: Boolean = true) : AdmobAd
                 if (adView!!.parent != null) {
                     (adView!!.parent as ViewGroup).removeView(adView) // <- fix
                 }
+
                 layout.addView(adView)
                 lifecycle?.addObserver(object : LifecycleEventObserver {
                     override fun onStateChanged(

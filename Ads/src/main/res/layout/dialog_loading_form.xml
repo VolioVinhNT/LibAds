@@ -22,7 +22,7 @@
             android:gravity="center"
             android:text="@string/loading_consent_form"
             android:textColor="#000000"
-            android:textSize="@dimen/_16ssp"
+            android:textSize="@dimen/_16sdp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -47,7 +47,7 @@
             android:paddingHorizontal="@dimen/_16sdp"
             android:text="@string/please_wait_a_moment"
             android:textColor="#373737"
-            android:textSize="@dimen/_14ssp"
+            android:textSize="@dimen/_14sdp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle" />

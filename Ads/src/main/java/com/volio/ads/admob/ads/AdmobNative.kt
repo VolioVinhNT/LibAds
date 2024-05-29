@@ -2,6 +2,7 @@ package com.volio.ads.admob.ads
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.LayoutDirection
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -284,7 +285,9 @@ class AdmobNative : AdmobAds() {
                 layoutAds.parent?.let {
                     (it as ViewGroup).removeView(layoutAds)
                 }
-
+                kotlin.runCatching {
+                    layoutAds.layoutDirection = View.LAYOUT_DIRECTION_LTR
+                }
                 unifiedNativeAdView.addView(layoutAds)
                 currentUnifiedNativeAd?.let {
                     populateUnifiedNativeAdView(it, unifiedNativeAdView)

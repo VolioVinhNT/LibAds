@@ -31,6 +31,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
+import com.volio.ads.admob.ads.AdmobAds
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
@@ -780,7 +781,7 @@ class AdsController private constructor(
         return StateLoadAd.NONE
     }
 
-    fun getAdView(spaceName: String): AdView? {
+    fun getAdView(spaceName: String): AdmobAds? {
         val item = hashMapAds[spaceName]
         if (item != null) {
             return admobHolder.getAdView(item)
