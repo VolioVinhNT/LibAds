@@ -501,9 +501,11 @@ class AdsController private constructor(
             override fun onAdClose(adType: String) {
                 adCallback?.onAdClose(adType)
                 adCallbackAll?.onAdClose(adsChild)
-                Handler(Looper.getMainLooper()).postDelayed({
-                    isShowAdsFullScreen = false
-                }, 1000)
+                if (checkAdsNotShowOpenResume(adsChild)) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        isShowAdsFullScreen = false
+                    }, 1000)
+                }
             }
 
             override fun onAdFailToLoad(messageError: String?) {
@@ -517,7 +519,9 @@ class AdsController private constructor(
             override fun onAdFailToShow(messageError: String?) {
                 adCallback?.onAdFailToLoad(messageError)
                 adCallbackAll?.onAdFailToLoad(adsChild, messageError)
-                isShowAdsFullScreen = false
+                if (checkAdsNotShowOpenResume(adsChild)) {
+                    isShowAdsFullScreen = false
+                }
                 showToastDebug(
                     "Fail to show ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds
                 )
