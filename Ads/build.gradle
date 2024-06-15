@@ -72,8 +72,11 @@ dependencies {
     api 'com.google.ads.mediation:vungle:6.12.1.1'
     api 'com.google.ads.mediation:pangle:5.3.0.4.0'
     api 'com.google.ads.mediation:mintegral:16.4.71.0'
-    api 'com.google.ads.mediation:tapjoy:13.1.2.0'
-//    api 'com.google.ads.mediation:fyber:8.2.6.0'
+//    api 'com.google.ads.mediation:tapjoy:13.1.2.0'
+    implementation 'com.google.ads.mediation:fyber:8.2.4.0'
+    implementation("com.google.ads.mediation:ironsource:7.5.0.0")
+    implementation("com.unity3d.ads:unity-ads:4.9.2")
+    implementation("com.google.ads.mediation:unity:4.9.2.0")
 
     implementation 'com.appsflyer:af-android-sdk:6.12.1'
     implementation "com.android.installreferrer:installreferrer:2.2"
