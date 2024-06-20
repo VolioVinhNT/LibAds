@@ -37,6 +37,7 @@ import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
 import com.volio.ads.utils.*
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
+import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP_RESUME
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
 import com.volio.ads.utils.Constant.isDebug
 import com.volio.ads.utils.Utils.showToastDebug
@@ -481,10 +482,10 @@ class AdsController private constructor(
 
     private fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
         when (adsChild.adsType.lowercase()) {
-            AdDef.ADS_TYPE.INTERSTITIAL, AdDef.ADS_TYPE.REWARD_VIDEO,
-
+            AdDef.ADS_TYPE.INTERSTITIAL,
+            AdDef.ADS_TYPE.REWARD_VIDEO,
             AdDef.ADS_TYPE.OPEN_APP,
-
+            OPEN_APP_RESUME,
             AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
                 return true
             }
