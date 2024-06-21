@@ -107,7 +107,11 @@ class AdsController private constructor(
 
             Constant.isDebug = isDebug
             Log.d("dsk3", "isDebug: $isDebug")
-            MobileAds.initialize(application)
+            kotlin.runCatching {
+                MobileAds.initialize(application)
+            }.onFailure {
+                it.printStackTrace()
+            }
             adsController = AdsController(application, appId, packetName, pathJson, isUseAppFlyer)
 
             application.registerActivityLifecycleCallbacks(object :
