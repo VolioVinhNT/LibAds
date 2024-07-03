@@ -3,6 +3,7 @@ package com.volio.ads
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.content.IntentSender
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import com.adcolony.sdk.AdColonyAdViewActivity
@@ -29,6 +31,17 @@ import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.common.IntentSenderForResultStarter
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.get
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.admob.ads.AdmobAds
@@ -37,6 +50,7 @@ import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
 import com.volio.ads.utils.*
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
+import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP_RESUME
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
 import com.volio.ads.utils.Constant.isDebug
@@ -72,6 +86,7 @@ class AdsController private constructor(
     var isTrackAdRevenue = true
     var adCallbackAll: AdCallbackAll? = null
     private var isShowCMP = false
+    private var isShowUpdate = false
 
     companion object {
 
@@ -120,16 +135,15 @@ class AdsController private constructor(
                     setActivity(activity)
                     if (isAutoShowCMP && !adsController.isShowCMP) {
                         adsController.isShowCMP = true
-                        CMPController(activity).showCMP(isDebug,
-                            object : CMPCallback {
-                                override fun onShowAd() {
+                        CMPController(activity).showCMP(isDebug, object : CMPCallback {
+                            override fun onShowAd() {
 
-                                }
+                            }
 
-                                override fun onChangeScreen() {
+                            override fun onChangeScreen() {
 
-                                }
-                            })
+                            }
+                        })
                     }
                 }
 
@@ -486,11 +500,7 @@ class AdsController private constructor(
 
     private fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
         when (adsChild.adsType.lowercase()) {
-            AdDef.ADS_TYPE.INTERSTITIAL,
-            AdDef.ADS_TYPE.REWARD_VIDEO,
-            AdDef.ADS_TYPE.OPEN_APP,
-            OPEN_APP_RESUME,
-            AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
+            AdDef.ADS_TYPE.INTERSTITIAL, AdDef.ADS_TYPE.REWARD_VIDEO, AdDef.ADS_TYPE.OPEN_APP, OPEN_APP_RESUME, AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
                 return true
             }
         }
@@ -512,6 +522,9 @@ class AdsController private constructor(
                         isShowAdsFullScreen = false
                     }, 1000)
                 }
+                if (!isShowUpdate && (adsChild.adsType == INTERSTITIAL || adsChild.adsType == OPEN_APP)) {
+                    checkShowUpdate()
+                }
             }
 
             override fun onAdFailToLoad(messageError: String?) {
@@ -520,6 +533,9 @@ class AdsController private constructor(
                 showToastDebug(
                     "Fail to load ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds
                 )
+                if (!isShowUpdate && (adsChild.adsType == INTERSTITIAL || adsChild.adsType == OPEN_APP)) {
+                    checkShowUpdate()
+                }
             }
 
             override fun onAdFailToShow(messageError: String?) {
@@ -565,6 +581,69 @@ class AdsController private constructor(
             }
         }
     }
+
+    private val UPDATE_REQUEST_CODE = 112
+    public fun checkShowUpdate() {
+        isShowUpdate = true
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        activity?.let {
+            remoteConfig.fetchAndActivate().addOnCompleteListener(it) { task ->
+                if (task.isSuccessful) {
+                    val isForceUpdate = remoteConfig.getBoolean("is_force_update")
+                    if (isForceUpdate) {
+                        Utils.showToastDebug(activity,"isForceUpdate")
+
+                        val appUpdateManager = AppUpdateManagerFactory.create(activity!!)
+                        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+                        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+                            // This example applies an flexible update. To apply a immediate update
+                            // instead, pass in AppUpdateType.IMMEDIATE
+                            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                                // Request the update
+                                Utils.showToastDebug(activity,"UPDATE_AVAILABLE")
+                                try {
+                                    appUpdateManager.startUpdateFlowForResult(
+                                        // Pass the intent that is returned by 'getAppUpdateInfo()'.
+                                        appUpdateInfo,
+                                        // an activity result launcher registered via registerForActivityResult
+                                        updateResultStarter,
+                                        //pass 'AppUpdateType.FLEXIBLE' to newBuilder() for
+                                        // flexible updates.
+                                        //                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
+                                            .build(),
+                                        // Include a request code to later monitor this update request.
+                                        UPDATE_REQUEST_CODE
+                                    )
+                                } catch (_: IntentSender.SendIntentException) {
+                                }
+                            }
+                        }.addOnFailureListener {
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private val updateResultStarter =
+        IntentSenderForResultStarter { intent, _, fillInIntent, flagsMask, flagsValues, _, _ ->
+            val request = IntentSenderRequest.Builder(intent)
+                .setFillInIntent(fillInIntent)
+                .setFlags(flagsValues, flagsMask)
+                .build()
+            // launch updateLauncher
+
+//           val  updateLauncher = activity?.
+
+
+//            updateLauncher.launch(request)
+        }
+
 
     fun preload(spaceName: String, preloadCallback: PreloadCallback? = null) {
         if (!isPremium) {
