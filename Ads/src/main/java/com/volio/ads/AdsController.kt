@@ -787,6 +787,7 @@ class AdsController private constructor(
         if (item != null) {
             return admobHolder.getStatusPreload(item)
         }
+        Log.d("TAGGGGG", "getStatusPreload: NONE")
         return StateLoadAd.NONE
     }
 
