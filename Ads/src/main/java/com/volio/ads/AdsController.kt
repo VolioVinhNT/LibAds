@@ -606,6 +606,7 @@ class AdsController private constructor(
                                 // Request the update
                                 Utils.showToastDebug(activity, "UPDATE_AVAILABLE")
                                 try {
+
                                     appUpdateManager.startUpdateFlow(
                                         appUpdateInfo,
                                         activity!!,
