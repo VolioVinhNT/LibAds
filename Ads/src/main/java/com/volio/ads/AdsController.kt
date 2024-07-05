@@ -595,7 +595,7 @@ class AdsController private constructor(
                 if (task.isSuccessful) {
                     val isForceUpdate = remoteConfig.getBoolean("is_force_update")
                     if (isForceUpdate) {
-                        Utils.showToastDebug(activity,"isForceUpdate")
+                        Utils.showToastDebug(activity, "isForceUpdate")
 
                         val appUpdateManager = AppUpdateManagerFactory.create(activity!!)
                         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
@@ -604,21 +604,43 @@ class AdsController private constructor(
                             // instead, pass in AppUpdateType.IMMEDIATE
                             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                                 // Request the update
-                                Utils.showToastDebug(activity,"UPDATE_AVAILABLE")
+                                Utils.showToastDebug(activity, "UPDATE_AVAILABLE")
                                 try {
-                                    appUpdateManager.startUpdateFlowForResult(
-                                        // Pass the intent that is returned by 'getAppUpdateInfo()'.
+                                    appUpdateManager.startUpdateFlow(
                                         appUpdateInfo,
-                                        // an activity result launcher registered via registerForActivityResult
-                                        updateResultStarter,
-                                        //pass 'AppUpdateType.FLEXIBLE' to newBuilder() for
-                                        // flexible updates.
-                                        //                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+                                        activity!!,
                                         AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
-                                            .build(),
-                                        // Include a request code to later monitor this update request.
-                                        UPDATE_REQUEST_CODE
+                                            .build()
                                     )
+
+
+//                                    appUpdateManager.startUpdateFlowForResult(
+//                                        // Pass the intent that is returned by 'getAppUpdateInfo()'.
+//                                        appUpdateInfo,
+//                                        // an activity result launcher registered via registerForActivityResult
+//                                        updateResultStarter,
+//                                        //pass 'AppUpdateType.FLEXIBLE' to newBuilder() for
+//                                        // flexible updates.
+//                                        //                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+//                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
+//                                            .build(),
+//                                        // Include a request code to later monitor this update request.
+//                                        UPDATE_REQUEST_CODE
+//                                    )
+                                    appUpdateManager.registerListener { state ->
+                                        when (state.installStatus()) {
+                                            InstallStatus.CANCELED -> {
+                                                showToastDebug(activity, "INSTALLED")
+                                            }
+                                            InstallStatus.INSTALLED -> {
+                                                showToastDebug(activity, "INSTALLED")
+                                            }
+                                            InstallStatus.INSTALLING -> {
+                                                showToastDebug(activity, "INSTALLING")
+                                            }
+                                        }
+                                    }
+
                                 } catch (_: IntentSender.SendIntentException) {
                                 }
                             }
@@ -636,6 +658,15 @@ class AdsController private constructor(
                 .setFillInIntent(fillInIntent)
                 .setFlags(flagsValues, flagsMask)
                 .build()
+
+//            val startForResult = activityregisterForActivityResult(
+//                ActivityResultContracts.StartActivityForResult()
+//            ) { result: ActivityResult ->
+//                if (result.resultCode == Activity.RESULT_OK) {
+//                    //  you will get result here in result.data
+//                }
+//            }
+
             // launch updateLauncher
 
 //           val  updateLauncher = activity?.
