@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.IntentSender
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,7 +17,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import com.adcolony.sdk.AdColonyAdViewActivity
@@ -28,18 +29,14 @@ import com.appsflyer.api.Store
 import com.appsflyer.internal.models.InAppPurchaseValidationResult
 import com.appsflyer.internal.models.SubscriptionValidationResult
 import com.google.android.gms.ads.AdActivity
-import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
-import com.google.android.play.core.common.IntentSenderForResultStarter
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.remoteconfig.ktx.get
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.google.gson.Gson
@@ -60,6 +57,22 @@ import com.volio.cmp.CMPController
 import java.io.File
 import java.io.FileReader
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.MutableList
+import kotlin.collections.MutableMap
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.first
+import kotlin.collections.forEach
+import kotlin.collections.hashMapOf
+import kotlin.collections.listOf
+import kotlin.collections.mapOf
+import kotlin.collections.mutableListOf
+import kotlin.collections.set
+import kotlin.collections.sortedBy
+
 
 private const val TAG = "AdsController"
 
@@ -589,30 +602,33 @@ class AdsController private constructor(
             minimumFetchIntervalInSeconds = 0
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
-        activity?.let {
-            remoteConfig.fetchAndActivate().addOnCompleteListener(it) { task ->
+        activity?.let { activity ->
+            remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful) {
-                    val isForceUpdate = remoteConfig.getBoolean("is_force_update")
-                    if (isForceUpdate) {
-//                        Utils.showToastDebug(activity, "isForceUpdate")
-
-                        val appUpdateManager = AppUpdateManagerFactory.create(activity!!)
+                    val versionRemote = remoteConfig.getLong("version_force_update")
+                    var currentCode = 1000
+                    kotlin.runCatching {
+                        val manager = activity.packageManager
+                        val info = manager.getPackageInfo(
+                            activity.packageName, PackageManager.GET_ACTIVITIES
+                        )
+                        currentCode = info.versionCode
+                    }
+                    if (currentCode <= versionRemote) {
+                        val appUpdateManager = AppUpdateManagerFactory.create(activity)
                         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
                         appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
                             // This example applies an flexible update. To apply a immediate update
                             // instead, pass in AppUpdateType.IMMEDIATE
                             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                                 // Request the update
-//                                Utils.showToastDebug(activity, "UPDATE_AVAILABLE")
                                 try {
 
                                     appUpdateManager.startUpdateFlow(
                                         appUpdateInfo,
-                                        activity!!,
-                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
-                                            .build()
+                                        activity,
+                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
                                     )
-
                                     appUpdateManager.registerListener { state ->
                                         when (state.installStatus()) {
                                             InstallStatus.CANCELED -> {
@@ -630,8 +646,8 @@ class AdsController private constructor(
                                 } catch (_: IntentSender.SendIntentException) {
                                 }
                             }
-                        }.addOnFailureListener {
-                        }
+                        }.addOnFailureListener {}
+
                     }
                 }
             }
