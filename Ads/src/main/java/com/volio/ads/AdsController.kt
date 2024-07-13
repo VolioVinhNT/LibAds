@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -582,7 +583,6 @@ class AdsController private constructor(
         }
     }
 
-    private val UPDATE_REQUEST_CODE = 112
     public fun checkShowUpdate() {
         isShowUpdate = true
         val remoteConfig = Firebase.remoteConfig
@@ -590,54 +590,42 @@ class AdsController private constructor(
             minimumFetchIntervalInSeconds = 0
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
-        activity?.let {
-            remoteConfig.fetchAndActivate().addOnCompleteListener(it) { task ->
+        activity?.let { activity ->
+            remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful) {
-                    val isForceUpdate = remoteConfig.getBoolean("is_force_update")
-                    if (isForceUpdate) {
-                        Utils.showToastDebug(activity, "isForceUpdate")
-
-                        val appUpdateManager = AppUpdateManagerFactory.create(activity!!)
+                    val versionRemote = remoteConfig.getLong("version_force_update")
+                    var currentCode = 1000
+                    kotlin.runCatching {
+                        val manager = activity.packageManager
+                        val info = manager.getPackageInfo(
+                            activity.packageName, PackageManager.GET_ACTIVITIES
+                        )
+                        currentCode = info.versionCode
+                    }
+                    if (currentCode <= versionRemote) {
+                        val appUpdateManager = AppUpdateManagerFactory.create(activity)
                         val appUpdateInfoTask = appUpdateManager.appUpdateInfo
                         appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
                             // This example applies an flexible update. To apply a immediate update
                             // instead, pass in AppUpdateType.IMMEDIATE
                             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                                 // Request the update
-                                Utils.showToastDebug(activity, "UPDATE_AVAILABLE")
                                 try {
-
                                     appUpdateManager.startUpdateFlow(
                                         appUpdateInfo,
-                                        activity!!,
-                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
-                                            .build()
+                                        activity,
+                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
                                     )
-
-
-//                                    appUpdateManager.startUpdateFlowForResult(
-//                                        // Pass the intent that is returned by 'getAppUpdateInfo()'.
-//                                        appUpdateInfo,
-//                                        // an activity result launcher registered via registerForActivityResult
-//                                        updateResultStarter,
-//                                        //pass 'AppUpdateType.FLEXIBLE' to newBuilder() for
-//                                        // flexible updates.
-//                                        //                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
-//                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
-//                                            .build(),
-//                                        // Include a request code to later monitor this update request.
-//                                        UPDATE_REQUEST_CODE
-//                                    )
                                     appUpdateManager.registerListener { state ->
                                         when (state.installStatus()) {
                                             InstallStatus.CANCELED -> {
-                                                showToastDebug(activity, "INSTALLED")
+//                                                showToastDebug(activity, "INSTALLED")
                                             }
                                             InstallStatus.INSTALLED -> {
-                                                showToastDebug(activity, "INSTALLED")
+//                                                showToastDebug(activity, "INSTALLED")
                                             }
                                             InstallStatus.INSTALLING -> {
-                                                showToastDebug(activity, "INSTALLING")
+//                                                showToastDebug(activity, "INSTALLING")
                                             }
                                         }
                                     }
@@ -645,8 +633,8 @@ class AdsController private constructor(
                                 } catch (_: IntentSender.SendIntentException) {
                                 }
                             }
-                        }.addOnFailureListener {
-                        }
+                        }.addOnFailureListener {}
+
                     }
                 }
             }
