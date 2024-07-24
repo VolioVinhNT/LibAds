@@ -634,13 +634,30 @@ class AdsController private constructor(
                             // instead, pass in AppUpdateType.IMMEDIATE
                             if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                                 // Request the update
+                                Utils.showToastDebug(activity, "UPDATE_AVAILABLE")
                                 try {
 
                                     appUpdateManager.startUpdateFlow(
                                         appUpdateInfo,
-                                        activity,
-                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                                        activity!!,
+                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
+                                            .build()
                                     )
+
+
+//                                    appUpdateManager.startUpdateFlowForResult(
+//                                        // Pass the intent that is returned by 'getAppUpdateInfo()'.
+//                                        appUpdateInfo,
+//                                        // an activity result launcher registered via registerForActivityResult
+//                                        updateResultStarter,
+//                                        //pass 'AppUpdateType.FLEXIBLE' to newBuilder() for
+//                                        // flexible updates.
+//                                        //                        AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build(),
+//                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
+//                                            .build(),
+//                                        // Include a request code to later monitor this update request.
+//                                        UPDATE_REQUEST_CODE
+//                                    )
                                     appUpdateManager.registerListener { state ->
                                         when (state.installStatus()) {
                                             InstallStatus.CANCELED -> {
