@@ -3,9 +3,11 @@ package com.volio.ads
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.app.Application.getProcessName
 import android.content.IntentSender
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +16,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -134,7 +137,13 @@ class AdsController private constructor(
             }
 
             Constant.isDebug = isDebug
-            Log.d("dsk3", "isDebug: $isDebug")
+            // Fix crash
+            runCatching {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val process = getProcessName()
+                    if (application.packageName != process) WebView.setDataDirectorySuffix(process)
+                }
+            }
             kotlin.runCatching {
                 MobileAds.initialize(application)
             }.onFailure {
@@ -485,11 +494,14 @@ class AdsController private constructor(
         admobHolder.clearAllAd()
     }
 
-    fun preloadAdsResume() {
+    fun preloadAdsResume(spaceName: String? = null) {
         if (!isPremium) {
             activity?.let {
                 val runnable = Runnable {
                     isAutoShowAdsResume = true
+                    if (spaceName != null) {
+                        adsOpenResume = hashMapAds[spaceName]
+                    }
                     adsOpenResume?.let { adsChild ->
                         if (!adsChild.status) {
                             return@Runnable
@@ -634,9 +646,11 @@ class AdsController private constructor(
                                             InstallStatus.CANCELED -> {
 //                                                showToastDebug(activity, "INSTALLED")
                                             }
+
                                             InstallStatus.INSTALLED -> {
 //                                                showToastDebug(activity, "INSTALLED")
                                             }
+
                                             InstallStatus.INSTALLING -> {
 //                                                showToastDebug(activity, "INSTALLING")
                                             }
