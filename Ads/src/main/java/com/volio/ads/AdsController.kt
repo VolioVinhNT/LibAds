@@ -3,6 +3,8 @@ package com.volio.ads
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -29,6 +31,14 @@ import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.admob.ads.AdmobAds
@@ -37,6 +47,7 @@ import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
 import com.volio.ads.utils.*
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
+import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP_RESUME
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
 import com.volio.ads.utils.Constant.isDebug
@@ -67,6 +78,7 @@ class AdsController private constructor(
     private var lastTimeShowOpenAds: Long = 0L
     private var isWaitCMP: Boolean = true
     private var listRunnable: MutableList<Runnable> = mutableListOf()
+    private var isShowUpdate = false
 
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
@@ -94,7 +106,7 @@ class AdsController private constructor(
             isAutoShowCMP: Boolean = true
         ) {
             fun checkAdActivity(activity: Activity): Boolean {
-                return activity is AdActivity || activity is com.vungle.warren.AdActivity || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
+                return activity is AdActivity  || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
             }
 
             fun setActivity(activity: Activity) {
@@ -512,6 +524,9 @@ class AdsController private constructor(
                         isShowAdsFullScreen = false
                     }, 1000)
                 }
+                if (!isShowUpdate && (adsChild.adsType == INTERSTITIAL || adsChild.adsType == OPEN_APP)) {
+                    checkShowUpdate()
+                }
             }
 
             override fun onAdFailToLoad(messageError: String?) {
@@ -520,6 +535,9 @@ class AdsController private constructor(
                 showToastDebug(
                     "Fail to load ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds
                 )
+                if (!isShowUpdate && (adsChild.adsType == INTERSTITIAL || adsChild.adsType == OPEN_APP)) {
+                    checkShowUpdate()
+                }
             }
 
             override fun onAdFailToShow(messageError: String?) {
@@ -531,6 +549,9 @@ class AdsController private constructor(
                 showToastDebug(
                     "Fail to show ${adsChild.adsType} ${adsChild.spaceName}", adsChild.adsIds
                 )
+                if (!isShowUpdate && (adsChild.adsType == INTERSTITIAL || adsChild.adsType == OPEN_APP)) {
+                    checkShowUpdate()
+                }
             }
 
             override fun onAdOff() {
@@ -777,6 +798,69 @@ class AdsController private constructor(
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    public fun checkShowUpdate() {
+        isShowUpdate = true
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 0
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        activity?.let { activity ->
+            remoteConfig.fetchAndActivate().addOnCompleteListener(activity) { task ->
+                if (task.isSuccessful) {
+                    val versionRemote = remoteConfig.getLong("version_force_update")
+                    var currentCode = 1000
+                    kotlin.runCatching {
+                        val manager = activity.packageManager
+                        val info = manager.getPackageInfo(
+                            activity.packageName, PackageManager.GET_ACTIVITIES
+                        )
+                        currentCode = info.versionCode
+                    }
+                    if (currentCode <= versionRemote) {
+                        val appUpdateManager = AppUpdateManagerFactory.create(activity)
+                        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+                        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+                            // This example applies an flexible update. To apply a immediate update
+                            // instead, pass in AppUpdateType.IMMEDIATE
+                            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                                // Request the update
+                                Utils.showToastDebug(activity, "UPDATE_AVAILABLE")
+                                try {
+
+                                    appUpdateManager.startUpdateFlow(
+                                        appUpdateInfo,
+                                        activity!!,
+                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
+                                            .build()
+                                    )
+                                    appUpdateManager.registerListener { state ->
+                                        when (state.installStatus()) {
+                                            InstallStatus.CANCELED -> {
+//                                                showToastDebug(activity, "INSTALLED")
+                                            }
+
+                                            InstallStatus.INSTALLED -> {
+//                                                showToastDebug(activity, "INSTALLED")
+                                            }
+
+                                            InstallStatus.INSTALLING -> {
+//                                                showToastDebug(activity, "INSTALLING")
+                                            }
+                                        }
+                                    }
+
+                                } catch (_: IntentSender.SendIntentException) {
+                                }
+                            }
+                        }.addOnFailureListener {}
+
+                    }
+                }
             }
         }
     }
