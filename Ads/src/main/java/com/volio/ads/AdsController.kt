@@ -97,6 +97,7 @@ class AdsController private constructor(
         var adActivity: Activity? = null
 
         fun init(
+            isUseBeta : Boolean,
             application: Application,
             isDebug: Boolean,
             appId: String,
