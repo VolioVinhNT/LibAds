@@ -15,10 +15,16 @@ object AppFlyerUtils {
 
 
     var keyAppFlyer = "4Ti9yuyaVb6BJMoy25gWUP"
+    var isUseTiktokRoas = false
 
     fun logAdRevenue(bundle: Bundle) {
         if (!AdsController.checkInit()) return
         val value = bundle.getString("revenue_micros", "0").toInt() / 1000000.0
+        if (isUseTiktokRoas){
+            AppsFlyerLib.getInstance().logEvent(
+                AdsController.activity, "ad_roas_tiktok", mapOf<String, Double>("af_revenue" to value)
+            )
+        }
         //ad source name
         val customParams: MutableMap<String, String> = HashMap()
         customParams[Scheme.AD_UNIT] = bundle.getString("ad_unit_id", "")
