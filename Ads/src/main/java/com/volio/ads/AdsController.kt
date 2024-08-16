@@ -237,6 +237,7 @@ class AdsController private constructor(
     }
 
     public fun initAppFlyer(application: Application) {
+        isUseAppflyer = true
         val afRevenueBuilder = AppsFlyerAdRevenue.Builder(application)
         AppsFlyerAdRevenue.initialize(afRevenueBuilder.build())
         AppsFlyerLib.getInstance()
