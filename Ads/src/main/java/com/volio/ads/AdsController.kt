@@ -26,7 +26,6 @@ import com.appsflyer.api.Store
 import com.appsflyer.internal.models.InAppPurchaseValidationResult
 import com.appsflyer.internal.models.SubscriptionValidationResult
 import com.google.android.gms.ads.AdActivity
-import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.RequestConfiguration
 import com.google.gson.Gson
@@ -35,17 +34,20 @@ import com.volio.ads.admob.ads.AdmobAds
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
-import com.volio.ads.utils.*
+import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP_RESUME
+import com.volio.ads.utils.AppFlyerUtils
+import com.volio.ads.utils.Constant
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
 import com.volio.ads.utils.Constant.isDebug
+import com.volio.ads.utils.StateLoadAd
+import com.volio.ads.utils.Utils
 import com.volio.ads.utils.Utils.showToastDebug
 import com.volio.cmp.CMPCallback
 import com.volio.cmp.CMPController
 import java.io.File
 import java.io.FileReader
-import java.util.*
 
 private const val TAG = "AdsController"
 
@@ -393,6 +395,7 @@ class AdsController private constructor(
             if (checkAppIdPacket(ads)) {
                 hashMapAds.clear()
                 ads.listAdsChild.forEach {
+                    Log.d("ssssssssssssssasdad", it.toString())
                     if (it.adsType.lowercase() == AdDef.ADS_TYPE.OPEN_APP_RESUME) {
                         adsOpenResume = it
                     }
@@ -570,6 +573,8 @@ class AdsController private constructor(
         if (!isPremium) {
             activity?.let {
                 val runnable = Runnable {
+                    Log.e("ssssssssssssssssssa", hashMapAds[spaceName].toString())
+
                     hashMapAds[spaceName]?.let { ads ->
                         if (!ads.status) {
                             preloadCallback?.onLoadFail()
