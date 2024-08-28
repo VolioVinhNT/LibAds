@@ -49,6 +49,7 @@ import com.volio.ads.utils.*
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP_RESUME
+import com.volio.ads.utils.AppFlyerUtils.isEnableTiktokEvent
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
 import com.volio.ads.utils.Constant.isDebug
 import com.volio.ads.utils.Utils.showToastDebug
@@ -331,6 +332,10 @@ class AdsController private constructor(
         afPurchaseClient.startObservingTransactions()
 
 
+    }
+
+    fun enableTiktokEvent(isEnable: Boolean) {
+        isEnableTiktokEvent = isEnable
     }
 
     fun getDebugMode() = Constant.isDebug
