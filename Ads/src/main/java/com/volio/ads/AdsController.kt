@@ -54,6 +54,7 @@ import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP_RESUME
 import com.volio.ads.utils.AppFlyerUtils.isEnableTiktokEvent
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
+import com.volio.ads.utils.Constant.ERROR_NO_SPACE_NAME
 import com.volio.ads.utils.Constant.isDebug
 import com.volio.ads.utils.Utils.showToastDebug
 import com.volio.cmp.CMPCallback
@@ -392,18 +393,7 @@ class AdsController private constructor(
             val data = Utils.getStringAssetFile(
                 pathJson, application
             )
-            val ads = if (getJsonCache().exists()) {
-                try {
-                    val fileReader = FileReader(getJsonCache())
-                    val json = gson.fromJson(fileReader, Ads::class.java)
-                    fileReader.close()
-                    json
-                } catch (e: Exception) {
-                    gson.fromJson(data, Ads::class.java)
-                }
-            } else {
-                gson.fromJson(data, Ads::class.java)
-            }
+            val ads = gson.fromJson(data, Ads::class.java)
             if (checkAppIdPacket(ads)) {
                 ads.listAdsChild.forEach {
                     if (it.adsType.lowercase() == AdDef.ADS_TYPE.OPEN_APP_RESUME) {
@@ -422,13 +412,6 @@ class AdsController private constructor(
     }
 
     fun setAdData(adJson: String) {
-        kotlin.runCatching {
-            if (adJson.isNotEmpty()) {
-                getJsonCache().writeText(adJson)
-            }
-        }.onFailure {
-            it.printStackTrace()
-        }
         kotlin.runCatching {
             val ads = gson.fromJson(adJson, Ads::class.java)
             if (checkAppIdPacket(ads)) {
@@ -793,6 +776,8 @@ class AdsController private constructor(
                         )
                         if (!status) isShowAdsFullScreen = false
                     }
+                } ?: run {
+                    adCallback?.onAdFailToLoad(ERROR_NO_SPACE_NAME)
                 }
             }
             if (isWaitCMP) {
@@ -841,6 +826,8 @@ class AdsController private constructor(
                             timeMillisecond,
                             getAdCallback(ads, adCallback)
                         )
+                    } ?: run {
+                        adCallback?.onAdFailToLoad(ERROR_NO_SPACE_NAME)
                     }
                 }
             }

@@ -20,4 +20,6 @@ object Constant {
 
     const val ERROR_AD_OFF = "ERROR_AD_OFF"
 
+    const val ERROR_NO_SPACE_NAME = "ERROR_NO_SPACE_NAME"
+
 }
