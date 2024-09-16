@@ -1,0 +1,6 @@
+<resources>
+    <string name="ad_attribution">โฆษณา</string>
+    <string name="ad_Loading">กำลังโหลดโฆษณา…</string>
+    <string name="loading_consent_form">กำลังโหลดแบบฟอร์มยินยอม</string>
+    <string name="please_wait_a_moment">กรุณารอสักครู่</string>
+</resources>
