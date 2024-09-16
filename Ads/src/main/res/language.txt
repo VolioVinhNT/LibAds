@@ -1,0 +1,8 @@
+de
+es
+fr
+hi
+it
+pt
+th
+tr
