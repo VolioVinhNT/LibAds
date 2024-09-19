@@ -2,10 +2,15 @@ package com.volio.cmp
 
 import android.app.Activity
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.volio.ads.AdsController
+import com.volio.cmp.GDPRUtils.canShowAds
 
 class CMPController constructor(private var activity: Activity) {
 
@@ -13,31 +18,104 @@ class CMPController constructor(private var activity: Activity) {
         return GDPRUtils.isGDPR(activity)
     }
 
-    fun showCMP(isTesting: Boolean, titleDialog: String? = null, desDialog: String? = null) {
-        val dialog = DialogLoadingForm(activity, titleDialog, desDialog)
-        dialog.show()
+    var isUserConsent = true
+        private set
+
+    val canShowAd: Boolean
+        get() = canShowAds(activity)
+
+    fun showCMP(activity: AppCompatActivity, isTesting: Boolean = false, onDone: () -> Unit) {
+
+//        if (!isGDPR()) {
+//            isUserConsent = true
+//            onDone.invoke()
+//            return
+//        }
+
+        val debugSettings = ConsentDebugSettings.Builder(activity)
+            .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+            .addTestDeviceHashedId(Utils.getDeviceID(activity)).build()
+
+        val params = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
+            .setConsentDebugSettings(if (isTesting) debugSettings else null).build()
+
         val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
-        if (consentInformation.isConsentFormAvailable) {
-            UserMessagingPlatform.loadConsentForm(activity,
-                {
-                    dialog.dismiss()
+
+        consentInformation.requestConsentInfoUpdate(activity, params, {
+
+            val canRequestAds = canShowAds(activity)
+
+            if (canRequestAds) {
+                isUserConsent = true
+                onDone.invoke()
+            } else {
+                UserMessagingPlatform.loadConsentForm(activity, {
                     it.show(activity) {
+                        if (canShowAd) {
+                            isUserConsent = true
+                            onDone.invoke()
+                        } else {
+                            isUserConsent = false
+                            onDone.invoke()
+                        }
                     }
                 }, {
-                    dialog.dismiss()
+                    onDone.invoke()
                 })
+            }
+        }, { _ ->
+            onDone.invoke()
+        })
+    }
 
-        } else {
-            showCMP(isTesting, cmpCallback = object : CMPCallback {
-                override fun onShowAd() {
-                    dialog.dismiss()
+    fun showCMP(activity: AppCompatActivity, isTesting: Boolean) {
+        val loading = DialogLoadingForm(activity)
+        activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                super.onDestroy(owner)
+                if (loading.isShowing) {
+                    loading.dismiss()
                 }
+            }
+        })
 
-                override fun onChangeScreen() {
-                    dialog.dismiss()
+        loading.show()
+
+        val debugSettings = ConsentDebugSettings.Builder(activity)
+            .setDebugGeography(ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA)
+            .addTestDeviceHashedId(Utils.getDeviceID(activity)).build()
+
+        val params = ConsentRequestParameters.Builder().setTagForUnderAgeOfConsent(false)
+            .setConsentDebugSettings(if (isTesting) debugSettings else null).build()
+
+        val consentInformation = UserMessagingPlatform.getConsentInformation(activity)
+
+        consentInformation.requestConsentInfoUpdate(activity, params, {
+
+            UserMessagingPlatform.loadConsentForm(activity, {
+                it.show(activity) {
+                    if (canShowAd) {
+                        isUserConsent = true
+                        if (activity.lifecycle.currentState == Lifecycle.State.RESUMED && loading.isShowing) {
+                            loading.dismiss()
+                        }
+                    } else {
+                        isUserConsent = false
+                        if (activity.lifecycle.currentState == Lifecycle.State.RESUMED && loading.isShowing) {
+                            loading.dismiss()
+                        }
+                    }
+                }
+            }, {
+                if (activity.lifecycle.currentState == Lifecycle.State.RESUMED && loading.isShowing) {
+                    loading.dismiss()
                 }
             })
-        }
+        }, { _ ->
+            if (activity.lifecycle.currentState == Lifecycle.State.RESUMED && loading.isShowing) {
+                loading.dismiss()
+            }
+        })
 
     }
 
@@ -61,7 +139,7 @@ class CMPController constructor(private var activity: Activity) {
                 val canrequest = consentInformation.canRequestAds()
                 if (canRequestAds) {
                     Log.d("dsk6", "c: ")
-                    GDPRUtils.isUserConsent = true
+                    isUserConsent = true
                     cmpCallback.onShowAd()
                     AdsController.getInstance().cmpComplete()
                 } else {
@@ -70,12 +148,12 @@ class CMPController constructor(private var activity: Activity) {
                         it.show(activity) {
                             val canRequestAds = GDPRUtils.canShowAds(activity)
                             if (canRequestAds) {
-                                GDPRUtils.isUserConsent = true
+                                isUserConsent = true
                                 cmpCallback.onShowAd()
                                 AdsController.getInstance().cmpComplete()
 //                            showAd()
                             } else {
-                                GDPRUtils.isUserConsent = false
+                                isUserConsent = false
                                 cmpCallback.onChangeScreen()
                                 AdsController.getInstance().cmpComplete()
 //                            changeScreen()

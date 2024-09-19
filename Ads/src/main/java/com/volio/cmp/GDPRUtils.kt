@@ -5,13 +5,11 @@ import androidx.preference.PreferenceManager
 
 object GDPRUtils {
 
-
-    var isUserConsent = true
     var isShowCMP = false
 
     fun isGDPR(applicationContext: Context): Boolean {
         val prefs = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-        val gdpr = prefs.getInt("IABTCF_gdprApplies", 0)
+        val gdpr = prefs.getInt("IABTCF_gdprApplies", 1)
         return gdpr == 1
     }
 

@@ -1,5 +1,6 @@
 package com.volio.cmp;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.provider.Settings;
@@ -10,29 +11,29 @@ import java.security.NoSuchAlgorithmException;
 
 public class Utils {
 
-    public static String getDeviceID(Activity application){
-        String android_id = Settings.Secure.getString(application.getContentResolver(), Settings.Secure.ANDROID_ID);
-        String deviceId = md5(android_id).toUpperCase();
-        return deviceId;
+    public static String getDeviceID(Activity application) {
+        @SuppressLint("HardwareIds") String android_id = Settings.Secure.getString(application.getContentResolver(), Settings.Secure.ANDROID_ID);
+        return md5(android_id).toUpperCase();
     }
 
-    public static final String md5(final String s) {
+    public static String md5(final String s) {
         try {
             // Create MD5 Hash
             MessageDigest digest = MessageDigest.getInstance("MD5");
             digest.update(s.getBytes());
-            byte messageDigest[] = digest.digest();
+            byte[] messageDigest = digest.digest();
 
             // Create Hex String
-            StringBuffer hexString = new StringBuffer();
+            StringBuilder hexString = new StringBuilder();
             for (int i = 0; i < messageDigest.length; i++) {
-                String h = Integer.toHexString(0xFF & messageDigest[i]);
-                while (h.length() < 2) h = "0" + h;
+                StringBuilder h = new StringBuilder(Integer.toHexString(0xFF & messageDigest[i]));
+                while (h.length() < 2) h.insert(0, "0");
                 hexString.append(h);
             }
             return hexString.toString();
 
         } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
         return "";
     }
