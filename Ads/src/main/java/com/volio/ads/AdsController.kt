@@ -55,6 +55,9 @@ import com.volio.ads.utils.Constant.isDebug
 import com.volio.ads.utils.Utils.showToastDebug
 import com.volio.cmp.CMPCallback
 import com.volio.cmp.CMPController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileReader
 import java.util.*
@@ -120,9 +123,10 @@ class AdsController private constructor(
             }
 
             Constant.isDebug = isDebug
-            Log.d("dsk3", "isDebug: $isDebug")
             kotlin.runCatching {
-                MobileAds.initialize(application)
+                CoroutineScope(Dispatchers.IO).launch {
+                    MobileAds.initialize(application)
+                }
             }.onFailure {
                 it.printStackTrace()
             }
