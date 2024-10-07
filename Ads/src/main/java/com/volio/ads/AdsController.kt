@@ -46,8 +46,12 @@ import com.volio.ads.utils.Utils
 import com.volio.ads.utils.Utils.showToastDebug
 import com.volio.cmp.CMPCallback
 import com.volio.cmp.CMPController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileReader
+import java.lang.Thread
 
 private const val TAG = "AdsController"
 
@@ -109,11 +113,14 @@ class AdsController private constructor(
 
             Constant.isDebug = isDebug
             Log.d("dsk3", "isDebug: $isDebug")
-            kotlin.runCatching {
-                MobileAds.initialize(application)
-            }.onFailure {
-                it.printStackTrace()
+            CoroutineScope(Dispatchers.IO).launch {
+                kotlin.runCatching {
+                    MobileAds.initialize(application)
+                }.onFailure {
+                    it.printStackTrace()
+                }
             }
+
             adsController = AdsController(application, appId, packetName, pathJson, isUseAppFlyer)
 
             application.registerActivityLifecycleCallbacks(object :
