@@ -5,7 +5,7 @@ plugins {
 
 android {
     compileSdkVersion 34
-
+    namespace 'com.volio.ads'
     defaultConfig {
         minSdkVersion 24
         targetSdkVersion 34
