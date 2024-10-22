@@ -14,6 +14,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.annotation.IntegerRes
+import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import com.adcolony.sdk.AdColonyAdViewActivity
@@ -31,6 +33,7 @@ import com.google.android.gms.ads.RequestConfiguration
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.admob.ads.AdmobAds
+import com.volio.ads.admob.ads.AdmobNativeCollapsible
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
@@ -112,15 +115,13 @@ class AdsController private constructor(
             }
 
             Constant.isDebug = isDebug
-            Log.d("dsk3", "isDebug: $isDebug")
-            CoroutineScope(Dispatchers.IO).launch {
-                kotlin.runCatching {
+            kotlin.runCatching {
+                CoroutineScope(Dispatchers.IO).launch {
                     MobileAds.initialize(application)
-                }.onFailure {
-                    it.printStackTrace()
                 }
+            }.onFailure {
+                it.printStackTrace()
             }
-
             adsController = AdsController(application, appId, packetName, pathJson, isUseAppFlyer)
 
             application.registerActivityLifecycleCallbacks(object :
@@ -402,7 +403,6 @@ class AdsController private constructor(
             if (checkAppIdPacket(ads)) {
                 hashMapAds.clear()
                 ads.listAdsChild.forEach {
-                    Log.d("ssssssssssssssasdad", it.toString())
                     if (it.adsType.lowercase() == AdDef.ADS_TYPE.OPEN_APP_RESUME) {
                         adsOpenResume = it
                     }
@@ -580,8 +580,6 @@ class AdsController private constructor(
         if (!isPremium) {
             activity?.let {
                 val runnable = Runnable {
-                    Log.e("ssssssssssssssssssa", hashMapAds[spaceName].toString())
-
                     hashMapAds[spaceName]?.let { ads ->
                         if (!ads.status) {
                             preloadCallback?.onLoadFail()
@@ -726,6 +724,52 @@ class AdsController private constructor(
                             layoutAds,
                             lifecycle,
                             timeMillisecond,
+                            getAdCallback(ads, adCallback)
+                        )
+                    }
+                }
+            }
+            if (isWaitCMP) {
+                listRunnable.add(runnable)
+            } else {
+                runnable.run()
+            }
+        } else {
+            adCallback?.onAdFailToLoad("premium")
+        }
+    }
+
+    fun loadAndShowNativeCollapsible(
+        spaceName: String,
+        layout: ViewGroup,
+        layoutAdsSmall: View,
+        @LayoutRes idLayoutAdsLarge: Int? = null,
+        lifecycle: Lifecycle? = null,
+        adCallback: AdCallback? = null
+    ) {
+        if (!isPremium) {
+            val runnable = Runnable {
+                activity?.let {
+                    hashMapAds[spaceName]?.let { ads ->
+                        if (!ads.status) {
+                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+                            return@Runnable
+                        }
+
+
+                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+                            showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+                        }
+                        AdmobNativeCollapsible.idLayoutLarge = idLayoutAdsLarge  ?: R.layout.native_ads_large_collap
+                        admobHolder.loadAndShow(
+                            it,
+                            false,
+                            ads,
+                            null,
+                            layout,
+                            layoutAdsSmall,
+                            lifecycle,
+                            null,
                             getAdCallback(ads, adCallback)
                         )
                     }

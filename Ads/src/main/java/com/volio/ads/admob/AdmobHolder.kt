@@ -15,6 +15,7 @@ import com.volio.ads.admob.ads.AdmobBanner
 import com.volio.ads.admob.ads.AdmobCollapsibleBanner
 import com.volio.ads.admob.ads.AdmobInterstitial
 import com.volio.ads.admob.ads.AdmobNative
+import com.volio.ads.admob.ads.AdmobNativeCollapsible
 import com.volio.ads.admob.ads.AdmobOpenAds
 import com.volio.ads.admob.ads.AdmobOpenAdsResume
 import com.volio.ads.admob.ads.AdmobReward
@@ -28,6 +29,7 @@ private const val TAG = "AdmobHolder"
 
 class AdmobHolder {
     private var hashMap: HashMap<String, AdmobAds> = HashMap()
+
 
     fun loadAndShow(
         activity: Activity,
@@ -75,6 +77,9 @@ class AdmobHolder {
 
         }
         when (adsChild.adsType.lowercase()) {
+            AdDef.ADS_TYPE.NATIVE_COLLAPSIBLE -> {
+                ads = AdmobNativeCollapsible()
+            }
             AdDef.ADS_TYPE.NATIVE -> {
                 ads = AdmobNative()
             }
@@ -272,6 +277,9 @@ class AdmobHolder {
             AdDef.ADS_TYPE.OPEN_APP_RESUME -> {
                 ads = AdmobOpenAdsResume()
             }
+            AdDef.ADS_TYPE.NATIVE_COLLAPSIBLE -> {
+                ads = AdmobNativeCollapsible()
+            }
 
             else -> {
                 Utils.showToastDebug(
@@ -317,6 +325,7 @@ class AdmobHolder {
             ) {
                 val checkShow = when (adsChild.adsType.lowercase()) {
                     AdDef.ADS_TYPE.NATIVE,
+                    AdDef.ADS_TYPE.NATIVE_COLLAPSIBLE,
                     AdDef.ADS_TYPE.BANNER,
                     AdDef.ADS_TYPE.BANNER_ADAPTIVE,
                     AdDef.ADS_TYPE.BANNER_COLLAPSIBLE,
