@@ -16,6 +16,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.annotation.IntegerRes
+import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import com.adcolony.sdk.AdColonyAdViewActivity
@@ -42,6 +44,7 @@ import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.admob.ads.AdmobAds
+import com.volio.ads.admob.ads.AdmobNativeCollapsible
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
@@ -101,7 +104,7 @@ class AdsController private constructor(
         var adActivity: Activity? = null
 
         fun init(
-            isUseBeta : Boolean,
+            isUseBeta: Boolean,
             application: Application,
             isDebug: Boolean,
             appId: String,
@@ -111,7 +114,7 @@ class AdsController private constructor(
             isAutoShowCMP: Boolean = true
         ) {
             fun checkAdActivity(activity: Activity): Boolean {
-                return activity is AdActivity  || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
+                return activity is AdActivity || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
             }
 
             fun setActivity(activity: Activity) {
@@ -138,16 +141,15 @@ class AdsController private constructor(
                     setActivity(activity)
                     if (isAutoShowCMP && !adsController.isShowCMP) {
                         adsController.isShowCMP = true
-                        CMPController(activity).showCMP(isDebug,
-                            object : CMPCallback {
-                                override fun onShowAd() {
+                        CMPController(activity).showCMP(isDebug, object : CMPCallback {
+                            override fun onShowAd() {
 
-                                }
+                            }
 
-                                override fun onChangeScreen() {
+                            override fun onChangeScreen() {
 
-                                }
-                            })
+                            }
+                        })
                     }
                 }
 
@@ -508,11 +510,7 @@ class AdsController private constructor(
 
     private fun checkAdsNotShowOpenResume(adsChild: AdsChild): Boolean {
         when (adsChild.adsType.lowercase()) {
-            AdDef.ADS_TYPE.INTERSTITIAL,
-            AdDef.ADS_TYPE.REWARD_VIDEO,
-            AdDef.ADS_TYPE.OPEN_APP,
-            OPEN_APP_RESUME,
-            AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
+            AdDef.ADS_TYPE.INTERSTITIAL, AdDef.ADS_TYPE.REWARD_VIDEO, AdDef.ADS_TYPE.OPEN_APP, OPEN_APP_RESUME, AdDef.ADS_TYPE.REWARD_INTERSTITIAL -> {
                 return true
             }
         }
@@ -760,6 +758,52 @@ class AdsController private constructor(
         }
     }
 
+    fun loadAndShowNativeCollapsible(
+        spaceName: String,
+        layout: ViewGroup,
+        layoutAdsSmall: View,
+        @LayoutRes idLayoutAdsLarge: Int? = null,
+        lifecycle: Lifecycle? = null,
+        adCallback: AdCallback? = null
+    ) {
+        if (!isPremium) {
+            val runnable = Runnable {
+                activity?.let {
+                    hashMapAds[spaceName]?.let { ads ->
+                        if (!ads.status) {
+                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+                            return@Runnable
+                        }
+
+
+                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+                            showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+                        }
+                        AdmobNativeCollapsible.idLayoutLarge = idLayoutAdsLarge  ?: R.layout.native_ads_large_collap
+                        admobHolder.loadAndShow(
+                            it,
+                            false,
+                            ads,
+                            null,
+                            layout,
+                            layoutAdsSmall,
+                            lifecycle,
+                            null,
+                            getAdCallback(ads, adCallback)
+                        )
+                    }
+                }
+            }
+            if (isWaitCMP) {
+                listRunnable.add(runnable)
+            } else {
+                runnable.run()
+            }
+        } else {
+            adCallback?.onAdFailToLoad("premium")
+        }
+    }
+
 
     private fun showToastDebug(title: String, list: List<AdsId>) {
         if (Constant.isDebug || Constant.isShowToastDebug) {
@@ -845,8 +889,7 @@ class AdsController private constructor(
                                     appUpdateManager.startUpdateFlow(
                                         appUpdateInfo,
                                         activity!!,
-                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE)
-                                            .build()
+                                        AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
                                     )
                                     appUpdateManager.registerListener { state ->
                                         when (state.installStatus()) {

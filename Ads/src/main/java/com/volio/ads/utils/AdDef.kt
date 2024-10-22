@@ -18,6 +18,7 @@ class AdDef {
             var BANNER = "banner"
             var BANNER_ADAPTIVE = "banner_adaptive"
             var BANNER_COLLAPSIBLE = "banner_collapsible"
+            var NATIVE_COLLAPSIBLE = "native_collapsible"
             var BANNER_COLLAPSIBLE_TOP = "banner_collapsible_top"
             var BANNER_INLINE = "banner_inline"
             var REWARD_VIDEO = "reward_video"
