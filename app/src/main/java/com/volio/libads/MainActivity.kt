@@ -17,5 +17,14 @@ class MainActivity : AppCompatActivity() {
 //            lifecycle = lifecycle
 //        )
 //        AdsController.getInstance().loadAndShow("test",layout = findViewById(R.id.layout_ads),lifecycle = lifecycle)
+        if (!AdsController.checkInit()) {
+            AdsController.init(
+                application = application,
+                isDebug = BuildConfig.DEBUG,
+                appId = "ca-app-pub-3940256099942544~3347511713",
+                packetName = BuildConfig.APPLICATION_ID,
+                pathJson = "fan_id.json",
+            )
+        }
     }
 }
