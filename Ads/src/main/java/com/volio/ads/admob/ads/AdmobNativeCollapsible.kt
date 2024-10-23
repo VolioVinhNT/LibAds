@@ -159,22 +159,6 @@ class AdmobNativeCollapsible : AdmobAds() {
 
     }
 
-//    public fun loadAndShow(
-//        activity: Activity,
-//        idAds: String,
-//        layout: ViewGroup?,
-//        layoutAdsSmall: View?,
-//        layoutAdsLarge: View?,
-//        lifecycle: Lifecycle?,
-//        adCallback: AdCallback?
-//    ){
-//
-//        load(activity, idAds, adCallback, loadSuccess = {
-//            show(activity, idAds, null, layout, layoutAds, lifecycle, adCallback)
-//        })
-//    }
-//
-
 
     override fun loadAndShow(
         activity: Activity,
@@ -329,17 +313,25 @@ class AdmobNativeCollapsible : AdmobAds() {
                     )
                     popupWindow.animationStyle = R.style.NoAnimation
                     popupWindow.showAsDropDown(layout, 0, -layoutAdsLarge.minimumHeight)
+
+                    // show native small under large native
+                    val unifiedNativeAdViewSmall = NativeAdView(activity)
+                    unifiedNativeAdViewSmall.layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    val layoutAdSmall: View = layoutAds
+                            ?: LayoutInflater.from(activity)
+                                .inflate(R.layout.native_ads_medium_cta_up_shadow, null, false)
+                    unifiedNativeAdViewSmall.addView(layoutAdSmall)
+                    currentUnifiedNativeAd?.let {
+                        populateUnifiedNativeAdView(it, unifiedNativeAdViewSmall)
+                        layout.removeAllViews()
+                        layout.addView(unifiedNativeAdViewSmall)
+                    }
                     val btnClose = layoutAdsLarge.findViewById<View?>(R.id.btnCloseNative)
                     btnClose?.setOnClickListener {
                         popupWindow.dismiss()
-                        unifiedNativeAdView.removeAllViews()
-                        unifiedNativeAdView.addView(layoutAds)
-                        currentUnifiedNativeAd?.let {
-                            populateUnifiedNativeAdView(it, unifiedNativeAdView)
-                            layout.removeAllViews()
-                            layout.addView(unifiedNativeAdView)
-                        }
-
                     }
                     lifecycle?.addObserver(object : LifecycleEventObserver {
                         override fun onStateChanged(
@@ -350,9 +342,6 @@ class AdmobNativeCollapsible : AdmobAds() {
                             }
                         }
                     })
-
-//                    layout.removeAllViews()
-//                    layout.addView(unifiedNativeAdView)
 
 
                     try {
