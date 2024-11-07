@@ -761,7 +761,7 @@ class AdsController private constructor(
     fun loadAndShowNativeCollapsible(
         spaceName: String,
         layout: ViewGroup,
-        layoutAdsSmall: View,
+        layoutAdsSmall: View? ,
         @LayoutRes idLayoutAdsLarge: Int? = null,
         lifecycle: Lifecycle? = null,
         adCallback: AdCallback? = null

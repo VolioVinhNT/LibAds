@@ -1,29 +1,29 @@
 package com.volio.ads.admob.ads
 
-import android.app.ActionBar.LayoutParams
 import android.app.Activity
 import android.os.Bundle
-import android.util.LayoutDirection
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.PopupWindow
 import android.widget.RatingBar
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import com.google.android.gms.ads.*
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdLoader
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.VideoOptions
 import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
-
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.google.android.gms.ads.nativead.NativeAdView
-
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.R
@@ -31,7 +31,8 @@ import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.Constant
 import com.volio.ads.utils.StateLoadAd
 import com.volio.ads.utils.Utils
-import java.util.*
+import com.volio.ads.utils.Utils.showToastDebug
+import java.util.Date
 
 class AdmobNativeCollapsible : AdmobAds() {
     var currentUnifiedNativeAd: NativeAd? = null
@@ -158,22 +159,6 @@ class AdmobNativeCollapsible : AdmobAds() {
         adView.setNativeAd(nativeAd)
 
     }
-
-//    public fun loadAndShow(
-//        activity: Activity,
-//        idAds: String,
-//        layout: ViewGroup?,
-//        layoutAdsSmall: View?,
-//        layoutAdsLarge: View?,
-//        lifecycle: Lifecycle?,
-//        adCallback: AdCallback?
-//    ){
-//
-//        load(activity, idAds, adCallback, loadSuccess = {
-//            show(activity, idAds, null, layout, layoutAds, lifecycle, adCallback)
-//        })
-//    }
-//
 
 
     override fun loadAndShow(
@@ -322,37 +307,86 @@ class AdmobNativeCollapsible : AdmobAds() {
                 unifiedNativeAdView.addView(layoutAdsLarge)
                 currentUnifiedNativeAd?.let {
                     populateUnifiedNativeAdView(it, unifiedNativeAdView)
-                    val popupWindow = PopupWindow(
-                        unifiedNativeAdView,
-                        LayoutParams.MATCH_PARENT,
-                        LayoutParams.WRAP_CONTENT
+                    unifiedNativeAdView.id = R.id.nativeCollapsibleId
+                    val parent = layout.parent
+                    if (parent is ViewGroup) {
+                        parent.findViewById<View>(R.id.nativeCollapsibleId)?.let { ad ->
+                            parent.removeView(ad)
+                        }
+                        when (parent) {
+                            is ConstraintLayout -> {
+                                val layoutParams = ConstraintLayout.LayoutParams(
+                                    ConstraintLayout.LayoutParams.MATCH_CONSTRAINT,
+                                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+                                )
+                                layoutParams.bottomToBottom = layout.id
+                                layoutParams.startToStart = layout.id
+                                layoutParams.endToEnd = layout.id
+                                unifiedNativeAdView.elevation = 10f
+                                parent.addView(unifiedNativeAdView, layoutParams)
+                            }
+
+                            is FrameLayout -> {
+                                val groupLayoutParam =
+                                    layout.layoutParams as FrameLayout.LayoutParams
+                                val layoutParams = FrameLayout.LayoutParams(
+                                    groupLayoutParam.width,
+                                    FrameLayout.LayoutParams.WRAP_CONTENT
+                                )
+                                layoutParams.gravity = groupLayoutParam.gravity
+                                layoutParams.leftMargin = groupLayoutParam.leftMargin
+                                layoutParams.rightMargin = groupLayoutParam.rightMargin
+                                layoutParams.topMargin = groupLayoutParam.topMargin
+                                layoutParams.bottomMargin = groupLayoutParam.bottomMargin
+                                unifiedNativeAdView.elevation = 10f
+                                parent.addView(unifiedNativeAdView, layoutParams)
+                            }
+
+                            else -> {
+                                showToastDebug(
+                                    activity,
+                                    "Không hỗ trợ LayoutGroup ${parent::class.java.name}, chỉ hỗ trợ ConstraintLayout và FrameLayout"
+                                )
+                            }
+                        }
+                    }
+
+                    // show native small under large native
+                    val unifiedNativeAdViewSmall = NativeAdView(activity)
+                    unifiedNativeAdViewSmall.layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    popupWindow.animationStyle = R.style.NoAnimation
-                    popupWindow.showAsDropDown(layout, 0, -layoutAdsLarge.minimumHeight)
+                    val layoutAdSmall: View = layoutAds
+                        ?: LayoutInflater.from(activity)
+                            .inflate(R.layout.native_ads_medium_cta_up_shadow, null, false)
+                    unifiedNativeAdViewSmall.addView(layoutAdSmall)
+                    currentUnifiedNativeAd?.let {
+                        populateUnifiedNativeAdView(it, unifiedNativeAdViewSmall)
+                        layout.removeAllViews()
+                        layout.addView(unifiedNativeAdViewSmall)
+                    }
                     val btnClose = layoutAdsLarge.findViewById<View?>(R.id.btnCloseNative)
                     btnClose?.setOnClickListener {
-                        popupWindow.dismiss()
-                        unifiedNativeAdView.removeAllViews()
-                        unifiedNativeAdView.addView(layoutAds)
-                        currentUnifiedNativeAd?.let {
-                            populateUnifiedNativeAdView(it, unifiedNativeAdView)
-                            layout.removeAllViews()
-                            layout.addView(unifiedNativeAdView)
+                        val parentGroup = layout.parent
+                        if (parentGroup is ViewGroup) {
+                            parentGroup.removeView(unifiedNativeAdView)
                         }
-
                     }
                     lifecycle?.addObserver(object : LifecycleEventObserver {
                         override fun onStateChanged(
                             source: LifecycleOwner, event: Lifecycle.Event
                         ) {
-                            if (event == Lifecycle.Event.ON_DESTROY) {
-                                popupWindow.dismiss()
+                            kotlin.runCatching {
+                                if (event == Lifecycle.Event.ON_DESTROY) {
+                                    val parentGroup = layout.parent
+                                    if (parentGroup is ViewGroup) {
+                                        parentGroup.removeView(unifiedNativeAdView)
+                                    }
+                                }
                             }
                         }
                     })
-
-//                    layout.removeAllViews()
-//                    layout.addView(unifiedNativeAdView)
 
 
                     try {
