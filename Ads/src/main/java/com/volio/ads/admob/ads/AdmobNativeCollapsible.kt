@@ -2,6 +2,8 @@ package com.volio.ads.admob.ads
 
 import android.app.Activity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -86,7 +88,7 @@ class AdmobNativeCollapsible : AdmobAds() {
         adView.advertiserView = adView.findViewById(R.id.ad_advertiser)
 
         // The headline and media content are guaranteed to be in every UnifiedNativeAd.
-        (adView.headlineView as TextView).text = nativeAd.headline
+        (adView.headlineView as TextView?)?.text = nativeAd.headline
         if (adView.mediaView != null && nativeAd.mediaContent != null) {
             adView.mediaView!!.setMediaContent(nativeAd.mediaContent!!)
         }
@@ -94,10 +96,10 @@ class AdmobNativeCollapsible : AdmobAds() {
         // These assets aren't guaranteed to be in every UnifiedNativeAd, so it's important to
         // check before trying to display them.
         if (nativeAd.body == null) {
-            adView.bodyView!!.visibility = View.INVISIBLE
+            adView.bodyView?.visibility = View.INVISIBLE
         } else {
-            adView.bodyView!!.visibility = View.VISIBLE
-            (adView.bodyView as TextView).text = nativeAd.body
+            adView.bodyView?.visibility = View.VISIBLE
+            (adView.bodyView as TextView?)?.text = nativeAd.body
         }
         if (adView.callToActionView != null) {
             if (adView.callToActionView != null) {
@@ -360,7 +362,13 @@ class AdmobNativeCollapsible : AdmobAds() {
                     val layoutAdSmall: View = layoutAds
                         ?: LayoutInflater.from(activity)
                             .inflate(R.layout.native_ads_medium_cta_up_shadow, null, false)
-                    unifiedNativeAdViewSmall.addView(layoutAdSmall)
+
+                    unifiedNativeAdViewSmall.removeAllViews()
+                    (layoutAdSmall.parent as ViewGroup?)?.removeAllViews()
+                    try {
+                        unifiedNativeAdViewSmall.addView(layoutAdSmall)
+                    } catch (e: Exception) {
+                    }
                     currentUnifiedNativeAd?.let {
                         populateUnifiedNativeAdView(it, unifiedNativeAdViewSmall)
                         layout.removeAllViews()
@@ -371,6 +379,23 @@ class AdmobNativeCollapsible : AdmobAds() {
                         val parentGroup = layout.parent
                         if (parentGroup is ViewGroup) {
                             parentGroup.removeView(unifiedNativeAdView)
+                        }
+                        if (reloadSeconds > 0) {
+                            // reload lai native
+                            load(activity, idAds, adCallback) {}
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                if (currentUnifiedNativeAd != null) {
+                                    show(
+                                        activity,
+                                        idAds,
+                                        loadingText,
+                                        layout,
+                                        layoutAds,
+                                        lifecycle,
+                                        adCallback
+                                    )
+                                }
+                            }, reloadSeconds * 1000L)
                         }
                     }
                     lifecycle?.addObserver(object : LifecycleEventObserver {
@@ -435,6 +460,7 @@ class AdmobNativeCollapsible : AdmobAds() {
 
     companion object {
         var idLayoutLarge: Int = R.layout.native_ads_large_collap
+        var reloadSeconds: Int = 0
     }
 
 }

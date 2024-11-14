@@ -763,6 +763,7 @@ class AdsController private constructor(
         layout: ViewGroup,
         layoutAdsSmall: View? ,
         @LayoutRes idLayoutAdsLarge: Int? = null,
+        reloadSeconds : Int = 0,
         lifecycle: Lifecycle? = null,
         adCallback: AdCallback? = null
     ) {
@@ -780,6 +781,7 @@ class AdsController private constructor(
                             showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
                         }
                         AdmobNativeCollapsible.idLayoutLarge = idLayoutAdsLarge  ?: R.layout.native_ads_large_collap
+                        AdmobNativeCollapsible.reloadSeconds = reloadSeconds
                         admobHolder.loadAndShow(
                             it,
                             false,
