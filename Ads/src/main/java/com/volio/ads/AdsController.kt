@@ -335,7 +335,9 @@ class AdsController private constructor(
             .build()
 
         // Start the SDK instance to observe transactions.
-        afPurchaseClient.startObservingTransactions()
+        CoroutineScope(Dispatchers.IO).launch {
+            afPurchaseClient.startObservingTransactions()
+        }
 
 
     }
