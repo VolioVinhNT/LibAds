@@ -17,6 +17,7 @@ import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 
 import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.google.android.gms.ads.nativead.NativeAdOptions.ADCHOICES_TOP_LEFT
 import com.google.android.gms.ads.nativead.NativeAdView
 
 import com.volio.ads.AdCallback
@@ -220,6 +221,7 @@ class AdmobNative : AdmobAds() {
             .build()
         val adOptions = NativeAdOptions.Builder()
             .setVideoOptions(videoOptions)
+            .setAdChoicesPlacement(ADCHOICES_TOP_LEFT)
             .build()
         builder.withNativeAdOptions(adOptions)
         val adLoader = builder.withAdListener(object : AdListener() {
