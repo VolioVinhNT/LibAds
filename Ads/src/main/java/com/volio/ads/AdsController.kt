@@ -27,6 +27,7 @@ import com.appsflyer.api.PurchaseClient
 import com.appsflyer.api.Store
 import com.appsflyer.internal.models.InAppPurchaseValidationResult
 import com.appsflyer.internal.models.SubscriptionValidationResult
+import com.facebook.ads.AudienceNetworkAds
 import com.google.android.gms.ads.AdActivity
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
@@ -127,6 +128,7 @@ class AdsController private constructor(
             kotlin.runCatching {
                 CoroutineScope(Dispatchers.IO).launch {
                     MobileAds.initialize(application)
+                    AudienceNetworkAds.initialize(application)
                 }
             }.onFailure {
                 it.printStackTrace()
@@ -366,7 +368,9 @@ class AdsController private constructor(
     init {
         AudienceNetworkInitializeHelper.initialize(application)
         if (isUseAppflyer) {
-            initAppFlyer(application)
+            CoroutineScope(Dispatchers.Default).launch {
+                initAppFlyer(application)
+            }
         }
         readDataJson()
     }

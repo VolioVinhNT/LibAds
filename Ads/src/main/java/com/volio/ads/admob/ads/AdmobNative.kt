@@ -221,7 +221,6 @@ class AdmobNative : AdmobAds() {
             .build()
         val adOptions = NativeAdOptions.Builder()
             .setVideoOptions(videoOptions)
-            .setAdChoicesPlacement(ADCHOICES_TOP_LEFT)
             .build()
         builder.withNativeAdOptions(adOptions)
         val adLoader = builder.withAdListener(object : AdListener() {
