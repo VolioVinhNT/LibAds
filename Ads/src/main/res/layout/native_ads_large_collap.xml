@@ -6,7 +6,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="@dimen/_360sdp"
-    android:background="@color/tt_white"
+    android:background="#fff"
     android:minHeight="@dimen/_360sdp"
     app:layout_constraintTop_toTopOf="parent">
 
@@ -40,7 +40,7 @@
         android:gravity="center"
         android:padding="@dimen/_3sdp"
         android:text="Ad"
-        android:textColor="@color/tt_white"
+        android:textColor="#fff"
         android:textSize="@dimen/_10ssp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/ad_icon_container" />
@@ -113,7 +113,7 @@
         android:paddingVertical="@dimen/_8sdp"
         android:text="Open"
         android:textAllCaps="true"
-        android:textColor="@color/tt_white"
+        android:textColor="#fff"
         android:textSize="@dimen/_18ssp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

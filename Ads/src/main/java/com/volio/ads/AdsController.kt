@@ -20,8 +20,6 @@ import androidx.annotation.IntegerRes
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
-import com.adcolony.sdk.AdColonyAdViewActivity
-import com.adcolony.sdk.AdColonyInterstitialActivity
 import com.appsflyer.AppsFlyerConversionListener
 import com.appsflyer.AppsFlyerLib
 import com.appsflyer.adrevenue.AppsFlyerAdRevenue
@@ -114,7 +112,7 @@ class AdsController private constructor(
             isAutoShowCMP: Boolean = true
         ) {
             fun checkAdActivity(activity: Activity): Boolean {
-                return activity is AdActivity || activity is AdColonyInterstitialActivity || activity is AdColonyAdViewActivity
+                return activity is AdActivity
             }
 
             fun setActivity(activity: Activity) {
