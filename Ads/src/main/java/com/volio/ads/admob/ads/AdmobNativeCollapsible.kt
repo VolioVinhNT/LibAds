@@ -382,18 +382,45 @@ class AdmobNativeCollapsible : AdmobAds() {
                         }
                         if (reloadSeconds > 0) {
                             // reload lai native
-                            load(activity, idAds, adCallback) {}
+                            if (lifecycle != null) {
+                                load(activity, idAds, adCallback) {}
+                            }
                             Handler(Looper.getMainLooper()).postDelayed({
                                 if (currentUnifiedNativeAd != null) {
-                                    show(
-                                        activity,
-                                        idAds,
-                                        loadingText,
-                                        layout,
-                                        layoutAds,
-                                        lifecycle,
-                                        adCallback
-                                    )
+                                    if (lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                        show(
+                                            activity,
+                                            idAds,
+                                            loadingText,
+                                            layout,
+                                            layoutAds,
+                                            lifecycle,
+                                            adCallback
+                                        )
+                                    } else if (lifecycle?.currentState != Lifecycle.State.DESTROYED) {
+                                        lifecycle?.addObserver(object : LifecycleEventObserver {
+                                            override fun onStateChanged(
+                                                source: LifecycleOwner,
+                                                event: Lifecycle.Event
+                                            ) {
+                                                if (event == Lifecycle.Event.ON_RESUME) {
+                                                    show(
+                                                        activity,
+                                                        idAds,
+                                                        loadingText,
+                                                        layout,
+                                                        layoutAds,
+                                                        lifecycle,
+                                                        adCallback
+                                                    )
+                                                }
+                                                if (event == Lifecycle.Event.ON_RESUME || event == Lifecycle.Event.ON_DESTROY) {
+                                                    lifecycle.removeObserver(this)
+                                                }
+                                            }
+
+                                        })
+                                    }
                                 }
                             }, reloadSeconds * 1000L)
                         }
