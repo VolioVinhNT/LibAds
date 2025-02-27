@@ -1,3 +1,37 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+
+        google()
+        mavenCentral()
+        jcenter()
+        maven { url "https://jitpack.io" }
+        maven { url "https://chaquo.com/maven" }
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+
+        google()
+        mavenCentral()
+        jcenter()
+        maven { url "https://jitpack.io" }
+        maven {
+            url 'https://artifact.bytedance.com/repository/pangle/'
+        }
+        maven {
+            url 'https://dl-maven-android.mintegral.com/repository/mbridge_android_sdk_oversea'
+        }
+        maven {
+            url "https://sdk.tapjoy.com/"
+        }
+        maven { url "https://chaquo.com/maven" }
+    }
+}
+
 include ':Ads'
 include ':app'
 rootProject.name = "LibAds"

@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
-import com.google.android.gms.ads.AdView
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.admob.ads.AdmobAdaptiveBanner
@@ -15,7 +14,6 @@ import com.volio.ads.admob.ads.AdmobBanner
 import com.volio.ads.admob.ads.AdmobCollapsibleBanner
 import com.volio.ads.admob.ads.AdmobInterstitial
 import com.volio.ads.admob.ads.AdmobNative
-import com.volio.ads.admob.ads.AdmobNativeCollapsible
 import com.volio.ads.admob.ads.AdmobOpenAds
 import com.volio.ads.admob.ads.AdmobOpenAdsResume
 import com.volio.ads.admob.ads.AdmobReward
@@ -76,10 +74,11 @@ class AdmobHolder {
             Log.d(TAG, "loadAndShow: ${it.toString()}")
 
         }
+        Log.d(TAG, "loadAndShow: ${adsChild.adsType}")
         when (adsChild.adsType.lowercase()) {
-            AdDef.ADS_TYPE.NATIVE_COLLAPSIBLE -> {
-                ads = AdmobNativeCollapsible()
-            }
+//            AdDef.ADS_TYPE.NATIVE_COLLAPSIBLE -> {
+//                ads = AdmobNativeCollapsible()
+//            }
             AdDef.ADS_TYPE.NATIVE -> {
                 ads = AdmobNative()
             }
@@ -277,9 +276,9 @@ class AdmobHolder {
             AdDef.ADS_TYPE.OPEN_APP_RESUME -> {
                 ads = AdmobOpenAdsResume()
             }
-            AdDef.ADS_TYPE.NATIVE_COLLAPSIBLE -> {
-                ads = AdmobNativeCollapsible()
-            }
+//            AdDef.ADS_TYPE.NATIVE_COLLAPSIBLE -> {
+//                ads = AdmobNativeCollapsible()
+//            }
 
             else -> {
                 Utils.showToastDebug(
@@ -418,7 +417,7 @@ class AdmobHolder {
 
         Log.e(
             TAG,
-            "showLoadedAd waiting: ${adsLoading != null} ${adsLoading?.isDestroy() != true} ${
+            "showLoadedAd waiting:${adsChild.adsType} ${adsLoading != null} ${adsLoading?.isDestroy() != true} ${
                 adsLoading?.wasLoadTimeLessThanNHoursAgo(1) == true
             }",
         )

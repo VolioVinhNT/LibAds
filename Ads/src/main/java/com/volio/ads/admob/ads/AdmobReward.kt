@@ -10,15 +10,25 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import com.google.android.gms.ads.*
-import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.google.android.libraries.ads.mobile.sdk.common.AdActivity
+import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
+import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
+import com.google.android.libraries.ads.mobile.sdk.common.AdValue
+import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError
+import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
+import com.google.android.libraries.ads.mobile.sdk.rewarded.OnUserEarnedRewardListener
+import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAd
+import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdEventCallback
 import com.volio.ads.AdCallback
 import com.volio.ads.AdsController
 import com.volio.ads.PreloadCallback
 import com.volio.ads.StateADCallback
-import com.volio.ads.utils.*
-import java.util.*
+import com.volio.ads.utils.AdDef
+import com.volio.ads.utils.AdDialog
+import com.volio.ads.utils.Constant
+import com.volio.ads.utils.StateLoadAd
+import com.volio.ads.utils.Utils
+import java.util.Date
 
 class AdmobReward : AdmobAds() {
     private var error: String? = null
@@ -34,7 +44,7 @@ class AdmobReward : AdmobAds() {
     private var callback: AdCallback? = null
     private val TAG = "AdmobReward"
     private var currentActivity: Activity? = null
-    private var lifecycle:Lifecycle? = null
+    private var lifecycle: Lifecycle? = null
     private var stateLoadAd = StateLoadAd.NONE
     private var callbackPreload: PreloadCallback? = null
 
@@ -44,7 +54,7 @@ class AdmobReward : AdmobAds() {
         error = null
     }
 
-    public fun setStateAdCallback(stateADCallback: StateADCallback?){
+    public fun setStateAdCallback(stateADCallback: StateADCallback?) {
         stateADCallback?.onState(stateLoadAd)
     }
 
@@ -61,7 +71,14 @@ class AdmobReward : AdmobAds() {
         callback = adCallback
         preload = false
         this.currentActivity = activity
-        load(activity, idAds, textLoading, lifecycle, timeMillisecond?:Constant.TIME_OUT_DEFAULT, adCallback)
+        load(
+            activity,
+            idAds,
+            textLoading,
+            lifecycle,
+            timeMillisecond ?: Constant.TIME_OUT_DEFAULT,
+            adCallback
+        )
     }
 
     override fun preload(activity: Activity, idAds: String) {
@@ -80,10 +97,10 @@ class AdmobReward : AdmobAds() {
     ): Boolean {
         this.currentActivity = activity
         this.callback = adCallback
-        AdDialog.getInstance().showLoadingWithMessage(activity,loadingText)
+        AdDialog.getInstance().showLoadingWithMessage(activity, loadingText)
         if (loaded && rewardedAd != null) {
             stateLoadAd = StateLoadAd.NONE
-            rewardedAd?.show(activity,rewardedAdLoadCallback)
+            rewardedAd?.show(activity, rewardedAdLoadCallback)
             return true
         }
         return false
@@ -93,13 +110,14 @@ class AdmobReward : AdmobAds() {
     private val timeOutCallBack = Runnable {
         if (!loaded && !loadFailed) {
             isTimeOut = true
-            if (eventLifecycle == Lifecycle.Event.ON_RESUME){
+            if (eventLifecycle == Lifecycle.Event.ON_RESUME) {
                 stateLoadAd = StateLoadAd.FAILED
                 callback?.onAdFailToLoad("TimeOut")
                 lifecycle?.removeObserver(lifecycleObserver)
             }
         }
     }
+
     private fun load(
         activity: Activity,
         idAds: String,
@@ -117,7 +135,7 @@ class AdmobReward : AdmobAds() {
         if (!preload) {
             lifecycle?.addObserver(lifecycleObserver)
             handler.removeCallbacks(timeOutCallBack)
-            handler.postDelayed(timeOutCallBack,timeOut)
+            handler.postDelayed(timeOutCallBack, timeOut)
         }
         resetValue()
         callback = adCallback
@@ -127,123 +145,130 @@ class AdmobReward : AdmobAds() {
             "Admob ReWard id: $idAds"
         )
         val id = if (Constant.isDebug) Constant.ID_ADMOB_REWARD_TEST else idAds
-        val rewardedAdLoadCallback = object : RewardedAdLoadCallback() {
-            override fun onAdLoaded(p0: RewardedAd) {
-                Log.d(TAG, "onAdLoaded: ")
-                stateLoadAd = StateLoadAd.SUCCESS
-                rewardedAd = p0
-                rewardedAd?.setOnPaidEventListener {
-                    kotlin.runCatching {
-                        val params = Bundle()
-                        params.putString("revenue_micros", it.valueMicros.toString())
-                        params.putString("precision_type", it.precisionType.toString())
-                        params.putString("ad_unit_id", p0.adUnitId)
-                        val adapterResponseInfo = p0.responseInfo.loadedAdapterResponseInfo
-                        adapterResponseInfo?.let { it ->
-                            params.putString("ad_source_id", it.adSourceId)
-                            params.putString("ad_source_name", it.adSourceName)
-                        }
-                        callback?.onPaidEvent(params)
-                    }
-                }
-                rewardedAd?.fullScreenContentCallback =
-                    object : FullScreenContentCallback() {
-
+        RewardedAd.load(
+            AdRequest.Builder(id).build(),
+            object : AdLoadCallback<RewardedAd> {
+                override fun onAdLoaded(ad: RewardedAd) {
+                    // Rewarded ad loaded.
+                    rewardedAd = ad
+                    ad.adEventCallback = object : RewardedAdEventCallback {
                         override fun onAdImpression() {
                             super.onAdImpression()
-                            adCallback?.onAdImpression(AdDef.ADS_TYPE.REWARD_VIDEO)
+                            handle.post {
+                                callback?.onAdImpression(AdDef.ADS_TYPE.REWARD_VIDEO)
+                            }
                         }
 
                         override fun onAdDismissedFullScreenContent() {
                             super.onAdDismissedFullScreenContent()
-                            Log.d(TAG, "onAdDismissedFullScreenContent: ")
-                            callback?.onAdClose(AdDef.ADS_TYPE.INTERSTITIAL)
-                            rewardedAd = null
-                            stateLoadAd = StateLoadAd.NONE
-                            //// perform your code that you wants to do after ad dismissed or closed
+                            handle.post {
+                                callback?.onAdClose(AdDef.ADS_TYPE.REWARD_VIDEO)
+                                rewardedAd = null
+                            }
                         }
 
-                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                            super.onAdFailedToShowFullScreenContent(adError)
-                            Log.d(TAG, "onAdFailedToShowFullScreenContent: ")
-                            rewardedAd = null
-                            loadFailed = true
-                            error = adError.message
-                            if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload) {
-                                AdDialog.getInstance().hideLoading()
-                                callback?.onAdFailToLoad(adError.message)
-                                lifecycle?.removeObserver(lifecycleObserver)
+                        override fun onAdFailedToShowFullScreenContent(fullScreenContentError: FullScreenContentError) {
+                            super.onAdFailedToShowFullScreenContent(fullScreenContentError)
+                            handle.post {
+                                Log.d(
+                                    TAG,
+                                    "onAdFailedToShowFullScreenContent: $fullScreenContentError"
+                                )
+                                rewardedAd = null
+                                loadFailed = true
+                                error = fullScreenContentError.message
+                                callback?.onAdFailToShow(fullScreenContentError.message)
+                                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
+                                    AdDialog.getInstance().hideLoading()
+                                    callback?.onAdFailToLoad(fullScreenContentError.message)
+                                    lifecycle?.removeObserver(lifecycleObserver)
+                                }
                             }
-                            /// perform your action here when ad will not load
                         }
 
                         override fun onAdShowedFullScreenContent() {
                             super.onAdShowedFullScreenContent()
-                            Log.d(TAG, "onAdShowedFullScreenContent: ${callback==null}")
-                            callback!!.onRewardShow(
-                                AdDef.NETWORK.GOOGLE,
-                                AdDef.ADS_TYPE.INTERSTITIAL
-                            )
-                            Log.d(TAG, "onAdShowedFullScreenContent: ")
-                            rewardedAd = null
-                            AdDialog.getInstance().hideLoading()
-                            stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
-
+                            handle.post {
+                                Log.d(TAG, "onAdShowedFullScreenContent: ")
+                                rewardedAd = null
+                                stateLoadAd = StateLoadAd.HAS_BEEN_OPENED
+                                AdDialog.getInstance().hideLoading()
+                                Utils.showToastDebug(
+                                    activity, "Admob Interstitial id: $idAds"
+                                )
+                                callback?.onAdShow(
+                                    AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.REWARD_VIDEO
+                                )
+                            }
                         }
-
 
                         override fun onAdClicked() {
                             super.onAdClicked()
-                            if (AdsController.adActivity != null && AdsController.adActivity is AdActivity) {
-                                AdsController.adActivity?.finish()
+                            handle.post {
+                                if (AdsController.activity != null && AdsController.activity is AdActivity) {
+                                    AdsController.activity?.finish()
+                                }
+                                callback?.onAdClick()
                             }
-                            callback?.onAdClick()
                         }
 
+                        override fun onAdPaid(value: AdValue) {
+                            super.onAdPaid(value)
+                            handle.post {
+                                val params = Bundle()
+                                params.putString("revenue_micros", value.valueMicros.toString())
+                                params.putString("precision_type", value.precisionType.toString())
+                                params.putString("ad_unit_id", idAds)
+                                callback?.onPaidEvent(params)
+                            }
+                        }
                     }
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload &&!isTimeOut) {
-                    Handler(Looper.getMainLooper()).postDelayed(Runnable {
-                        AdDialog.getInstance().hideLoading()
-                    }, 500)
-                    currentActivity?.let { rewardedAd?.show(it,rewardedAdLoadCallback) }
-                    lifecycle?.removeObserver(lifecycleObserver)
-                }
-                loaded = true
-                timeLoader = Date().time
-                Log.d(TAG, "onAdLoaded: ")
-                callbackPreload?.onLoadDone()
-            }
 
-            override fun onAdFailedToLoad(p0: LoadAdError) {
-                super.onAdFailedToLoad(p0)
-                stateLoadAd = StateLoadAd.FAILED
-                loadFailed = true
-                error = p0.message
-                if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload&&!isTimeOut) {
-                    AdDialog.getInstance().hideLoading()
-                    callback?.onAdFailToLoad(p0.message)
-                    lifecycle?.removeObserver(lifecycleObserver)
+                    if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
+                        Handler(Looper.getMainLooper()).postDelayed(Runnable {
+                            AdDialog.getInstance().hideLoading()
+                        }, 500)
+                        currentActivity?.let { rewardedAd?.show(it, rewardedAdLoadCallback) }
+                        lifecycle?.removeObserver(lifecycleObserver)
+                    }
+                    loaded = true
+                    timeLoader = Date().time
+                    Log.d(TAG, "onAdLoaded: ")
+                    callbackPreload?.onLoadDone()
                 }
-                callbackPreload?.onLoadFail()
-            }
-        }
-        RewardedAd.load(activity,id,AdRequest.Builder()
-//            .setHttpTimeoutMillis(timeOut.toInt())
-            .build(),rewardedAdLoadCallback)
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    // Rewarded ad failed to load.
+                    rewardedAd = null
+                    handle.post {
+                        stateLoadAd = StateLoadAd.FAILED
+                        loadFailed = true
+                        error = adError.message
+                        if (eventLifecycle == Lifecycle.Event.ON_RESUME && !preload && !isTimeOut) {
+                            AdDialog.getInstance().hideLoading()
+                            callback?.onAdFailToLoad(adError.message)
+                            lifecycle?.removeObserver(lifecycleObserver)
+                        }
+                        callbackPreload?.onLoadFail()
+                    }
+                }
+            },
+        )
 
     }
+
     private val rewardedAdLoadCallback = OnUserEarnedRewardListener {
         callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.REWARD_VIDEO)
 //        Utils.showToastDebug(currentActivity, "Admob Interstitial id: ${adsChild?.adsId}")
     }
 
 
-    private val lifecycleObserver = object :LifecycleEventObserver {
+    private val lifecycleObserver = object : LifecycleEventObserver {
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
             eventLifecycle = event
             if (event == Lifecycle.Event.ON_RESUME) {
                 AdDialog.getInstance().hideLoading()
-                if (isTimeOut){
+                if (isTimeOut) {
                     stateLoadAd = StateLoadAd.FAILED
                     AdDialog.getInstance().hideLoading()
                     callback?.onAdFailToLoad("TimeOut")
@@ -251,7 +276,7 @@ class AdmobReward : AdmobAds() {
                 } else if (loadFailed || loaded) {
                     AdDialog.getInstance().hideLoading()
                     if (loaded) {
-                        currentActivity?.let { rewardedAd?.show(it,rewardedAdLoadCallback) }
+                        currentActivity?.let { rewardedAd?.show(it, rewardedAdLoadCallback) }
                     } else {
                         callback?.onAdFailToLoad(error)
                         stateLoadAd = StateLoadAd.FAILED

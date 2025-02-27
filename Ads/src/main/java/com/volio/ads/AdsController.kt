@@ -16,7 +16,6 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.annotation.IntegerRes
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -28,10 +27,9 @@ import com.appsflyer.api.Store
 import com.appsflyer.internal.models.InAppPurchaseValidationResult
 import com.appsflyer.internal.models.SubscriptionValidationResult
 import com.facebook.ads.AudienceNetworkAds
-import com.google.android.gms.ads.AdActivity
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
-import com.google.android.gms.ads.RequestConfiguration
+import com.google.android.libraries.ads.mobile.sdk.MobileAds
+import com.google.android.libraries.ads.mobile.sdk.common.AdActivity
+import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
@@ -43,17 +41,19 @@ import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.admob.ads.AdmobAds
-import com.volio.ads.admob.ads.AdmobNativeCollapsible
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
-import com.volio.ads.utils.*
+import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.INTERSTITIAL
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP
 import com.volio.ads.utils.AdDef.ADS_TYPE.Companion.OPEN_APP_RESUME
+import com.volio.ads.utils.AppFlyerUtils
 import com.volio.ads.utils.AppFlyerUtils.isEnableTiktokEvent
+import com.volio.ads.utils.Constant
 import com.volio.ads.utils.Constant.ERROR_AD_OFF
-import com.volio.ads.utils.Constant.isDebug
+import com.volio.ads.utils.StateLoadAd
+import com.volio.ads.utils.Utils
 import com.volio.ads.utils.Utils.showToastDebug
 import com.volio.cmp.CMPCallback
 import com.volio.cmp.CMPController
@@ -62,7 +62,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileReader
-import java.util.*
 
 private const val TAG = "AdsController"
 
@@ -85,6 +84,7 @@ class AdsController private constructor(
     private var isWaitCMP: Boolean = true
     private var listRunnable: MutableList<Runnable> = mutableListOf()
     private var isShowUpdate = false
+    private var isInitAdsSuccess = false
 
     var isPremium: Boolean = false
     var isTrackAdRevenue = true
@@ -125,14 +125,6 @@ class AdsController private constructor(
             }
 
             Constant.isDebug = isDebug
-            kotlin.runCatching {
-                CoroutineScope(Dispatchers.IO).launch {
-                    MobileAds.initialize(application)
-                    AudienceNetworkAds.initialize(application)
-                }
-            }.onFailure {
-                it.printStackTrace()
-            }
             adsController = AdsController(application, appId, packetName, pathJson, isUseAppFlyer)
 
             application.registerActivityLifecycleCallbacks(object :
@@ -197,7 +189,28 @@ class AdsController private constructor(
         fun checkInit() = ::adsController.isInitialized
     }
 
-
+    init {
+        kotlin.runCatching {
+            CoroutineScope(Dispatchers.IO).launch {
+                val initConfig = InitializationConfig.Builder(appId).build()
+                MobileAds.initialize(application, initConfig) {
+                    Handler(Looper.getMainLooper()).post {
+                        initAdsComplete()
+                    }
+                }
+                AudienceNetworkAds.initialize(application)
+            }
+        }.onFailure {
+            it.printStackTrace()
+        }
+        AudienceNetworkInitializeHelper.initialize(application)
+        if (isUseAppflyer) {
+            CoroutineScope(Dispatchers.Default).launch {
+                initAppFlyer(application)
+            }
+        }
+        readDataJson()
+    }
     fun setDebugMode(isDebug: Boolean) {
         Constant.isDebug = isDebug
     }
@@ -210,15 +223,6 @@ class AdsController private constructor(
         isAutoShowAdsResume = isEnable
     }
 
-
-    fun setTestDevice(idDevice: String) {
-        if (BuildConfig.DEBUG && isDebug) {
-            val testDeviceIds = listOf(idDevice)
-            val configuration =
-                RequestConfiguration.Builder().setTestDeviceIds(testDeviceIds).build()
-            MobileAds.setRequestConfiguration(configuration)
-        }
-    }
 
     public fun initAppFlyer(application: Application) {
         isUseAppflyer = true
@@ -280,20 +284,22 @@ class AdsController private constructor(
                 PurchaseClient.SubscriptionPurchaseValidationResultListener {
                 override fun onResponse(result: Map<String, SubscriptionValidationResult>?) {
                     result?.forEach { (k: String, v: SubscriptionValidationResult?) ->
-                        if (v.success) {
-                            Log.d(
-                                "dsk8",
-                                "[PurchaseConnector]: Subscription with ID $k was validated successfully"
-                            )
-                            val subscriptionPurchase = v.subscriptionPurchase
-                            Log.d("dsk8", subscriptionPurchase.toString())
-                        } else {
-                            Log.d(
-                                "dsk8",
-                                "[PurchaseConnector]: Subscription with ID $k wasn't validated successfully"
-                            )
-                            val failureData = v.failureData
-                            Log.d("dsk8", failureData.toString())
+                        if (v != null) {
+                            if (v.success) {
+                                Log.d(
+                                    "dsk8",
+                                    "[PurchaseConnector]: Subscription with ID $k was validated successfully"
+                                )
+                                val subscriptionPurchase = v.subscriptionPurchase
+                                Log.d("dsk8", subscriptionPurchase.toString())
+                            } else {
+                                Log.d(
+                                    "dsk8",
+                                    "[PurchaseConnector]: Subscription with ID $k wasn't validated successfully"
+                                )
+                                val failureData = v.failureData
+                                Log.d("dsk8", failureData.toString())
+                            }
                         }
                     }
                 }
@@ -309,20 +315,22 @@ class AdsController private constructor(
                 PurchaseClient.InAppPurchaseValidationResultListener {
                 override fun onResponse(result: Map<String, InAppPurchaseValidationResult>?) {
                     result?.forEach { (k: String, v: InAppPurchaseValidationResult?) ->
-                        if (v.success) {
-                            Log.d(
-                                "dsk8",
-                                "[PurchaseConnector]:  Product with Purchase Token$k was validated successfully"
-                            )
-                            val productPurchase = v.productPurchase
-                            Log.d("dsk8", productPurchase.toString())
-                        } else {
-                            Log.d(
-                                "dsk8",
-                                "[PurchaseConnector]:  Product with Purchase Token $k wasn't validated successfully"
-                            )
-                            val failureData = v.failureData
-                            Log.d(TAG, failureData.toString())
+                        if (v != null) {
+                            if (v.success) {
+                                Log.d(
+                                    "dsk8",
+                                    "[PurchaseConnector]:  Product with Purchase Token$k was validated successfully"
+                                )
+                                val productPurchase = v.productPurchase
+                                Log.d("dsk8", productPurchase.toString())
+                            } else {
+                                Log.d(
+                                    "dsk8",
+                                    "[PurchaseConnector]:  Product with Purchase Token $k wasn't validated successfully"
+                                )
+                                val failureData = v.failureData
+                                Log.d(TAG, failureData.toString())
+                            }
                         }
                     }
                 }
@@ -365,15 +373,7 @@ class AdsController private constructor(
         return checkAppId && checkPacket
     }
 
-    init {
-        AudienceNetworkInitializeHelper.initialize(application)
-        if (isUseAppflyer) {
-            CoroutineScope(Dispatchers.Default).launch {
-                initAppFlyer(application)
-            }
-        }
-        readDataJson()
-    }
+
 
     private fun readDataJson() {
         try {
@@ -503,7 +503,7 @@ class AdsController private constructor(
                         }
                     }
                 }
-                if (isWaitCMP) {
+                if (isWaitCMP || !isInitAdsSuccess) {
                     listRunnable.add(runnable)
                 } else {
                     runnable.run()
@@ -615,7 +615,7 @@ class AdsController private constructor(
                         admobHolder.preload(it, ads, preloadCallback)
                     }
                 }
-                if (isWaitCMP) {
+                if (isWaitCMP || !isInitAdsSuccess) {
                     listRunnable.add(runnable)
                 } else {
                     runnable.run()
@@ -660,7 +660,7 @@ class AdsController private constructor(
                         showToastDebug("Không tìm thấy space: $spaceName", listOf())
                     }
                 }
-                if (isWaitCMP) {
+                if (isWaitCMP || !isInitAdsSuccess) {
                     listRunnable.add(runnable)
                 } else {
                     runnable.run()
@@ -704,7 +704,7 @@ class AdsController private constructor(
                     }
                 }
             }
-            if (isWaitCMP) {
+            if (isWaitCMP || !isInitAdsSuccess) {
                 listRunnable.add(runnable)
             } else {
                 runnable.run()
@@ -753,7 +753,7 @@ class AdsController private constructor(
                     }
                 }
             }
-            if (isWaitCMP) {
+            if (isWaitCMP || !isInitAdsSuccess) {
                 listRunnable.add(runnable)
             } else {
                 runnable.run()
@@ -763,53 +763,54 @@ class AdsController private constructor(
         }
     }
 
-    fun loadAndShowNativeCollapsible(
-        spaceName: String,
-        layout: ViewGroup,
-        layoutAdsSmall: View? ,
-        @LayoutRes idLayoutAdsLarge: Int? = null,
-        reloadSeconds : Int = 0,
-        lifecycle: Lifecycle? = null,
-        adCallback: AdCallback? = null
-    ) {
-        if (!isPremium) {
-            val runnable = Runnable {
-                activity?.let {
-                    hashMapAds[spaceName]?.let { ads ->
-                        if (!ads.status) {
-                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
-                            return@Runnable
-                        }
-
-
-                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
-                            showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
-                        }
-                        AdmobNativeCollapsible.idLayoutLarge = idLayoutAdsLarge  ?: R.layout.native_ads_large_collap
-                        AdmobNativeCollapsible.reloadSeconds = reloadSeconds
-                        admobHolder.loadAndShow(
-                            it,
-                            false,
-                            ads,
-                            null,
-                            layout,
-                            layoutAdsSmall,
-                            lifecycle,
-                            null,
-                            getAdCallback(ads, adCallback)
-                        )
-                    }
-                }
-            }
-            if (isWaitCMP) {
-                listRunnable.add(runnable)
-            } else {
-                runnable.run()
-            }
-        } else {
-            adCallback?.onAdFailToLoad("premium")
-        }
-    }
+//    fun loadAndShowNativeCollapsible(
+//        spaceName: String,
+//        layout: ViewGroup,
+//        layoutAdsSmall: View?,
+//        @LayoutRes idLayoutAdsLarge: Int? = null,
+//        reloadSeconds: Int = 0,
+//        lifecycle: Lifecycle? = null,
+//        adCallback: AdCallback? = null
+//    ) {
+//        if (!isPremium) {
+//            val runnable = Runnable {
+//                activity?.let {
+//                    hashMapAds[spaceName]?.let { ads ->
+//                        if (!ads.status) {
+//                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+//                            return@Runnable
+//                        }
+//
+//
+//                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+//                            showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+//                        }
+//                        AdmobNativeCollapsible.idLayoutLarge =
+//                            idLayoutAdsLarge ?: R.layout.native_ads_large_collap
+//                        AdmobNativeCollapsible.reloadSeconds = reloadSeconds
+//                        admobHolder.loadAndShow(
+//                            it,
+//                            false,
+//                            ads,
+//                            null,
+//                            layout,
+//                            layoutAdsSmall,
+//                            lifecycle,
+//                            null,
+//                            getAdCallback(ads, adCallback)
+//                        )
+//                    }
+//                }
+//            }
+//            if (isWaitCMP) {
+//                listRunnable.add(runnable)
+//            } else {
+//                runnable.run()
+//            }
+//        } else {
+//            adCallback?.onAdFailToLoad("premium")
+//        }
+//    }
 
 
     private fun showToastDebug(title: String, list: List<AdsId>) {
@@ -957,9 +958,20 @@ class AdsController private constructor(
 
     fun cmpComplete() {
         isWaitCMP = false
-        listRunnable.forEach {
-            it.run()
+        if(isInitAdsSuccess) {
+            listRunnable.forEach {
+                it.run()
+            }
+            listRunnable.clear()
         }
-        listRunnable.clear()
+    }
+    private fun initAdsComplete(){
+        isInitAdsSuccess = true
+        if (!isWaitCMP){
+            listRunnable.forEach {
+                it.run()
+            }
+            listRunnable.clear()
+        }
     }
 }

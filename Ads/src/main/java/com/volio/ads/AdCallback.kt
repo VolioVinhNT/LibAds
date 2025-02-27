@@ -21,4 +21,10 @@ interface AdCallback {
     fun onAdImpression(adType: String) {
 
     }
+    fun onAdRefreshed(){
+
+    }
+    fun onAdFailedToRefresh(message: String) {
+
+    }
 }

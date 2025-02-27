@@ -1,19 +1,19 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
-import com.google.android.gms.ads.AdView
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
-import com.volio.ads.model.AdsChild
 import com.volio.ads.utils.StateLoadAd
-import java.util.*
+import java.util.Date
 
 abstract class AdmobAds {
     protected var timeLoader = 0L
+    protected val handle = Handler(Looper.getMainLooper())
     abstract fun isDestroy(): Boolean
     abstract fun isLoaded(): Boolean
     abstract fun getStateLoadAd(): StateLoadAd
@@ -47,5 +47,5 @@ abstract class AdmobAds {
         return dateDifference < numMilliSecondsPerHour * numHours
     }
 
-    open fun getAdsView(): AdView? = null
+//    open fun getAdsView(): AdView? = null
 }

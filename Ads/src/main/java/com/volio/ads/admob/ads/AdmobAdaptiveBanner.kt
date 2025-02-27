@@ -1,26 +1,32 @@
 package com.volio.ads.admob.ads
 
 import android.app.Activity
-import android.graphics.Color
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
-import com.google.android.gms.ads.*
+import com.google.android.libraries.ads.mobile.sdk.banner.AdSize
+import com.google.android.libraries.ads.mobile.sdk.banner.BannerAd
+import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdEventCallback
+import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRefreshCallback
+import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRequest
+import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
+import com.google.android.libraries.ads.mobile.sdk.common.AdValue
+import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
 import com.volio.ads.AdCallback
 import com.volio.ads.PreloadCallback
 import com.volio.ads.utils.AdDef
 import com.volio.ads.utils.Constant
 import com.volio.ads.utils.StateLoadAd
 import com.volio.ads.utils.Utils
-import java.util.*
+import java.util.Date
 
 
 class AdmobAdaptiveBanner : AdmobAds() {
     private var isLoadSuccess = false
-    private var adView: AdView? = null
+    private var adView: BannerAd? = null
     private var callback: AdCallback? = null
     private var callbackPreload: PreloadCallback? = null
     private var stateLoadAd = StateLoadAd.NONE
@@ -52,51 +58,14 @@ class AdmobAdaptiveBanner : AdmobAds() {
         callback = adCallback
         if (adView != null && layout != null) {
             try {
-                adView?.adListener = object : AdListener() {
-                    override fun onAdClicked() {
-                        super.onAdClicked()
-                        callback?.onAdClick()
-                    }
-
-                    override fun onAdOpened() {
-                        super.onAdOpened()
-                        Utils.showToastDebug(activity, "Admob AdapBanner: ${idAds}")
-                    }
-
-                    override fun onAdClosed() {
-                        super.onAdClosed()
-                        callback?.onAdClose(AdDef.NETWORK.GOOGLE)
-                    }
-
-                    override fun onAdFailedToLoad(p0: LoadAdError) {
-                        super.onAdFailedToLoad(p0)
-                        Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
-                        callback?.onAdFailToLoad(p0?.message)
-                    }
-
-                    override fun onAdImpression() {
-                        super.onAdImpression()
-                        Log.e("TAG", "onAdImpression: ")
-                        callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-//                        Firebase.analytics.logEvent(Constant.KeyCustomImpression, Bundle.EMPTY)
-                    }
-
-                    override fun onAdLoaded() {
-                        super.onAdLoaded()
-                        isLoadSuccess = true
-
-                        timeLoader = Date().time
-                    }
-                }
-
-
-                callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER)
+                callback?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.BANNER_ADAPTIVE)
                 layout.removeAllViews()
-                if (adView!!.parent != null) {
-                    (adView!!.parent as ViewGroup).removeView(adView) // <- fix
+                val view = adView?.getView(activity)
+                if (view != null) {
+                    (view.parent as ViewGroup).removeView(view) // <- fix
                 }
-                layout.addView(adView)
-            } catch (e: Exception) {
+                layout.addView(view)
+            } catch (_: Exception) {
             }
 
             return true
@@ -123,103 +92,109 @@ class AdmobAdaptiveBanner : AdmobAds() {
         adCallback: AdCallback?,
         loadSuccess: () -> Unit
     ) {
+        callback = adCallback
+        val id: String = if (Constant.isDebug) {
+            Constant.ID_ADMOB_BANNER_TEST
+        } else {
+            idAds
+        }
+        stateLoadAd = StateLoadAd.LOADING
+        isLoadSuccess = false
+        val adSize = getAdsize(activity)
+        val adRequest = BannerAdRequest.Builder(id, adSize).build()
+        adSize.let {
+            Log.e("TAGEG", "load: ${it.width}")
+            Log.e("TAGEG", "load: ${it.height}")
+            Log.e("TAGEG", "layout?.width : ${layout?.width ?: 1}")
+        }
+        BannerAd.load(
+            adRequest,
+            object : AdLoadCallback<BannerAd> {
+                override fun onAdLoaded(ad: BannerAd) {
+                    // Assign the loaded ad to the BannerAd object.
+                    adView = ad
+                    adView?.adEventCallback = object : BannerAdEventCallback {
+                        override fun onAdImpression() {
+                            super.onAdImpression()
+                            handle.post {
+                                callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
+                            }
+                        }
+
+                        override fun onAdDismissedFullScreenContent() {
+                            super.onAdDismissedFullScreenContent()
+                            handle.post {
+                                callback?.onAdClose(AdDef.NETWORK.GOOGLE)
+                            }
+                        }
+
+                        override fun onAdClicked() {
+                            super.onAdClicked()
+                            handle.post {
+                                callback?.onAdClick()
+                            }
+                        }
+
+                        override fun onAdPaid(value: AdValue) {
+                            super.onAdPaid(value)
+                            handle.post {
+                                val params = Bundle()
+                                params.putString("revenue_micros", value.valueMicros.toString())
+                                params.putString("precision_type", value.precisionType.toString())
+                                params.putString("ad_unit_id", idAds)
+                                callback?.onPaidEvent(params)
+                            }
+                        }
+                    }
+                    adView?.bannerAdRefreshCallback = object : BannerAdRefreshCallback {
+                        override fun onAdRefreshed() {
+                            super.onAdRefreshed()
+                            handle.post {
+                                callback?.onAdRefreshed()
+                            }
+                        }
+
+                        override fun onAdFailedToRefresh(adError: LoadAdError) {
+                            super.onAdFailedToRefresh(adError)
+                            handle.post {
+                                callback?.onAdFailedToRefresh(adError.message)
+                            }
+                        }
+                    }
+                    handle.post {
+                        stateLoadAd = StateLoadAd.SUCCESS
+                        isLoadSuccess = true
+                        callbackPreload?.onLoadDone()
+                        loadSuccess()
+                        timeLoader = Date().time
+                    }
+                }
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    handle.post {
+                        Utils.showToastDebug(activity, "Admob AdapBanner: ${adError.message}")
+                        callback?.onAdFailToLoad(adError.message)
+                        stateLoadAd = StateLoadAd.FAILED
+                        callbackPreload?.onLoadFail()
+                    }
+                }
+
+            },
+        )
+
         layout?.post {
-            callback = adCallback
-            val id: String = if (Constant.isDebug) {
-                Constant.ID_ADMOB_BANNER_TEST
-            } else {
-                idAds
-            }
-            stateLoadAd = StateLoadAd.LOADING
-            isLoadSuccess = false
-            adView = AdView(activity)
-            adView?.setBackgroundColor(Color.WHITE)
-            adView?.adUnitId = id
-
-            val adSize = getAdsize(activity)
-
-            adSize?.let {
-                Log.e("TAGEG", "load: ${it.width}")
-                Log.e("TAGEG", "load: ${it.height}")
-                Log.e("TAGEG", "layout?.width : ${layout.width ?: 1}")
-                adView?.setAdSize(it)
-            }
-
             layout.let { viewG ->
                 val lp = viewG.layoutParams
-                lp.width = adSize?.getWidthInPixels(viewG.context) ?: 0
-                lp.height = adSize?.getHeightInPixels(viewG.context) ?: 0
+                lp.width = adSize.getWidthInPixels(viewG.context)
+                lp.height = adSize.getHeightInPixels(viewG.context)
                 viewG.layoutParams = lp
             }
 
-
-            adView?.loadAd(
-                AdRequest.Builder().build()
-            )
-
-
-
-            adView?.adListener = object : AdListener() {
-
-                override fun onAdClicked() {
-                    super.onAdClicked()
-                    callback?.onAdClick()
-                }
-
-                override fun onAdOpened() {
-                    super.onAdOpened()
-                    Utils.showToastDebug(activity, "Admob AdapBanner: ${idAds}")
-                }
-
-                override fun onAdClosed() {
-                    super.onAdClosed()
-                    callback?.onAdClose(AdDef.NETWORK.GOOGLE)
-                }
-
-
-                override fun onAdImpression() {
-                    super.onAdImpression()
-                    callback?.onAdImpression(AdDef.ADS_TYPE.BANNER_ADAPTIVE)
-                    Log.e("TAG", "onAdImpression: ")
-                }
-
-                override fun onAdFailedToLoad(p0: LoadAdError) {
-                    super.onAdFailedToLoad(p0)
-                    Utils.showToastDebug(activity, "Admob AdapBanner: ${p0?.message}")
-                    callback?.onAdFailToLoad(p0?.message)
-                    stateLoadAd = StateLoadAd.FAILED
-                    callbackPreload?.onLoadFail()
-                }
-
-                override fun onAdLoaded() {
-                    super.onAdLoaded()
-                    adView?.onPaidEventListener = OnPaidEventListener {
-                        kotlin.runCatching {
-                            val params = Bundle()
-                            params.putString("revenue_micros", it.valueMicros.toString())
-                            params.putString("precision_type", it.precisionType.toString())
-                            params.putString("ad_unit_id", adView?.adUnitId)
-                            val adapterResponseInfo =
-                                adView?.responseInfo?.loadedAdapterResponseInfo
-                            adapterResponseInfo?.let { it ->
-                                params.putString("ad_source_id", it.adSourceId)
-                                params.putString("ad_source_name", it.adSourceName)
-                            }
-                            callback?.onPaidEvent(params)
-                        }
-                    }
-                    stateLoadAd = StateLoadAd.SUCCESS
-                    isLoadSuccess = true
-                    callbackPreload?.onLoadDone()
-                    loadSuccess()
-                    timeLoader = Date().time
-                }
-            }
         }
 
     }
 
-    private fun getAdsize(activity: Activity): AdSize? {
+    private fun getAdsize(activity: Activity): AdSize {
         val display = activity.windowManager.defaultDisplay
         val outMetrics = DisplayMetrics()
         display.getMetrics(outMetrics)
@@ -233,6 +208,7 @@ class AdmobAdaptiveBanner : AdmobAds() {
     }
 
     override fun destroy() {
+        adView?.destroy()
         adView = null
         isLoadSuccess = false
     }
