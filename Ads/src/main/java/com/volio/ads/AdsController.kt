@@ -41,6 +41,7 @@ import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.google.gson.Gson
 import com.volio.ads.admob.AdmobHolder
 import com.volio.ads.admob.ads.AdmobAds
+import com.volio.ads.admob.ads.AdmobNativeCollapsible
 import com.volio.ads.model.Ads
 import com.volio.ads.model.AdsChild
 import com.volio.ads.model.AdsId
@@ -763,54 +764,54 @@ class AdsController private constructor(
         }
     }
 
-//    fun loadAndShowNativeCollapsible(
-//        spaceName: String,
-//        layout: ViewGroup,
-//        layoutAdsSmall: View?,
-//        @LayoutRes idLayoutAdsLarge: Int? = null,
-//        reloadSeconds: Int = 0,
-//        lifecycle: Lifecycle? = null,
-//        adCallback: AdCallback? = null
-//    ) {
-//        if (!isPremium) {
-//            val runnable = Runnable {
-//                activity?.let {
-//                    hashMapAds[spaceName]?.let { ads ->
-//                        if (!ads.status) {
-//                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
-//                            return@Runnable
-//                        }
-//
-//
-//                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
-//                            showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
-//                        }
-//                        AdmobNativeCollapsible.idLayoutLarge =
-//                            idLayoutAdsLarge ?: R.layout.native_ads_large_collap
-//                        AdmobNativeCollapsible.reloadSeconds = reloadSeconds
-//                        admobHolder.loadAndShow(
-//                            it,
-//                            false,
-//                            ads,
-//                            null,
-//                            layout,
-//                            layoutAdsSmall,
-//                            lifecycle,
-//                            null,
-//                            getAdCallback(ads, adCallback)
-//                        )
-//                    }
-//                }
-//            }
-//            if (isWaitCMP) {
-//                listRunnable.add(runnable)
-//            } else {
-//                runnable.run()
-//            }
-//        } else {
-//            adCallback?.onAdFailToLoad("premium")
-//        }
-//    }
+    fun loadAndShowNativeCollapsible(
+        spaceName: String,
+        layout: ViewGroup,
+        layoutAdsSmall: View?,
+        @LayoutRes idLayoutAdsLarge: Int? = null,
+        reloadSeconds: Int = 0,
+        lifecycle: Lifecycle? = null,
+        adCallback: AdCallback? = null
+    ) {
+        if (!isPremium) {
+            val runnable = Runnable {
+                activity?.let {
+                    hashMapAds[spaceName]?.let { ads ->
+                        if (!ads.status) {
+                            adCallback?.onAdFailToLoad(ERROR_AD_OFF)
+                            return@Runnable
+                        }
+
+
+                        if (ads.adsType == INTERSTITIAL || ads.adsType == AdDef.ADS_TYPE.OPEN_APP || ads.adsType == AdDef.ADS_TYPE.REWARD_VIDEO) {
+                            showToastDebug("Load ${ads.adsType} ${ads.spaceName}", ads.adsIds)
+                        }
+                        AdmobNativeCollapsible.idLayoutLarge =
+                            idLayoutAdsLarge ?: R.layout.native_ads_large_collap
+                        AdmobNativeCollapsible.reloadSeconds = reloadSeconds
+                        admobHolder.loadAndShow(
+                            it,
+                            false,
+                            ads,
+                            null,
+                            layout,
+                            layoutAdsSmall,
+                            lifecycle,
+                            null,
+                            getAdCallback(ads, adCallback)
+                        )
+                    }
+                }
+            }
+            if (isWaitCMP) {
+                listRunnable.add(runnable)
+            } else {
+                runnable.run()
+            }
+        } else {
+            adCallback?.onAdFailToLoad("premium")
+        }
+    }
 
 
     private fun showToastDebug(title: String, list: List<AdsId>) {

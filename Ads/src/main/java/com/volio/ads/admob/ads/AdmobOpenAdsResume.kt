@@ -238,6 +238,7 @@ class AdmobOpenAdsResume : AdmobAds() {
                     }
                 }
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    Log.d(TAG, "onAdFailedToLoad: $id ${loadAdError.message}")
                     handle.post {
                         loadFailed = true
                         error = loadAdError.message
@@ -259,7 +260,6 @@ class AdmobOpenAdsResume : AdmobAds() {
                 }
             },
         )
-
     }
 
     private val lifecycleObserver = object : LifecycleEventObserver {
