@@ -246,13 +246,13 @@ class AdmobNativeCollapsible : AdmobAds() {
                     }
 
                     handle.post {
-                        callbackPreload?.onLoadDone()
                         if (currentUnifiedNativeAd != null) {
                             currentUnifiedNativeAd?.destroy()
                         }
                         currentUnifiedNativeAd?.destroy()
                         currentUnifiedNativeAd = nativeAd
                         loadSuccess()
+                        callbackPreload?.onLoadDone()
                     }
                     timeLoader = Date().time
                 }

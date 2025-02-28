@@ -195,6 +195,7 @@ class AdsController private constructor(
             CoroutineScope(Dispatchers.IO).launch {
                 val initConfig = InitializationConfig.Builder(appId).build()
                 MobileAds.initialize(application, initConfig) {
+                    Log.d(TAG, "initialize: ${it.totalLatency} ${it.adapterStatusMap.toString()}")
                     Handler(Looper.getMainLooper()).post {
                         initAdsComplete()
                     }

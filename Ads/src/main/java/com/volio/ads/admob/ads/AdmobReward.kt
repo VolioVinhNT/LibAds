@@ -234,6 +234,7 @@ class AdmobReward : AdmobAds() {
                     loaded = true
                     timeLoader = Date().time
                     Log.d(TAG, "onAdLoaded: ")
+                    stateLoadAd = StateLoadAd.SUCCESS
                     callbackPreload?.onLoadDone()
                 }
 

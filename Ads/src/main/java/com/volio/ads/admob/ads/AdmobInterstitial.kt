@@ -129,6 +129,7 @@ class AdmobInterstitial : AdmobAds() {
         if (!loaded && !loadFailed) {
             isTimeOut = true
             if (eventLifecycle == Lifecycle.Event.ON_RESUME) {
+                Log.d(TAG, "TimeOut")
                 AdDialog.getInstance().hideLoading()
                 callback?.onAdFailToLoad("TimeOut")
                 stateLoadAd = StateLoadAd.FAILED
@@ -145,7 +146,6 @@ class AdmobInterstitial : AdmobAds() {
         timeOut: Long,
         adCallback: AdCallback?
     ) {
-        Log.d(TAG, "load: inter")
         isloading = true
         stateLoadAd = StateLoadAd.LOADING
         if (System.currentTimeMillis() - timeClick < 500) return
@@ -164,11 +164,13 @@ class AdmobInterstitial : AdmobAds() {
         this.lifecycle = lifecycle
         timeClick = System.currentTimeMillis()
         val id = if (Constant.isDebug) Constant.ID_ADMOB_INTERSTITIAL_TEST else idAds
+        Log.d(TAG, "load: inter ${Thread.currentThread().name}")
         InterstitialAd.load(
             AdRequest.Builder(id).build(),
             object : AdLoadCallback<InterstitialAd> {
                 override fun onAdLoaded(ad: InterstitialAd) {
                     // Interstitial ad loaded.
+                    Log.d(TAG, "onAdLoaded: ")
                     mInterstitialAd = ad
                     mInterstitialAd?.adEventCallback = object : InterstitialAdEventCallback {
                         override fun onAdImpression() {
@@ -249,12 +251,12 @@ class AdmobInterstitial : AdmobAds() {
                         }
                         loaded = true
                         timeLoader = Date().time
-                        Log.d(TAG, "onAdLoaded: ")
                         callbackPreload?.onLoadDone()
                     }
                 }
 
                 override fun onAdFailedToLoad(adError: LoadAdError) {
+                    Log.e(TAG, "onAdFailedToLoad: ${adError.message}", )
                     mInterstitialAd = null
                     handle.post {
                         stateLoadAd = StateLoadAd.FAILED

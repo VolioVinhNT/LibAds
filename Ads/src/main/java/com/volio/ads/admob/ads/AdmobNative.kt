@@ -199,7 +199,6 @@ class AdmobNative : AdmobAds() {
         val adCallback =
             object : NativeAdLoaderCallback {
                 override fun onNativeAdLoaded(nativeAd: NativeAd) {
-                    stateLoadAd = StateLoadAd.SUCCESS
                     nativeAd.adEventCallback = object : NativeAdEventCallback {
                         override fun onAdImpression() {
                             super.onAdImpression()
@@ -235,13 +234,14 @@ class AdmobNative : AdmobAds() {
                     }
 
                     handle.post {
-                        callbackPreload?.onLoadDone()
                         if (currentUnifiedNativeAd != null) {
                             currentUnifiedNativeAd?.destroy()
                         }
                         currentUnifiedNativeAd?.destroy()
                         currentUnifiedNativeAd = nativeAd
+                        stateLoadAd = StateLoadAd.SUCCESS
                         loadSuccess()
+                        callbackPreload?.onLoadDone()
                     }
                     timeLoader = Date().time
                 }
@@ -268,13 +268,13 @@ class AdmobNative : AdmobAds() {
         lifecycle: Lifecycle?,
         adCallback: AdCallback?
     ): Boolean {
-        Log.d(TAG, "show: ${layout == null}")
+        Log.d(TAG, "show:${idAds} ${layout == null} ${currentUnifiedNativeAd==null} ${stateLoadAd}")
         adCallbackMain = adCallback
         adCallbackMain?.onAdShow(AdDef.NETWORK.GOOGLE, AdDef.ADS_TYPE.NATIVE)
 
         if (layout != null) {
             if (layoutAds != null) {
-
+                Log.d(TAG, "show: 1")
 
                 val unifiedNativeAdView = NativeAdView(activity)
                 unifiedNativeAdView.layoutParams = ViewGroup.LayoutParams(
@@ -289,11 +289,13 @@ class AdmobNative : AdmobAds() {
                 }
                 unifiedNativeAdView.addView(layoutAds)
                 currentUnifiedNativeAd?.let {
+                    Log.d(TAG, "show: 2")
                     layout.removeAllViews()
                     layout.addView(unifiedNativeAdView)
                     populateUnifiedNativeAdView(it, unifiedNativeAdView)
                 }
             } else {
+                Log.d(TAG, "show: 3")
                 val adView = LayoutInflater.from(activity)
                     .inflate(R.layout.ad_unified, null) as NativeAdView
                 currentUnifiedNativeAd?.let {
